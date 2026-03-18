@@ -65,7 +65,7 @@ const FindAndSeekWidget = () => {
               exit={{ opacity: 0, scale: 0.95 }}
               whileTap={{ scale: 0.96 }}
               onClick={() => markFound(activeItem.id)}
-              className="w-full h-full bg-card p-4 shadow-boutique border-none cursor-pointer text-left flex flex-col justify-between relative overflow-hidden"
+              className="w-full h-full bg-card p-4 shadow-boutique rounded-xl border-none cursor-pointer text-left flex flex-col justify-between relative overflow-hidden"
             >
               <motion.div
                 className="absolute inset-0 bg-gradient-to-r from-transparent via-accent/5 to-transparent"
@@ -98,7 +98,7 @@ const FindAndSeekWidget = () => {
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
-              className="w-full h-full bg-card shadow-boutique flex flex-col items-center justify-center"
+              className="w-full h-full bg-card shadow-boutique rounded-xl flex flex-col items-center justify-center"
             >
               <motion.span
                 className="text-3xl mb-2"
@@ -118,7 +118,7 @@ const FindAndSeekWidget = () => {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="w-full h-full bg-card shadow-boutique flex flex-col items-center justify-center"
+              className="w-full h-full bg-card shadow-boutique rounded-xl flex flex-col items-center justify-center"
             >
               <Check size={18} className="text-accent mb-2" />
               <span className="font-display text-sm text-foreground">All Found</span>

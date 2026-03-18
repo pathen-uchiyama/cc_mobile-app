@@ -41,7 +41,7 @@
     --input: var(--slate-divider);
     --ring: var(--gold);
 
-    --radius: 0px;
+    --radius: 12px;
 
     --sidebar-background: var(--parchment);
     --sidebar-foreground: var(--obsidian);
