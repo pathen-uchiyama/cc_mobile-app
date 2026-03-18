@@ -3,6 +3,8 @@ import { AnimatePresence } from 'framer-motion';
 import LoomingHorizon from '@/components/LoomingHorizon';
 import NudgeStack from '@/components/NudgeStack';
 import NowCarousel from '@/components/NowCarousel';
+import MemoryMakerWidget from '@/components/MemoryMakerWidget';
+import FindAndSeekWidget from '@/components/FindAndSeekWidget';
 import QuickActions from '@/components/QuickActions';
 import SentimentSlider from '@/components/SentimentSlider';
 import NeedOverlay from '@/components/NeedOverlay';
