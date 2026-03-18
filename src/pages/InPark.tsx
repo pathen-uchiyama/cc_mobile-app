@@ -39,9 +39,9 @@ const InPark = () => {
             </span>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <MemoryMakerWidget />
+          <div className="space-y-4">
             <FindAndSeekWidget />
+            <MemoryMakerWidget />
           </div>
         </div>
       </main>
