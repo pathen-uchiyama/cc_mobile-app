@@ -97,7 +97,7 @@ const MemoryMakerWidget = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.3 }}
-              className="h-full bg-card p-4 shadow-boutique flex flex-col justify-between"
+              className="h-full bg-card p-4 shadow-boutique rounded-xl flex flex-col justify-between"
             >
               <div>
                 <div className="flex items-center gap-1.5 mb-2">
