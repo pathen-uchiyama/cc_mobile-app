@@ -68,7 +68,7 @@ const NowCarousel = () => {
     <div>
       {/* Section label */}
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-1.5 h-1.5 bg-accent" />
+        <div className="w-1.5 h-1.5 bg-accent rounded-full" />
         <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold">
           Right Now
         </span>
@@ -79,35 +79,29 @@ const NowCarousel = () => {
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-card p-5 shadow-boutique rounded-xl mb-3"
+          className="bg-card p-5 shadow-boutique rounded-xl mb-3 relative"
         >
-          <div className="flex items-center justify-between mb-3">
-            <span className="font-sans text-[8px] uppercase tracking-sovereign text-accent font-bold flex items-center gap-1.5">
-              <motion.div
-                className="w-2 h-2 bg-accent rounded-full"
-                animate={{ scale: [1, 1.4, 1], opacity: [1, 0.5, 1] }}
-                transition={{ repeat: Infinity, duration: 2 }}
-              />
-              Happening Now
-            </span>
-            <span className="font-sans tabular-nums text-sm text-foreground font-semibold">
-              {nowEvent.time}
-            </span>
-          </div>
-          <h3 className="font-display text-xl text-foreground mb-1">{nowEvent.title}</h3>
-          <div className="flex items-center justify-between mt-2">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1">
-                <MapPin size={10} className="text-muted-foreground" />
-                <span className="font-sans text-[10px] text-muted-foreground">{nowEvent.location}</span>
-              </div>
+          {/* Wait time — prominent upper right */}
+          {nowEvent.wait && (
+            <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-accent/15 px-3 py-1.5 rounded-full">
+              <Clock size={12} className="text-accent" />
+              <span className="font-sans text-sm text-accent font-bold tabular-nums">{nowEvent.wait}</span>
             </div>
-            {nowEvent.wait && (
-              <div className="flex items-center gap-1.5 bg-accent/10 px-2.5 py-1 rounded-full">
-                <Clock size={10} className="text-accent" />
-                <span className="font-sans text-[11px] text-accent font-bold tabular-nums">{nowEvent.wait}</span>
-              </div>
-            )}
+          )}
+
+          <span className="font-sans text-[8px] uppercase tracking-sovereign text-accent font-bold flex items-center gap-1.5 mb-3">
+            <motion.div
+              className="w-2 h-2 bg-accent rounded-full"
+              animate={{ scale: [1, 1.4, 1], opacity: [1, 0.5, 1] }}
+              transition={{ repeat: Infinity, duration: 2 }}
+            />
+            Happening Now · {nowEvent.time}
+          </span>
+
+          <h3 className="font-display text-xl text-foreground mb-1">{nowEvent.title}</h3>
+          <div className="flex items-center gap-1 mt-2">
+            <MapPin size={10} className="text-muted-foreground" />
+            <span className="font-sans text-[10px] text-muted-foreground">{nowEvent.location}</span>
           </div>
         </motion.div>
       )}
