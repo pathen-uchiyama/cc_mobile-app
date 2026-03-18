@@ -2,95 +2,55 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
-
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Castle Companion — The Sovereign Protocol */
+    --parchment: 40 33% 96%;
+    --obsidian: 207 27% 15%;
+    --gold: 42 52% 55%;
+    --thistle: 270 30% 71%;
+    --slate-plaid: 207 10% 54%;
+    --slate-divider: 207 10% 54%;
+    --sienna: 19 59% 40%;
+
+    --background: var(--parchment);
+    --foreground: var(--obsidian);
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: var(--obsidian);
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: var(--obsidian);
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: var(--obsidian);
+    --primary-foreground: var(--parchment);
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 210 20% 94%;
+    --secondary-foreground: var(--obsidian);
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 210 20% 94%;
+    --muted-foreground: var(--slate-plaid);
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: var(--gold);
+    --accent-foreground: var(--obsidian);
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: var(--sienna);
+    --destructive-foreground: var(--parchment);
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: var(--slate-divider);
+    --input: var(--slate-divider);
+    --ring: var(--gold);
 
-    --radius: 0.5rem;
+    --radius: 0px;
 
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: var(--parchment);
+    --sidebar-foreground: var(--obsidian);
+    --sidebar-primary: var(--obsidian);
+    --sidebar-primary-foreground: var(--parchment);
+    --sidebar-accent: var(--gold);
+    --sidebar-accent-foreground: var(--obsidian);
+    --sidebar-border: var(--slate-divider);
+    --sidebar-ring: var(--gold);
   }
 }
 
@@ -101,5 +61,117 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: -0.02em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: 'Playfair Display', serif;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+  }
+
+  .font-sans {
+    font-family: 'Inter', sans-serif;
+    letter-spacing: -0.02em;
+  }
+
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .shadow-boutique {
+    box-shadow: 0 0 0 1px rgba(26, 37, 48, 0.05), 0 10px 30px rgba(26, 37, 48, 0.05);
+  }
+
+  .shadow-boutique-hover {
+    box-shadow: 0 0 0 1px rgba(26, 37, 48, 0.1), 0 20px 50px rgba(26, 37, 48, 0.1);
+  }
+
+  .glass-nav {
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    background: hsla(var(--parchment) / 0.85);
+    border-top: 1px solid rgba(255, 255, 255, 0.5);
+  }
+
+  .vellum-filter {
+    backdrop-filter: blur(8px) contrast(1.1) brightness(0.9);
+    -webkit-backdrop-filter: blur(8px) contrast(1.1) brightness(0.9);
+    filter: sepia(0.3);
+  }
+
+  .tracking-sovereign {
+    letter-spacing: 0.2em;
+  }
+}
+
+/* Custom range slider */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 2px;
+  background: hsl(var(--obsidian) / 0.15);
+  outline: none;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: hsl(var(--obsidian));
+  cursor: pointer;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: hsl(var(--obsidian));
+  border: none;
+  cursor: pointer;
+}
+
+/* Shake animation for collision */
+@keyframes shake-reject {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+.animate-shake {
+  animation: shake-reject 0.5s ease-in-out;
+}
+
+/* Heartbeat pulse for recording */
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+.animate-heartbeat {
+  animation: heartbeat 0.8s ease-in-out infinite;
+}
+
+/* Flash for ripple effect */
+@keyframes card-flash {
+  0% { background-color: hsl(var(--card)); }
+  50% { background-color: hsl(var(--gold) / 0.08); }
+  100% { background-color: hsl(var(--card)); }
+}
+
+.animate-flash {
+  animation: card-flash 0.4s ease-out;
 }
