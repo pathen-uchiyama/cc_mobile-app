@@ -29,9 +29,14 @@ const InPark = () => {
         </div>
       </div>
 
-      {/* ── Middle: plan cards with breathing room ── */}
-      <section className="flex-1 min-h-0 flex flex-col justify-center px-4">
-        <NowCarousel />
+      {/* ── Middle: plan cards + LL tracker ── */}
+      <section className="flex-1 min-h-0 flex flex-col justify-center overflow-y-auto">
+        <div className="px-4 py-2">
+          <NowCarousel />
+        </div>
+        <div className="py-2">
+          <LightningLaneTracker visible={showLL} />
+        </div>
       </section>
 
       {/* ── Bottom third: experiences side by side ── */}
