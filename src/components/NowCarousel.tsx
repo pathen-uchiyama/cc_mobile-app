@@ -79,12 +79,12 @@ const NowCarousel = () => {
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-card p-5 shadow-boutique mb-3"
+          className="bg-card p-5 shadow-boutique rounded-xl mb-3"
         >
           <div className="flex items-center justify-between mb-3">
             <span className="font-sans text-[8px] uppercase tracking-sovereign text-accent font-bold flex items-center gap-1.5">
               <motion.div
-                className="w-2 h-2 bg-accent"
+                className="w-2 h-2 bg-accent rounded-full"
                 animate={{ scale: [1, 1.4, 1], opacity: [1, 0.5, 1] }}
                 transition={{ repeat: Infinity, duration: 2 }}
               />
@@ -95,15 +95,17 @@ const NowCarousel = () => {
             </span>
           </div>
           <h3 className="font-display text-xl text-foreground mb-1">{nowEvent.title}</h3>
-          <div className="flex items-center gap-3 mt-2">
-            <div className="flex items-center gap-1">
-              <MapPin size={10} className="text-muted-foreground" />
-              <span className="font-sans text-[10px] text-muted-foreground">{nowEvent.location}</span>
+          <div className="flex items-center justify-between mt-2">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1">
+                <MapPin size={10} className="text-muted-foreground" />
+                <span className="font-sans text-[10px] text-muted-foreground">{nowEvent.location}</span>
+              </div>
             </div>
             {nowEvent.wait && (
-              <div className="flex items-center gap-1">
-                <Clock size={10} className="text-muted-foreground" />
-                <span className="font-sans text-[10px] text-foreground font-semibold">{nowEvent.wait}</span>
+              <div className="flex items-center gap-1.5 bg-accent/10 px-2.5 py-1 rounded-full">
+                <Clock size={10} className="text-accent" />
+                <span className="font-sans text-[11px] text-accent font-bold tabular-nums">{nowEvent.wait}</span>
               </div>
             )}
           </div>
