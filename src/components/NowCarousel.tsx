@@ -1,9 +1,7 @@
-import { useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Clock, MapPin, ChevronRight, Pencil } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { MapPin, Clock, Zap } from 'lucide-react';
 
-interface AgendaCard {
+interface TimelineEvent {
   id: string;
   time: string;
   title: string;
@@ -14,7 +12,7 @@ interface AgendaCard {
   type: 'ride' | 'dining' | 'show';
 }
 
-const AGENDA: AgendaCard[] = [
+const AGENDA: TimelineEvent[] = [
   {
     id: '1',
     time: '10:15',
@@ -42,112 +40,126 @@ const AGENDA: AgendaCard[] = [
     status: 'later',
     type: 'dining',
   },
+  {
+    id: '4',
+    time: '13:00',
+    title: 'Festival of Fantasy Parade',
+    location: 'Main Street U.S.A.',
+    status: 'later',
+    type: 'show',
+  },
+  {
+    id: '5',
+    time: '14:30',
+    title: 'Space Mountain',
+    location: 'Tomorrowland',
+    wait: '45 min',
+    status: 'later',
+    llSecured: true,
+    type: 'ride',
+  },
 ];
 
-const statusStyles = {
-  now: 'border-l-accent',
-  next: 'border-l-primary',
-  later: 'border-l-muted-foreground',
-};
-
-const statusLabel = {
-  now: 'Happening Now',
-  next: 'Up Next',
-  later: 'Coming Up',
+const statusDot: Record<string, string> = {
+  now: 'bg-accent',
+  next: 'bg-primary',
+  later: 'bg-muted-foreground/30',
 };
 
 const NowCarousel = () => {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
-
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h2 className="font-display text-2xl text-foreground">Your Day</h2>
-          <p className="font-sans text-[10px] uppercase tracking-sovereign text-muted-foreground mt-1">Scroll for what's ahead</p>
-        </div>
-        <button
-          onClick={() => navigate('/itinerary')}
-          className="flex items-center gap-1.5 px-3 py-2 bg-transparent border border-border cursor-pointer min-h-[44px]"
-          aria-label="Edit plan"
-        >
-          <Pencil size={13} className="text-muted-foreground" />
-          <span className="font-sans text-[10px] uppercase tracking-sovereign text-muted-foreground">Edit</span>
-        </button>
+    <div className="relative">
+      {/* Section label */}
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-1.5 h-1.5 bg-accent" />
+        <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold">
+          Today's Timeline
+        </span>
       </div>
 
-      {/* Horizontal scroll */}
-      <div
-        ref={scrollRef}
-        className="flex gap-4 overflow-x-auto pb-4 -mx-6 px-6 snap-x snap-mandatory scrollbar-hide"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-      >
-        {AGENDA.map((card, i) => (
-          <motion.div
-            key={card.id}
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: i * 0.1, duration: 0.4 }}
-            className={`snap-start shrink-0 w-[85%] bg-card p-6 shadow-boutique border-l-4 ${statusStyles[card.status]}`}
-          >
-            {/* Status label */}
-            <span className={`font-sans text-[9px] uppercase tracking-sovereign block mb-3 ${
-              card.status === 'now' ? 'text-accent font-bold' : 'text-muted-foreground'
-            }`}>
-              {statusLabel[card.status]}
-            </span>
+      {/* Flighty-style vertical timeline */}
+      <div className="relative ml-[52px]">
+        {/* Vertical connector line */}
+        <div className="absolute left-0 top-0 bottom-0 w-px bg-border" />
 
-            {/* Time */}
-            <span className="font-sans tabular-nums text-3xl font-light text-foreground block mb-1">
-              {card.time}
-            </span>
+        {AGENDA.map((event, i) => {
+          const isActive = event.status === 'now';
+          return (
+            <motion.div
+              key={event.id}
+              initial={{ opacity: 0, x: -12 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: i * 0.08, duration: 0.4 }}
+              className={`relative pb-8 last:pb-0 ${isActive ? '' : 'opacity-70'}`}
+            >
+              {/* Time — positioned to the left of the line */}
+              <span
+                className={`absolute right-full mr-5 top-0 font-sans tabular-nums text-sm ${
+                  isActive ? 'text-foreground font-semibold' : 'text-muted-foreground font-light'
+                }`}
+              >
+                {event.time}
+              </span>
 
-            {/* Title */}
-            <h3 className="font-display text-xl text-foreground mb-2">{card.title}</h3>
-
-            {/* Meta */}
-            <div className="flex items-center gap-4 mt-3">
-              <div className="flex items-center gap-1.5">
-                <MapPin size={12} className="text-muted-foreground" />
-                <span className="font-sans text-[10px] text-muted-foreground">{card.location}</span>
+              {/* Dot on the line */}
+              <div className="absolute left-0 top-1 -translate-x-1/2">
+                <div className={`w-2.5 h-2.5 ${statusDot[event.status]}`} />
+                {isActive && (
+                  <motion.div
+                    className="absolute inset-0 bg-accent/30"
+                    animate={{ scale: [1, 2.5, 1], opacity: [0.6, 0, 0.6] }}
+                    transition={{ repeat: Infinity, duration: 2 }}
+                  />
+                )}
               </div>
-              {card.wait && (
-                <div className="flex items-center gap-1.5">
-                  <Clock size={12} className="text-muted-foreground" />
-                  <span className="font-sans text-[10px] text-muted-foreground">Wait: <span className="text-foreground font-semibold">{card.wait}</span></span>
+
+              {/* Event card */}
+              <div className={`ml-6 ${isActive ? 'bg-card p-5 shadow-boutique' : 'pl-5'}`}>
+                {isActive && (
+                  <span className="font-sans text-[8px] uppercase tracking-sovereign text-accent font-bold block mb-2">
+                    Happening Now
+                  </span>
+                )}
+                <h3 className={`font-display ${isActive ? 'text-xl' : 'text-base'} text-foreground mb-1`}>
+                  {event.title}
+                </h3>
+                <div className="flex items-center gap-3 mt-1.5">
+                  <div className="flex items-center gap-1">
+                    <MapPin size={10} className="text-muted-foreground" />
+                    <span className="font-sans text-[10px] text-muted-foreground">{event.location}</span>
+                  </div>
+                  {event.wait && (
+                    <div className="flex items-center gap-1">
+                      <Clock size={10} className="text-muted-foreground" />
+                      <span className="font-sans text-[10px] text-muted-foreground">
+                        <span className="text-foreground font-semibold">{event.wait}</span>
+                      </span>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
 
-            {/* Lightning Lane badge */}
-            {card.llSecured && (
-              <div className="mt-4 px-3 py-2 bg-accent/10 inline-flex items-center gap-2">
-                <div className="w-1.5 h-1.5 bg-accent" />
-                <span className="font-sans text-[9px] uppercase tracking-sovereign text-accent font-bold">Lightning Lane Secured</span>
+                {/* LL badge */}
+                {event.llSecured && (
+                  <div className="flex items-center gap-1.5 mt-2.5">
+                    <Zap size={9} className="text-accent" />
+                    <span className="font-sans text-[8px] uppercase tracking-sovereign text-accent font-bold">
+                      Lightning Lane
+                    </span>
+                  </div>
+                )}
+
+                {/* Dining */}
+                {event.type === 'dining' && (
+                  <div className="mt-2.5">
+                    <span className="font-sans text-[8px] uppercase tracking-sovereign text-foreground font-bold">
+                      Reservation Locked
+                    </span>
+                  </div>
+                )}
               </div>
-            )}
-
-            {/* Dining indicator */}
-            {card.type === 'dining' && (
-              <div className="mt-4 px-3 py-2 bg-muted inline-flex items-center gap-2">
-                <span className="font-sans text-[9px] uppercase tracking-sovereign text-foreground font-bold">Reservation Locked</span>
-              </div>
-            )}
-          </motion.div>
-        ))}
-
-        {/* See full plan card */}
-        <motion.button
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
-          onClick={() => navigate('/itinerary')}
-          className="snap-start shrink-0 w-[60%] bg-card p-6 shadow-boutique flex flex-col items-center justify-center cursor-pointer border-none min-h-[200px]"
-        >
-          <ChevronRight size={24} className="text-muted-foreground mb-3" />
-          <span className="font-sans text-[10px] uppercase tracking-sovereign text-muted-foreground">View Full Plan</span>
-        </motion.button>
+            </motion.div>
+          );
+        })}
       </div>
     </div>
   );
