@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Bath, TreePine, Mic, Heart, Home, User, MapPin, RefreshCw } from 'lucide-react';
+import { Bath, TreePine, Mic, Heart, Home, User, MapPin, RefreshCw, Pencil, Zap, FileText } from 'lucide-react';
 import { useState } from 'react';
 
 interface QuickActionsProps {
