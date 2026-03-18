@@ -98,7 +98,7 @@ const FindAndSeekWidget = () => {
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
-              className="w-full h-full bg-card shadow-boutique flex flex-col items-center justify-center"
+              className="w-full h-full bg-card shadow-boutique rounded-xl flex flex-col items-center justify-center"
             >
               <motion.span
                 className="text-3xl mb-2"
