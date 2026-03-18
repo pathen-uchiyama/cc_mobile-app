@@ -30,7 +30,7 @@ const InPark = () => {
       </div>
 
       {/* ── Middle: plan cards + LL tracker — no scroll ── */}
-      <section className="flex-1 min-h-0 flex flex-col justify-center px-4 gap-3">
+      <section className="flex-1 min-h-0 flex flex-col justify-center px-4 gap-5">
         <NowCarousel />
         <LightningLaneTracker visible={showLL} tier="manager" />
       </section>
