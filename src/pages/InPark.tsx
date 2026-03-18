@@ -19,38 +19,34 @@ const InPark = () => {
 
   return (
     <div className="h-screen bg-background max-w-[480px] mx-auto relative flex flex-col overflow-hidden">
-      <LoomingHorizon parkName="Magic Kingdom" />
-
-      {/* Toast notifications — ephemeral, auto-dismiss */}
-      <NudgeStack />
-
-      {/* ── Plan Cards: bulk of screen with breathing room ── */}
-      <section className="flex-1 pt-[60px] px-6 flex flex-col justify-center min-h-0">
-        <div className="py-6">
-          <NowCarousel />
+      {/* ── Fixed top: header + notification center ── */}
+      <div className="shrink-0">
+        <LoomingHorizon parkName="Magic Kingdom" />
+        <div className="pt-[52px]">
+          <NudgeStack />
         </div>
+      </div>
+
+      {/* ── Middle: plan cards with breathing room ── */}
+      <section className="flex-1 min-h-0 flex flex-col justify-center px-6">
+        <NowCarousel />
       </section>
 
-      {/* ── Experiences: bottom third, side by side ── */}
-      <section className="h-[33vh] min-h-[200px] px-4 pb-[92px] flex flex-col">
-        <div className="flex items-center gap-3 mb-3 px-2">
+      {/* ── Bottom third: experiences side by side ── */}
+      <section className="shrink-0 h-[32vh] min-h-[210px] px-4 pb-[92px]">
+        <div className="flex items-center gap-3 mb-2.5 px-1">
           <div className="w-1.5 h-1.5 bg-primary" />
           <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold">
             Your Experiences
           </span>
         </div>
-
-        <div className="grid grid-cols-2 gap-3 flex-1 min-h-0">
-          <div className="overflow-hidden">
-            <MemoryMakerWidget />
-          </div>
-          <div className="overflow-hidden">
-            <FindAndSeekWidget />
-          </div>
+        <div className="grid grid-cols-2 gap-3 h-[calc(100%-24px)]">
+          <MemoryMakerWidget />
+          <FindAndSeekWidget />
         </div>
       </section>
 
-      {/* Gold Thread — AI Disclosure Footer */}
+      {/* Gold Thread */}
       <div className="fixed bottom-[72px] inset-x-0 max-w-[480px] mx-auto z-40">
         <div className="h-px bg-accent/40" />
         <div className="bg-card/80 backdrop-blur-sm px-4 py-1.5 flex items-center justify-center">
@@ -60,7 +56,7 @@ const InPark = () => {
         </div>
       </div>
 
-      {/* Command Center — fixed bottom */}
+      {/* Command Center */}
       <div className="fixed bottom-0 inset-x-0 max-w-[480px] mx-auto z-50">
         <QuickActions
           onBathroom={() => setNeedType('bathroom')}
