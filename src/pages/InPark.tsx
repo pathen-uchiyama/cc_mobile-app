@@ -10,12 +10,14 @@ import SentimentSlider from '@/components/SentimentSlider';
 import NeedOverlay from '@/components/NeedOverlay';
 import CheckInOverlay from '@/components/CheckInOverlay';
 import RecalibrateSheet from '@/components/RecalibrateSheet';
+import LightningLaneTracker from '@/components/LightningLaneTracker';
 
 const InPark = () => {
   const [showPulse, setShowPulse] = useState(false);
   const [needType, setNeedType] = useState<'bathroom' | 'quiet' | null>(null);
   const [showCheckIn, setShowCheckIn] = useState(false);
   const [showRecalibrate, setShowRecalibrate] = useState(false);
+  const [showLL, setShowLL] = useState(true); // toggleable in settings
 
   return (
     <div className="h-screen bg-background max-w-[480px] mx-auto relative flex flex-col overflow-hidden">
