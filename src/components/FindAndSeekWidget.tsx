@@ -118,7 +118,7 @@ const FindAndSeekWidget = () => {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="w-full h-full bg-card shadow-boutique flex flex-col items-center justify-center"
+              className="w-full h-full bg-card shadow-boutique rounded-xl flex flex-col items-center justify-center"
             >
               <Check size={18} className="text-accent mb-2" />
               <span className="font-display text-sm text-foreground">All Found</span>

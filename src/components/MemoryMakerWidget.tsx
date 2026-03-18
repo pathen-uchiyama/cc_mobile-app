@@ -140,7 +140,7 @@ const MemoryMakerWidget = () => {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="h-full bg-card shadow-boutique flex flex-col items-center justify-center"
+              className="h-full bg-card shadow-boutique rounded-xl flex flex-col items-center justify-center"
             >
               <motion.div
                 animate={{ scale: [1, 1.2, 1] }}
