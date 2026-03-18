@@ -25,6 +25,10 @@ const InPark = () => {
         <div className="px-6 py-6">
           <NowCarousel />
         </div>
+
+        {/* Interactive Widgets */}
+        <MemoryMakerWidget />
+        <FindAndSeekWidget />
       </main>
 
       {/* Uber-style fixed bottom quick actions */}
