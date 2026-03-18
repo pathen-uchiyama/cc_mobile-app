@@ -31,7 +31,7 @@ const FindAndSeekWidget = () => {
   };
 
   return (
-    <div className="px-6 mb-6">
+    <div>
       <motion.button
         whileTap={{ scale: 0.98 }}
         onClick={() => setExpanded(!expanded)}
