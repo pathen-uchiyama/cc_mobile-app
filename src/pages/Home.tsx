@@ -1,135 +1,110 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Compass, BookOpen, RefreshCw, LogIn, Settings } from 'lucide-react';
+import { ArrowRight, BookOpen, RefreshCw, LogIn, Settings } from 'lucide-react';
 
 const Home = () => {
   const navigate = useNavigate();
 
-  const stagger = {
-    hidden: {},
-    show: { transition: { staggerChildren: 0.12 } },
-  };
-
-  const fadeUp = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-  };
-
   return (
-    <div className="min-h-screen bg-background max-w-[480px] mx-auto flex flex-col px-6 pt-14 pb-12">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="mb-10"
-      >
-        <div className="w-8 h-8 bg-primary mb-5" />
-        <h1 className="font-display text-3xl text-foreground mb-2">
-          Castle Companion
-        </h1>
-        <p className="font-sans text-xs text-muted-foreground leading-relaxed max-w-[260px]">
-          Your concierge for the parks.
-        </p>
-      </motion.div>
+    <div className="min-h-screen bg-background max-w-[480px] mx-auto flex flex-col">
+      {/* Uber Black-style: single dominant action fills the top */}
+      <div className="flex-1 flex flex-col justify-center px-6 pt-16">
+        {/* Minimal brand mark */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6 }}
+          className="mb-12"
+        >
+          <div className="w-6 h-6 bg-primary mb-4" />
+          <p className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground">
+            Castle Companion
+          </p>
+        </motion.div>
 
-      {/* Primary Actions */}
-      <motion.div
-        variants={stagger}
-        initial="hidden"
-        animate="show"
-        className="space-y-4 flex-1"
-      >
+        {/* Primary CTA — dominates the viewport like Uber Black's ride button */}
         <motion.button
-          variants={fadeUp}
-          whileTap={{ scale: 0.98 }}
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15, duration: 0.5 }}
+          whileTap={{ scale: 0.985 }}
           onClick={() => navigate('/park')}
-          className="w-full bg-card p-8 shadow-boutique cursor-pointer border-none text-left group hover:shadow-boutique-hover transition-shadow"
+          className="w-full bg-primary p-10 shadow-boutique cursor-pointer border-none text-left group hover:shadow-boutique-hover transition-shadow mb-4"
         >
-          <div className="flex items-start gap-5">
-            <div className="w-14 h-14 bg-primary flex items-center justify-center shrink-0">
-              <Compass size={24} className="text-primary-foreground" />
-            </div>
+          <div className="flex items-end justify-between">
             <div>
-              <h2 className="font-display text-2xl text-foreground mb-2">Follow My Plan</h2>
-              <p className="font-sans text-xs text-muted-foreground leading-relaxed">
-                Your itinerary is locked. Enter the park with your concierge active.
-              </p>
+              <span className="font-sans text-[8px] uppercase tracking-sovereign text-primary-foreground/50 block mb-3">
+                The Horizon
+              </span>
+              <h1 className="font-display text-4xl text-primary-foreground leading-none">
+                Follow<br />My Plan
+              </h1>
             </div>
+            <ArrowRight size={28} className="text-primary-foreground/40 group-hover:text-primary-foreground transition-colors mb-1" />
           </div>
         </motion.button>
 
+        {/* Secondary — recedes visually */}
         <motion.button
-          variants={fadeUp}
-          whileTap={{ scale: 0.98 }}
-          className="w-full bg-card p-8 shadow-boutique cursor-pointer border-none text-left group hover:shadow-boutique-hover transition-shadow"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+          whileTap={{ scale: 0.985 }}
+          className="w-full bg-card p-6 shadow-boutique cursor-pointer border-none text-left group hover:shadow-boutique-hover transition-shadow"
         >
-          <div className="flex items-start gap-5">
-            <div className="w-14 h-14 bg-accent flex items-center justify-center shrink-0">
-              <BookOpen size={24} className="text-accent-foreground" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <BookOpen size={18} className="text-muted-foreground" />
+              <div>
+                <h2 className="font-display text-lg text-foreground">Past Voyages</h2>
+                <span className="font-sans text-[9px] text-muted-foreground uppercase tracking-sovereign">The Vault</span>
+              </div>
             </div>
-            <div>
-              <h2 className="font-display text-2xl text-foreground mb-2">Past Voyages</h2>
-              <p className="font-sans text-xs text-muted-foreground leading-relaxed">
-                Relive your memories and review past park days.
-              </p>
-            </div>
+            <ArrowRight size={16} className="text-muted-foreground/30" />
           </div>
         </motion.button>
-      </motion.div>
+      </div>
 
-      {/* Utility Links */}
+      {/* Bottom utility — minimal, Uber-style */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
-        className="mt-10 space-y-3"
+        className="px-6 pb-10 pt-8"
       >
         {/* Sync */}
-        <div className="flex justify-center">
+        <div className="flex justify-center mb-5">
           <button className="flex items-center gap-2 bg-transparent border-none cursor-pointer group">
-            <RefreshCw size={13} className="text-muted-foreground group-hover:text-foreground transition-colors" />
-            <span className="font-sans text-[11px] text-muted-foreground group-hover:text-foreground transition-colors underline underline-offset-4 decoration-muted-foreground/30">
+            <RefreshCw size={11} className="text-muted-foreground/50 group-hover:text-foreground transition-colors" />
+            <span className="font-sans text-[10px] text-muted-foreground/50 group-hover:text-foreground transition-colors">
               Sync Upcoming Voyage
             </span>
           </button>
         </div>
 
-        {/* Navigation Row */}
-        <div className="flex items-center justify-center gap-6 pt-2">
+        {/* Nav row */}
+        <div className="flex items-center justify-center gap-6">
           <button
             onClick={() => navigate('/auth')}
-            className="flex items-center gap-2 bg-transparent border-none cursor-pointer group"
+            className="flex items-center gap-1.5 bg-transparent border-none cursor-pointer group"
           >
-            <LogIn size={13} className="text-muted-foreground group-hover:text-foreground transition-colors" />
-            <span className="font-sans text-[11px] text-muted-foreground group-hover:text-foreground transition-colors">
+            <LogIn size={11} className="text-muted-foreground/40 group-hover:text-foreground transition-colors" />
+            <span className="font-sans text-[10px] text-muted-foreground/40 group-hover:text-foreground transition-colors">
               Sign In
             </span>
           </button>
-
-          <span className="text-border text-[10px]">|</span>
-
+          <span className="text-muted-foreground/20 text-[8px]">·</span>
           <button
             onClick={() => navigate('/auth')}
-            className="flex items-center gap-2 bg-transparent border-none cursor-pointer group"
+            className="flex items-center gap-1.5 bg-transparent border-none cursor-pointer group"
           >
-            <Settings size={13} className="text-muted-foreground group-hover:text-foreground transition-colors" />
-            <span className="font-sans text-[11px] text-muted-foreground group-hover:text-foreground transition-colors">
+            <Settings size={11} className="text-muted-foreground/40 group-hover:text-foreground transition-colors" />
+            <span className="font-sans text-[10px] text-muted-foreground/40 group-hover:text-foreground transition-colors">
               Account
             </span>
           </button>
         </div>
       </motion.div>
-
-      {/* Footer */}
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.7 }}
-        className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground text-center mt-10"
-      >
-        The Sovereign Protocol — v1.0
-      </motion.p>
     </div>
   );
 };

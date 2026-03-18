@@ -15,25 +15,27 @@ const InPark = () => {
     <div className="min-h-screen bg-background max-w-[480px] mx-auto relative">
       <LoomingHorizon parkName="Magic Kingdom" />
 
-      <main className="pt-[60px] flex flex-col min-h-[calc(100vh-60px)]">
+      <main className="pt-[60px] pb-32">
         {/* Top: Nudges */}
         <NudgeStack />
 
-        {/* Center: Now + Next cards */}
-        <div className="flex-1 flex flex-col justify-center px-6 py-4">
+        {/* Flighty-style vertical timeline */}
+        <div className="px-6 py-6">
           <NowCarousel />
         </div>
+      </main>
 
-        {/* Bottom: Quick Actions */}
+      {/* Uber-style fixed bottom quick actions */}
+      <div className="fixed bottom-0 inset-x-0 max-w-[480px] mx-auto">
         <QuickActions
           onBathroom={() => setNeedType('bathroom')}
           onQuietSpace={() => setNeedType('quiet')}
           onMemory={() => {}}
           onPulse={() => setShowPulse(true)}
         />
-      </main>
+      </div>
 
-      {/* Sentiment Pulse Modal */}
+      {/* Stoic-style Sentiment Check-in */}
       <AnimatePresence>
         {showPulse && <SentimentSlider onClose={() => setShowPulse(false)} />}
       </AnimatePresence>
