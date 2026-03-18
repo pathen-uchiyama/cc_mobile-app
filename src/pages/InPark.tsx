@@ -33,7 +33,7 @@ const InPark = () => {
       </section>
 
       {/* ── Bottom third: experiences side by side ── */}
-      <section className="shrink-0 h-[32vh] min-h-[210px] px-4 pb-[92px]">
+      <section className="shrink-0 h-[36vh] min-h-[240px] px-4 pb-[92px]">
         <div className="flex items-center gap-3 mb-2.5 px-1">
           <div className="w-1.5 h-1.5 bg-primary" />
           <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold">
