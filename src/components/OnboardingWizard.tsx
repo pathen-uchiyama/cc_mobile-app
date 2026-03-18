@@ -169,10 +169,10 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
                     >
                       <p className="font-display italic text-foreground text-sm">
                         {diningPref > 66
-                          ? '"We shall seek refined experiences. Be'Our Guest, Victoria & Albert\'s await."'
+                          ? "\"We shall seek refined experiences. Be Our Guest, Victoria & Albert's await.\""
                           : diningPref > 33
-                          ? '"A balanced palate—fine table service with efficient counter stops."'
-                          : '"Speed is the strategy. We\'ll route you through the fastest counter services."'}
+                          ? "\"A balanced palate—fine table service with efficient counter stops.\""
+                          : "\"Speed is the strategy. We'll route you through the fastest counter services.\""}
                       </p>
                     </motion.div>
                   </div>
