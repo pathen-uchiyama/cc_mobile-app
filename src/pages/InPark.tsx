@@ -10,12 +10,14 @@ import SentimentSlider from '@/components/SentimentSlider';
 import NeedOverlay from '@/components/NeedOverlay';
 import CheckInOverlay from '@/components/CheckInOverlay';
 import RecalibrateSheet from '@/components/RecalibrateSheet';
+import LightningLaneTracker from '@/components/LightningLaneTracker';
 
 const InPark = () => {
   const [showPulse, setShowPulse] = useState(false);
   const [needType, setNeedType] = useState<'bathroom' | 'quiet' | null>(null);
   const [showCheckIn, setShowCheckIn] = useState(false);
   const [showRecalibrate, setShowRecalibrate] = useState(false);
+  const [showLL, setShowLL] = useState(true); // toggleable in settings
 
   return (
     <div className="h-screen bg-background max-w-[480px] mx-auto relative flex flex-col overflow-hidden">
@@ -27,9 +29,14 @@ const InPark = () => {
         </div>
       </div>
 
-      {/* ── Middle: plan cards with breathing room ── */}
-      <section className="flex-1 min-h-0 flex flex-col justify-center px-4">
-        <NowCarousel />
+      {/* ── Middle: plan cards + LL tracker ── */}
+      <section className="flex-1 min-h-0 flex flex-col justify-center overflow-y-auto">
+        <div className="px-4 py-2">
+          <NowCarousel />
+        </div>
+        <div className="py-2">
+          <LightningLaneTracker visible={showLL} />
+        </div>
       </section>
 
       {/* ── Bottom third: experiences side by side ── */}
