@@ -7,6 +7,10 @@ import Welcome from "./pages/Welcome";
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
 import InPark from "./pages/InPark";
+import EditItinerary from "./pages/EditItinerary";
+import Upgrades from "./pages/Upgrades";
+import JoyReport from "./pages/JoyReport";
+import PlanWizard from "./pages/PlanWizard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
