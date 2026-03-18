@@ -12,7 +12,7 @@ const MemoryMakerWidget = () => {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="px-6 mb-6">
+    <div>
       <motion.button
         whileTap={{ scale: 0.98 }}
         onClick={() => setExpanded(!expanded)}

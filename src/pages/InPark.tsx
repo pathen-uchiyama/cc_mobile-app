@@ -27,8 +27,10 @@ const InPark = () => {
         </div>
 
         {/* Interactive Widgets */}
-        <MemoryMakerWidget />
-        <FindAndSeekWidget />
+        <div className="px-6 grid grid-cols-2 gap-3">
+          <MemoryMakerWidget />
+          <FindAndSeekWidget />
+        </div>
       </main>
 
       {/* Uber-style fixed bottom quick actions */}
