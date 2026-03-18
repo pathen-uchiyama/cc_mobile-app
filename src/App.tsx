@@ -26,6 +26,10 @@ const App = () => (
           <Route path="/home" element={<Home />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/park" element={<InPark />} />
+          <Route path="/edit-itinerary" element={<EditItinerary />} />
+          <Route path="/upgrades" element={<Upgrades />} />
+          <Route path="/joy-report" element={<JoyReport />} />
+          <Route path="/plan-wizard" element={<PlanWizard />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
