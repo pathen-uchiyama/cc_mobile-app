@@ -118,7 +118,7 @@ const NowCarousel = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.15 }}
-          className="flex items-center justify-between bg-card/60 px-4 py-3 shadow-boutique"
+          className="flex items-center justify-between bg-card/60 px-4 py-3 shadow-boutique rounded-xl"
         >
           <div className="flex items-center gap-3">
             <span className="font-sans text-[8px] uppercase tracking-sovereign text-muted-foreground font-semibold w-8">
