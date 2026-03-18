@@ -21,19 +21,28 @@ const InPark = () => {
     <div className="min-h-screen bg-background max-w-[480px] mx-auto relative">
       <LoomingHorizon parkName="Magic Kingdom" />
 
-      <main className="pt-[60px] pb-32">
-        {/* Top: Nudges */}
-        <NudgeStack />
+      {/* Toast notifications — ephemeral, auto-dismiss */}
+      <NudgeStack />
 
-        {/* Flighty-style vertical timeline */}
-        <div className="px-6 py-6">
+      <main className="pt-[60px] pb-32">
+        {/* Hero: Here & Now moment */}
+        <div className="px-6 pt-4 pb-2">
           <NowCarousel />
         </div>
 
-        {/* Interactive Widgets */}
-        <div className="px-6 grid grid-cols-2 gap-3">
-          <MemoryMakerWidget />
-          <FindAndSeekWidget />
+        {/* Primary Focus: Interactive Experiences */}
+        <div className="px-6 pt-4">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-1.5 h-1.5 bg-primary" />
+            <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold">
+              Your Experiences
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <MemoryMakerWidget />
+            <FindAndSeekWidget />
+          </div>
         </div>
       </main>
 
