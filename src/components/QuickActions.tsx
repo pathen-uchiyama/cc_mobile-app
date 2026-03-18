@@ -21,15 +21,17 @@ const actions = [
   { id: 'recalibrate', label: 'Pivot', icon: RefreshCw },
 ] as const;
 
-const QuickActions = ({ onBathroom, onQuietSpace, onMemory, onPulse }: QuickActionsProps) => {
+const QuickActions = ({ onBathroom, onQuietSpace, onMemory, onPulse, onCheckIn, onRecalibrate }: QuickActionsProps) => {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handlers: Record<string, () => void> = {
+    checkin: onCheckIn,
     bathroom: onBathroom,
     quiet: onQuietSpace,
     memory: onMemory,
     pulse: onPulse,
+    recalibrate: onRecalibrate,
   };
 
   return (
