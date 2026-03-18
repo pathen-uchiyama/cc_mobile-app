@@ -3,6 +3,8 @@ import { AnimatePresence } from 'framer-motion';
 import LoomingHorizon from '@/components/LoomingHorizon';
 import NudgeStack from '@/components/NudgeStack';
 import NowCarousel from '@/components/NowCarousel';
+import MemoryMakerWidget from '@/components/MemoryMakerWidget';
+import FindAndSeekWidget from '@/components/FindAndSeekWidget';
 import QuickActions from '@/components/QuickActions';
 import SentimentSlider from '@/components/SentimentSlider';
 import NeedOverlay from '@/components/NeedOverlay';
@@ -23,6 +25,10 @@ const InPark = () => {
         <div className="px-6 py-6">
           <NowCarousel />
         </div>
+
+        {/* Interactive Widgets */}
+        <MemoryMakerWidget />
+        <FindAndSeekWidget />
       </main>
 
       {/* Uber-style fixed bottom quick actions */}
