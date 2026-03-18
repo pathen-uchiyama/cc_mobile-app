@@ -14,8 +14,15 @@ export default {
     },
     extend: {
       colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
+        parchment: "hsl(var(--parchment))",
+        obsidian: "hsl(var(--obsidian))",
+        gold: "hsl(var(--gold))",
+        thistle: "hsl(var(--thistle))",
+        "slate-plaid": "hsl(var(--slate-plaid))",
+        "slate-divider": "hsl(var(--slate-divider) / 0.3)",
+        sienna: "hsl(var(--sienna))",
+        border: "hsl(var(--border) / 0.3)",
+        input: "hsl(var(--input) / 0.3)",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
@@ -58,27 +65,27 @@ export default {
           ring: "hsl(var(--sidebar-ring))",
         },
       },
+      fontFamily: {
+        display: ["Playfair Display", "serif"],
+        sans: ["Inter", "sans-serif"],
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      boxShadow: {
+        boutique: "0 0 0 1px rgba(26, 37, 48, 0.05), 0 10px 30px rgba(26, 37, 48, 0.05)",
+        "boutique-hover": "0 0 0 1px rgba(26, 37, 48, 0.1), 0 20px 50px rgba(26, 37, 48, 0.1)",
+      },
       keyframes: {
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
         },
       },
       animation: {
