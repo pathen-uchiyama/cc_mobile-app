@@ -18,33 +18,37 @@ const InPark = () => {
   const [showRecalibrate, setShowRecalibrate] = useState(false);
 
   return (
-    <div className="min-h-screen bg-background max-w-[480px] mx-auto relative">
+    <div className="h-screen bg-background max-w-[480px] mx-auto relative flex flex-col overflow-hidden">
       <LoomingHorizon parkName="Magic Kingdom" />
 
       {/* Toast notifications — ephemeral, auto-dismiss */}
       <NudgeStack />
 
-      <main className="pt-[60px] pb-32">
-        {/* Hero: Here & Now moment */}
-        <div className="px-6 pt-4 pb-2">
+      {/* ── Plan Cards: bulk of screen with breathing room ── */}
+      <section className="flex-1 pt-[60px] px-6 flex flex-col justify-center min-h-0">
+        <div className="py-6">
           <NowCarousel />
         </div>
+      </section>
 
-        {/* Primary Focus: Interactive Experiences */}
-        <div className="px-6 pt-4">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-1.5 h-1.5 bg-primary" />
-            <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold">
-              Your Experiences
-            </span>
-          </div>
+      {/* ── Experiences: bottom third, side by side ── */}
+      <section className="h-[33vh] min-h-[200px] px-4 pb-[92px] flex flex-col">
+        <div className="flex items-center gap-3 mb-3 px-2">
+          <div className="w-1.5 h-1.5 bg-primary" />
+          <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold">
+            Your Experiences
+          </span>
+        </div>
 
-          <div className="space-y-4">
-            <FindAndSeekWidget />
+        <div className="grid grid-cols-2 gap-3 flex-1 min-h-0">
+          <div className="overflow-hidden">
             <MemoryMakerWidget />
           </div>
+          <div className="overflow-hidden">
+            <FindAndSeekWidget />
+          </div>
         </div>
-      </main>
+      </section>
 
       {/* Gold Thread — AI Disclosure Footer */}
       <div className="fixed bottom-[72px] inset-x-0 max-w-[480px] mx-auto z-40">
