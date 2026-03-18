@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Bath, TreePine, Mic, Heart, Home, User } from 'lucide-react';
+import { Bath, TreePine, Mic, Heart, Home, User, MapPin, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 
 interface QuickActionsProps {
@@ -8,13 +8,17 @@ interface QuickActionsProps {
   onQuietSpace: () => void;
   onMemory: () => void;
   onPulse: () => void;
+  onCheckIn: () => void;
+  onRecalibrate: () => void;
 }
 
 const actions = [
+  { id: 'checkin', label: "I'm Here", icon: MapPin },
   { id: 'bathroom', label: 'Restroom', icon: Bath },
   { id: 'quiet', label: 'Quiet', icon: TreePine },
   { id: 'memory', label: 'Memory', icon: Mic },
   { id: 'pulse', label: 'Pulse', icon: Heart },
+  { id: 'recalibrate', label: 'Pivot', icon: RefreshCw },
 ] as const;
 
 const QuickActions = ({ onBathroom, onQuietSpace, onMemory, onPulse }: QuickActionsProps) => {
