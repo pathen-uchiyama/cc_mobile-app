@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Bath, TreePine, Mic, Heart, Home, User, MapPin, RefreshCw } from 'lucide-react';
+import { Bath, TreePine, Mic, Heart, Home, User, MapPin, RefreshCw, Pencil, Zap, FileText } from 'lucide-react';
 import { useState } from 'react';
 
 interface QuickActionsProps {
@@ -83,6 +83,30 @@ const QuickActions = ({ onBathroom, onQuietSpace, onMemory, onPulse, onCheckIn, 
             >
               <User size={14} className="text-foreground" />
               <span className="font-sans text-[10px] text-foreground">Account</span>
+            </button>
+            <div className="h-px bg-border mx-2" />
+            <button
+              onClick={() => { setMenuOpen(false); navigate('/edit-itinerary'); }}
+              className="flex items-center gap-3 px-4 py-3 bg-transparent border-none cursor-pointer text-left hover:bg-muted/50 transition-colors min-h-[44px]"
+            >
+              <Pencil size={14} className="text-foreground" />
+              <span className="font-sans text-[10px] text-foreground">Edit Plan</span>
+            </button>
+            <div className="h-px bg-border mx-2" />
+            <button
+              onClick={() => { setMenuOpen(false); navigate('/joy-report'); }}
+              className="flex items-center gap-3 px-4 py-3 bg-transparent border-none cursor-pointer text-left hover:bg-muted/50 transition-colors min-h-[44px]"
+            >
+              <FileText size={14} className="text-foreground" />
+              <span className="font-sans text-[10px] text-foreground">Joy Report</span>
+            </button>
+            <div className="h-px bg-border mx-2" />
+            <button
+              onClick={() => { setMenuOpen(false); navigate('/upgrades'); }}
+              className="flex items-center gap-3 px-4 py-3 bg-transparent border-none cursor-pointer text-left hover:bg-muted/50 transition-colors min-h-[44px]"
+            >
+              <Zap size={14} className="text-accent" />
+              <span className="font-sans text-[10px] text-foreground">Upgrades</span>
             </button>
           </motion.div>
         )}

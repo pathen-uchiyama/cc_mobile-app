@@ -7,6 +7,10 @@ import Welcome from "./pages/Welcome";
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
 import InPark from "./pages/InPark";
+import EditItinerary from "./pages/EditItinerary";
+import Upgrades from "./pages/Upgrades";
+import JoyReport from "./pages/JoyReport";
+import PlanWizard from "./pages/PlanWizard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +26,10 @@ const App = () => (
           <Route path="/home" element={<Home />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/park" element={<InPark />} />
+          <Route path="/edit-itinerary" element={<EditItinerary />} />
+          <Route path="/upgrades" element={<Upgrades />} />
+          <Route path="/joy-report" element={<JoyReport />} />
+          <Route path="/plan-wizard" element={<PlanWizard />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
