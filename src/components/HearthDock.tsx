@@ -1,9 +1,9 @@
 import { motion } from 'framer-motion';
-import { Coffee, Utensils, CloudRain, RefreshCw, type LucideIcon } from 'lucide-react';
+import { Coffee, Utensils, CloudRain, RefreshCw, Bath, type LucideIcon } from 'lucide-react';
 import { useHaptics } from '@/hooks/useHaptics';
 
 export interface PivotAction {
-  id: 'break' | 'refuel' | 'rain' | 'reset';
+  id: 'restroom' | 'refuel' | 'break' | 'rain' | 'reset';
   label: string;
   icon: LucideIcon;
   onTap: () => void;
@@ -14,9 +14,10 @@ interface HearthDockProps {
   onSovereignTap: () => void;
   /** Whether a Sovereign sheet is currently open (suppresses idle pulse + rotates the mark). */
   active?: boolean;
-  /** Pivot quick-actions (icons) flanking the Key — 2 on each side. */
-  onBreak?: () => void;
+  /** Pivot quick-actions (icons) flanking the Key. */
+  onRestroom?: () => void;
   onRefuel?: () => void;
+  onBreak?: () => void;
   onRain?: () => void;
   onReset?: () => void;
 }
@@ -25,16 +26,19 @@ interface HearthDockProps {
  * The Hearth — floating Obsidian navigation dock.
  *
  * Deep Obsidian pill anchored at the bottom with the Burnished Gold
- * Sovereign Key centered as the OS anchor. Flanked by FOUR pivot
- * quick-actions (Break, Refuel, Rain, Reset) — these are the primary
- * "call an audible" surface and mirror what's inside the Audible Menu
- * for one-tap access.
+ * Sovereign Key centered as the OS anchor. Flanked by pivot quick-actions:
+ *   Left  — Restroom, Refuel
+ *   Right — Break, Rain, Reset
+ *
+ * These are the primary "call an audible" surface and mirror the Audible
+ * Menu for one-tap access.
  */
 const HearthDock = ({
   onSovereignTap,
   active,
-  onBreak,
+  onRestroom,
   onRefuel,
+  onBreak,
   onRain,
   onReset,
 }: HearthDockProps) => {
@@ -51,10 +55,11 @@ const HearthDock = ({
   };
 
   const left: PivotAction[] = [
-    { id: 'break', label: 'Need a Break', icon: Coffee, onTap: handlePivot(onBreak) },
+    { id: 'restroom', label: 'Restroom', icon: Bath, onTap: handlePivot(onRestroom) },
     { id: 'refuel', label: 'Refuel', icon: Utensils, onTap: handlePivot(onRefuel) },
   ];
   const right: PivotAction[] = [
+    { id: 'break', label: 'Need a Break', icon: Coffee, onTap: handlePivot(onBreak) },
     { id: 'rain', label: 'Rain Pivot', icon: CloudRain, onTap: handlePivot(onRain) },
     { id: 'reset', label: 'Reset Strategy', icon: RefreshCw, onTap: handlePivot(onReset) },
   ];
@@ -62,10 +67,10 @@ const HearthDock = ({
   return (
     <nav
       aria-label="Sovereign navigation"
-      className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[9990] w-[min(420px,calc(100vw-24px))]"
+      className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[9990] w-[min(440px,calc(100vw-16px))]"
     >
       <div
-        className="relative h-[64px] flex items-center justify-between px-4"
+        className="relative h-[64px] flex items-center justify-between px-3"
         style={{
           backgroundColor: 'hsl(var(--obsidian))',
           borderRadius: '16px',
@@ -74,7 +79,7 @@ const HearthDock = ({
         }}
       >
         {/* Left pivots */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5">
           {left.map((p) => (
             <PivotButton key={p.id} action={p} />
           ))}
@@ -84,7 +89,7 @@ const HearthDock = ({
         <div className="w-[60px]" aria-hidden />
 
         {/* Right pivots */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5">
           {right.map((p) => (
             <PivotButton key={p.id} action={p} />
           ))}
@@ -135,10 +140,10 @@ const PivotButton = ({ action }: { action: PivotAction }) => {
       onClick={action.onTap}
       aria-label={action.label}
       title={action.label}
-      className="w-11 h-11 flex items-center justify-center bg-transparent border-none cursor-pointer rounded-full"
+      className="w-10 h-10 flex items-center justify-center bg-transparent border-none cursor-pointer rounded-full"
       style={{ color: 'hsl(var(--gold) / 0.85)' }}
     >
-      <Icon size={18} strokeWidth={1.6} />
+      <Icon size={17} strokeWidth={1.6} />
     </motion.button>
   );
 };
