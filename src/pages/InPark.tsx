@@ -182,9 +182,31 @@ const InPark = () => {
               <WhisperStrip />
             </div>
 
-            {/* ── Depth-Based Stack: Hero (top 40%) + 2 peeks + Full Ledger fade ── */}
+            {/* ── Depth-Based Stack OR Pivot Shimmer ── */}
             <section aria-label="Today's plan" className="shrink-0">
-              <HeroHorizonStack items={PLAN} onCommitHero={commitHero} />
+              <AnimatePresence mode="wait">
+                {pivotLabel ? (
+                  <motion.div key="shimmer">
+                    <PivotShimmer audibleLabel={pivotLabel} />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="stack"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <HeroHorizonStack
+                      items={PLAN}
+                      walkingPrompts={WALKING_PROMPTS}
+                      onCommitHero={commitHero}
+                      onSecureLL={() => setDrawerOpen(true)}
+                      onCaptureMemory={(id) => celebrate('Memory tucked into the Vault.', `Captured · ${id}`)}
+                      onCaptureWalking={(id) => celebrate('A small wonder, recorded.', `Walking · ${id}`)}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </section>
 
             {/* Footnote — most-wanted as one tappable line */}
@@ -216,10 +238,10 @@ const InPark = () => {
       <AudibleMenu
         open={audibleOpen}
         onClose={() => setAudibleOpen(false)}
-        onBreak={() => setNeedType('quiet')}
-        onRefuel={() => setNeedType('bathroom')}
-        onClosure={() => setSwapFor(hero?.attraction ?? 'current ride')}
-        onReset={() => setShowRecalibrate(true)}
+        onBreak={() => pivotWith('Need a break', () => setNeedType('quiet'))}
+        onRefuel={() => pivotWith('Refuel', () => setNeedType('bathroom'))}
+        onClosure={() => pivotWith('Ride closure', () => setSwapFor(hero?.attraction ?? 'current ride'))}
+        onReset={() => pivotWith('Reset the pulse', () => setShowRecalibrate(true))}
       />
 
       <StrategicDashboard
