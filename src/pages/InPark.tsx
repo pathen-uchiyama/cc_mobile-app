@@ -296,11 +296,13 @@ const InPark = () => {
                     transition={{ duration: 0.3 }}
                   >
                     <HeroHorizonStack
-                      items={PLAN}
+                      items={plan}
                       walkingPrompts={WALKING_PROMPTS}
                       onCommitHero={commitHero}
                       onCaptureMemory={(id) => celebrate('Memory tucked into the Vault.', `Captured · ${id}`)}
                       onFindAndSeek={() => setFindAndSeekOpen(true)}
+                      onPromote={promoteToHero}
+                      onCompleteHero={completeHero}
                       pivotSuggested={pivotSuggested && !pivotLabel}
                       pivotHeadline="A New Path is Available"
                     />
