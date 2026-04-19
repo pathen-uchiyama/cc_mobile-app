@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, X } from 'lucide-react';
+import { useHaptics } from '@/hooks/useHaptics';
 
 interface AssistedDrawerProps {
   open: boolean;
@@ -15,10 +17,25 @@ interface AssistedDrawerProps {
  *
  * Triggered only when the backend finds a Lightning Lane window.
  * Single Strategic Executive Decision: Confirm (Obsidian) or Dismiss (subtle).
+ *
+ * Haptics:
+ * - Double pulse the moment a recommendation appears.
+ * - Single long pulse on successful Confirm.
  */
 const AssistedDrawer = ({
   open, attraction, window, savedMinutes, onConfirm, onDismiss,
 }: AssistedDrawerProps) => {
+  const { fire } = useHaptics();
+
+  useEffect(() => {
+    if (open) fire('recommendation');
+  }, [open, fire]);
+
+  const handleConfirm = () => {
+    fire('bookingSuccess');
+    onConfirm();
+  };
+
   return (
     <AnimatePresence>
       {open && (
@@ -44,8 +61,8 @@ const AssistedDrawer = ({
             className="fixed bottom-0 left-1/2 -translate-x-1/2 z-[9980] w-full max-w-[480px] bg-card flex flex-col"
             style={{
               height: '50vh',
-              borderTopLeftRadius: '24px',
-              borderTopRightRadius: '24px',
+              borderTopLeftRadius: '16px',
+              borderTopRightRadius: '16px',
               boxShadow: '0 -24px 60px hsl(var(--obsidian) / 0.18)',
             }}
           >
@@ -72,14 +89,19 @@ const AssistedDrawer = ({
                 </span>
               </div>
 
-              <h3 className="font-display text-[26px] leading-[1.15] text-foreground mb-3">
+              {/* WIN — Publico Headline (Playfair fallback) */}
+              <h3
+                className="font-display text-[26px] leading-[1.15] text-foreground mb-3"
+                style={{ fontFamily: '"Publico Headline", "Playfair Display", serif' }}
+              >
                 A window for {attraction} just opened.
               </h3>
 
-              <p className="font-sans text-[14px] text-foreground/80 leading-relaxed mb-5">
-                Return at <span className="font-semibold tabular-nums">{window}</span>. Slots into your
+              {/* LOGIC WHISPER — Inter Italic */}
+              <p className="font-sans italic text-[14px] text-foreground/80 leading-relaxed mb-5">
+                Return at <span className="not-italic font-semibold tabular-nums">{window}</span>. Slots into your
                 route with no detour, and saves you{' '}
-                <span className="font-semibold tabular-nums">{savedMinutes} minutes</span> of standby
+                <span className="not-italic font-semibold tabular-nums">{savedMinutes} minutes</span> of standby
                 time.
               </p>
 
@@ -88,7 +110,7 @@ const AssistedDrawer = ({
               </p>
             </div>
 
-            {/* Action zone — thumb zone */}
+            {/* Action zone — single thumb-press confirms */}
             <div className="px-6 pb-7 pt-3 grid grid-cols-[1fr_2fr] gap-3 shrink-0">
               <motion.button
                 whileTap={{ scale: 0.97 }}
@@ -100,7 +122,7 @@ const AssistedDrawer = ({
               </motion.button>
               <motion.button
                 whileTap={{ scale: 0.97 }}
-                onClick={onConfirm}
+                onClick={handleConfirm}
                 className="rounded-2xl py-4 bg-primary text-primary-foreground border-none cursor-pointer font-sans text-[13px] font-semibold min-h-[52px]"
               >
                 Confirm — Secure It

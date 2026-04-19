@@ -7,7 +7,7 @@ import SideQuestsRow from '@/components/priority-stack/SideQuestsRow';
 import AssistedDrawer from '@/components/priority-stack/AssistedDrawer';
 import AudibleMenu from '@/components/priority-stack/AudibleMenu';
 import StrategicDashboard from '@/components/priority-stack/StrategicDashboard';
-import SovereignAnchor from '@/components/priority-stack/SovereignAnchor';
+import HearthDock from '@/components/HearthDock';
 import MinimalistView from '@/components/MinimalistView';
 import SovereignView from '@/components/SovereignView';
 import NeedOverlay from '@/components/NeedOverlay';
@@ -187,8 +187,8 @@ const InPark = () => {
         </>
       )}
 
-      {/* Directive 3 — Sovereign Key (contextual: Dashboard for Type A, Audible for relaxed) */}
-      <SovereignAnchor onTap={handleSovereignTap} active={audibleOpen || dashboardOpen} />
+      {/* Directive 2 — The Hearth: Floating Obsidian dock w/ centered Gold Sovereign Key */}
+      <HearthDock onSovereignTap={handleSovereignTap} active={audibleOpen || dashboardOpen} />
 
       <AudibleMenu
         open={audibleOpen}
