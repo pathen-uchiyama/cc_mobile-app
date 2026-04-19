@@ -116,7 +116,6 @@ const HeroHorizonStack = ({
           party={hero.party}
           ctaLabel="On Our Way"
           onCommit={onCommitHero}
-          onSecureLL={onSecureLL}
           questPrompt={hero.questPrompt}
           questType={hero.questType}
           onCaptureMemory={() => onCaptureMemory?.(hero.id)}
@@ -189,11 +188,10 @@ const HeroHorizonStack = ({
       )}
 
       <FullLedgerSheet
+      <FullLedgerSheet
         open={ledgerOpen}
         onClose={() => setLedgerOpen(false)}
         items={items}
-        onSecureLL={onSecureLLForItem}
-        onOpenVault={onOpenLLVault}
       />
     </>
   );
