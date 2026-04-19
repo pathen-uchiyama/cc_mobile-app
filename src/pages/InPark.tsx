@@ -248,10 +248,8 @@ const InPark = () => {
         </>
       )}
 
-      {/* Directive 2 — The Hearth: Floating Obsidian dock w/ centered Gold Sovereign Key.
-          Left slot exposes the Lightning Lane Vault for ANY ride in the park. */}
-      {/* The Hearth: Floating Obsidian dock w/ centered Gold Sovereign Key.
-          No left/right slot — the Sovereign Key is the only OS anchor; LL is
+      {/* The Hearth: Floating Obsidian dock with the centered Gold Sovereign Key.
+          No side slots — the Key is the only OS anchor. Lightning Lanes are
           surfaced exclusively through the Strategic Window drawer. */}
       <HearthDock
         onSovereignTap={handleSovereignTap}
