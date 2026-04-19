@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Clock, MapPin, ArrowRight, Users, Zap, Camera, Compass, Search } from 'lucide-react';
+import { Clock, MapPin, ArrowRight, Users, Camera, Compass, Search } from 'lucide-react';
 
 interface FocusMoveProps {
   attraction: string;
