@@ -215,9 +215,6 @@ const InPark = () => {
                       items={PLAN}
                       walkingPrompts={WALKING_PROMPTS}
                       onCommitHero={commitHero}
-                      onSecureLL={() => setDrawerOpen(true)}
-                      onSecureLLForItem={secureLLForPlanItem}
-                      onOpenLLVault={() => setLLVaultOpen(true)}
                       onCaptureMemory={(id) => celebrate('Memory tucked into the Vault.', `Captured · ${id}`)}
                       onCaptureWalking={(id) => celebrate('A small wonder, recorded.', `Walking · ${id}`)}
                       onFindAndSeek={() => setFindAndSeekOpen(true)}
@@ -240,12 +237,13 @@ const InPark = () => {
             </div>
           </main>
 
-          {/* Directive 2 — Assisted Booking Drawer (bottom 30%, single-tap decision) */}
+          {/* Contextual Booking Drawer — the ONLY place Lightning Lanes are managed. */}
           <AssistedDrawer
             open={drawerOpen}
-            attraction="Haunted Mansion"
+            attraction="Pirates of the Caribbean"
             window="1:15 PM"
-            savedMinutes={45}
+            savedMinutes={40}
+            reasoning="aligns with your lunch pivot at Skipper Canteen"
             onConfirm={confirmDrawer}
             onDismiss={dismissDrawer}
           />
@@ -254,19 +252,12 @@ const InPark = () => {
 
       {/* Directive 2 — The Hearth: Floating Obsidian dock w/ centered Gold Sovereign Key.
           Left slot exposes the Lightning Lane Vault for ANY ride in the park. */}
+      {/* The Hearth: Floating Obsidian dock w/ centered Gold Sovereign Key.
+          No left/right slot — the Sovereign Key is the only OS anchor; LL is
+          surfaced exclusively through the Strategic Window drawer. */}
       <HearthDock
         onSovereignTap={handleSovereignTap}
         active={audibleOpen || dashboardOpen}
-        leftSlot={
-          <button
-            onClick={() => setLLVaultOpen(true)}
-            aria-label="Open Lightning Lane Vault"
-            className="bg-transparent border-none cursor-pointer p-1.5 flex items-center justify-center"
-            style={{ color: 'hsl(var(--gold))' }}
-          >
-            <Zap size={18} />
-          </button>
-        }
       />
 
       <AudibleMenu
@@ -307,13 +298,6 @@ const InPark = () => {
       >
         <FindAndSeekWidget />
       </BottomSheet>
-
-      <LLVaultSheet
-        open={llVaultOpen}
-        onClose={() => setLLVaultOpen(false)}
-        rides={llRides}
-        onSecure={secureRideById}
-      />
     </div>
   );
 };
