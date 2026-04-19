@@ -32,11 +32,10 @@ const StrategicDashboard = ({ open, onClose }: StrategicDashboardProps) => {
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 280 }}
-            className="fixed bottom-0 left-1/2 -translate-x-1/2 z-[9985] w-full max-w-[480px] bg-card flex flex-col"
+            className="fixed bottom-[108px] left-1/2 -translate-x-1/2 z-[9985] w-full max-w-[480px] bg-card flex flex-col"
             style={{
-              maxHeight: '80vh',
-              borderTopLeftRadius: '24px',
-              borderTopRightRadius: '24px',
+              maxHeight: 'calc(80vh - 108px)',
+              borderRadius: '16px',
               boxShadow: '0 -24px 60px hsl(var(--obsidian) / 0.2)',
             }}
           >
