@@ -60,7 +60,7 @@ const FullLedgerSheet = ({ open, onClose, items, onSecureLL, onOpenVault }: Full
               <div className="w-10 h-1 rounded-full bg-foreground/15" />
             </div>
 
-            <header className="flex items-start justify-between px-6 pt-3 pb-4 shrink-0">
+            <header className="flex items-start justify-between px-6 pt-3 pb-3 shrink-0">
               <div>
                 <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold">
                   The Full Ledger
@@ -78,6 +78,32 @@ const FullLedgerSheet = ({ open, onClose, items, onSecureLL, onOpenVault }: Full
               </button>
             </header>
 
+            {/* Escape hatch — open the global LL Vault for ANY ride in the park */}
+            {onOpenVault && (
+              <button
+                onClick={onOpenVault}
+                className="mx-5 mb-3 flex items-center justify-between gap-2 px-4 py-2.5 cursor-pointer shrink-0"
+                style={{
+                  borderRadius: '12px',
+                  border: '1px dashed hsl(var(--gold) / 0.5)',
+                  background: 'hsl(var(--gold) / 0.06)',
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <Zap size={12} style={{ color: 'hsl(var(--gold))' }} />
+                  <span
+                    className="font-sans text-[11px] font-semibold uppercase tracking-sovereign"
+                    style={{ color: 'hsl(var(--gold))' }}
+                  >
+                    Secure LL for any ride
+                  </span>
+                </div>
+                <span className="font-sans text-[10px]" style={{ color: 'hsl(var(--gold))' }}>
+                  Open Vault →
+                </span>
+              </button>
+            )}
+
             <ol className="list-none p-0 m-0 px-5 pb-8 space-y-2 overflow-y-auto">
               {items.map((it) => (
                 <li
@@ -90,12 +116,6 @@ const FullLedgerSheet = ({ open, onClose, items, onSecureLL, onOpenVault }: Full
                       {it.rank} · {it.time}
                     </span>
                     <div className="flex items-center gap-1.5 shrink-0">
-                      {it.llSecured && (
-                        <span className="flex items-center gap-1 bg-accent/12 px-1.5 py-0.5 rounded-full">
-                          <Zap size={8} className="text-accent" />
-                          <span className="font-sans text-[7px] uppercase tracking-sovereign text-accent font-bold">LL</span>
-                        </span>
-                      )}
                       {it.wait && (
                         <span className="flex items-center gap-1 text-muted-foreground">
                           <Clock size={9} />
@@ -113,6 +133,38 @@ const FullLedgerSheet = ({ open, onClose, items, onSecureLL, onOpenVault }: Full
                   <p className="font-sans italic text-[11px] text-foreground/70 mt-1.5 leading-snug">
                     {it.logic}
                   </p>
+
+                  {/* Inline LL action — secure or status pill */}
+                  <div className="mt-2.5 flex justify-end">
+                    {it.llSecured ? (
+                      <span
+                        className="flex items-center gap-1 px-2.5 py-1 rounded-full"
+                        style={{ backgroundColor: 'hsl(var(--gold) / 0.15)', color: 'hsl(var(--gold))' }}
+                      >
+                        <Check size={9} />
+                        <span className="font-sans text-[9px] uppercase tracking-sovereign font-bold">
+                          LL Secured
+                        </span>
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => onSecureLL?.(it.id)}
+                        className="flex items-center gap-1 px-3 py-1.5 cursor-pointer"
+                        style={{
+                          borderRadius: '10px',
+                          border: '1.5px solid hsl(var(--gold))',
+                          color: 'hsl(var(--gold))',
+                          backgroundColor: 'transparent',
+                          minHeight: '32px',
+                        }}
+                      >
+                        <Zap size={10} />
+                        <span className="font-sans text-[9px] uppercase tracking-sovereign font-bold">
+                          Secure LL
+                        </span>
+                      </button>
+                    )}
+                  </div>
                 </li>
               ))}
             </ol>
