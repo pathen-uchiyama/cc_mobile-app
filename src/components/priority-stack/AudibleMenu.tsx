@@ -18,10 +18,10 @@ const items = [
 ] as const;
 
 /**
- * The Audible Menu — opened by tapping the Sovereign Key.
+ * Audible Menu — opened from the Sovereign Anchor.
  *
- * 4 buttons in a 2x2 grid, all in the bottom thumb-zone.
- * Consistent 16px corners, no flat edges.
+ * 4 secondary actions in a 2x2 grid.
+ * Buttons are Burnished Gold OUTLINES (secondary action language).
  */
 const AudibleMenu = ({ open, onClose, onBreak, onRefuel, onClosure, onReset }: AudibleMenuProps) => {
   const handlers: Record<string, () => void> = {
@@ -45,13 +45,13 @@ const AudibleMenu = ({ open, onClose, onBreak, onRefuel, onClosure, onReset }: A
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 24, scale: 0.96 }}
             transition={{ duration: 0.2 }}
-            className="fixed bottom-[112px] left-1/2 -translate-x-1/2 z-[9985] w-[320px] bg-card rounded-2xl p-4"
+            className="fixed bottom-[112px] left-1/2 -translate-x-1/2 z-[9985] w-[320px] bg-card rounded-2xl p-5"
             style={{ boxShadow: '0 24px 60px hsl(var(--obsidian) / 0.2)' }}
           >
-            <p className="font-sans text-[8px] uppercase tracking-sovereign text-muted-foreground font-bold text-center mb-3">
+            <p className="font-sans text-[8px] uppercase tracking-sovereign font-bold text-center mb-4" style={{ color: 'hsl(var(--gold))' }}>
               Call an Audible
             </p>
-            <div className="grid grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-2 gap-3">
               {items.map((it) => {
                 const Icon = it.icon;
                 return (
@@ -59,10 +59,14 @@ const AudibleMenu = ({ open, onClose, onBreak, onRefuel, onClosure, onReset }: A
                     key={it.id}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => { onClose(); handlers[it.id](); }}
-                    className="flex flex-col items-center justify-center gap-2 py-5 rounded-2xl bg-muted/40 hover:bg-muted border-none cursor-pointer min-h-[88px]"
+                    className="flex flex-col items-center justify-center gap-2 py-5 rounded-2xl bg-transparent cursor-pointer min-h-[88px] transition-colors hover:bg-accent/5"
+                    style={{
+                      border: '1.5px solid hsl(var(--gold))',
+                      color: 'hsl(var(--gold))',
+                    }}
                   >
-                    <Icon size={20} className="text-foreground" />
-                    <span className="font-sans text-[10px] uppercase tracking-sovereign text-foreground font-semibold">
+                    <Icon size={20} />
+                    <span className="font-sans text-[10px] uppercase tracking-sovereign font-semibold">
                       {it.label}
                     </span>
                   </motion.button>
