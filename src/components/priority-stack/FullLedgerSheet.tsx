@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Zap, Clock, Check } from 'lucide-react';
+import { X, Clock, Check } from 'lucide-react';
 
 interface LedgerItem {
   id: string;
@@ -16,20 +16,16 @@ interface FullLedgerSheetProps {
   open: boolean;
   onClose: () => void;
   items: LedgerItem[];
-  /** Inline LL action — fires when the user taps "Secure" on any row. */
-  onSecureLL?: (itemId: string) => void;
-  /** Optional escape hatch to the global LL Vault for ANY ride in the park. */
-  onOpenVault?: () => void;
 }
 
 /**
- * Full Ledger — bottom sheet revealed on demand.
+ * Full Ledger — read-only overview of every plan item.
  *
- * Holds every plan item beyond the Hero + 2 Horizon peeks.
- * Hidden by default. Opened from the "View full plan" link
- * beneath the Horizon stack.
+ * Shows LL status (Secured pill) but NEVER offers a Secure action — Lightning
+ * Lanes are managed exclusively via the Contextual Booking Drawer when the
+ * strategy engine surfaces a Strategic Window.
  */
-const FullLedgerSheet = ({ open, onClose, items, onSecureLL, onOpenVault }: FullLedgerSheetProps) => {
+const FullLedgerSheet = ({ open, onClose, items }: FullLedgerSheetProps) => {
   return (
     <AnimatePresence>
       {open && (
@@ -78,32 +74,6 @@ const FullLedgerSheet = ({ open, onClose, items, onSecureLL, onOpenVault }: Full
               </button>
             </header>
 
-            {/* Escape hatch — open the global LL Vault for ANY ride in the park */}
-            {onOpenVault && (
-              <button
-                onClick={onOpenVault}
-                className="mx-5 mb-3 flex items-center justify-between gap-2 px-4 py-2.5 cursor-pointer shrink-0"
-                style={{
-                  borderRadius: '12px',
-                  border: '1px dashed hsl(var(--gold) / 0.5)',
-                  background: 'hsl(var(--gold) / 0.06)',
-                }}
-              >
-                <div className="flex items-center gap-2">
-                  <Zap size={12} style={{ color: 'hsl(var(--gold))' }} />
-                  <span
-                    className="font-sans text-[11px] font-semibold uppercase tracking-sovereign"
-                    style={{ color: 'hsl(var(--gold))' }}
-                  >
-                    Secure LL for any ride
-                  </span>
-                </div>
-                <span className="font-sans text-[10px]" style={{ color: 'hsl(var(--gold))' }}>
-                  Open Vault →
-                </span>
-              </button>
-            )}
-
             <ol className="list-none p-0 m-0 px-5 pb-8 space-y-2 overflow-y-auto">
               {items.map((it) => (
                 <li
@@ -116,6 +86,17 @@ const FullLedgerSheet = ({ open, onClose, items, onSecureLL, onOpenVault }: Full
                       {it.rank} · {it.time}
                     </span>
                     <div className="flex items-center gap-1.5 shrink-0">
+                      {it.llSecured && (
+                        <span
+                          className="flex items-center gap-1 px-2 py-0.5 rounded-full"
+                          style={{ backgroundColor: 'hsl(var(--gold) / 0.15)', color: 'hsl(var(--gold))' }}
+                        >
+                          <Check size={9} />
+                          <span className="font-sans text-[8px] uppercase tracking-sovereign font-bold">
+                            LL Secured
+                          </span>
+                        </span>
+                      )}
                       {it.wait && (
                         <span className="flex items-center gap-1 text-muted-foreground">
                           <Clock size={9} />
@@ -133,41 +114,18 @@ const FullLedgerSheet = ({ open, onClose, items, onSecureLL, onOpenVault }: Full
                   <p className="font-sans italic text-[11px] text-foreground/70 mt-1.5 leading-snug">
                     {it.logic}
                   </p>
-
-                  {/* Inline LL action — secure or status pill */}
-                  <div className="mt-2.5 flex justify-end">
-                    {it.llSecured ? (
-                      <span
-                        className="flex items-center gap-1 px-2.5 py-1 rounded-full"
-                        style={{ backgroundColor: 'hsl(var(--gold) / 0.15)', color: 'hsl(var(--gold))' }}
-                      >
-                        <Check size={9} />
-                        <span className="font-sans text-[9px] uppercase tracking-sovereign font-bold">
-                          LL Secured
-                        </span>
-                      </span>
-                    ) : (
-                      <button
-                        onClick={() => onSecureLL?.(it.id)}
-                        className="flex items-center gap-1 px-3 py-1.5 cursor-pointer"
-                        style={{
-                          borderRadius: '10px',
-                          border: '1.5px solid hsl(var(--gold))',
-                          color: 'hsl(var(--gold))',
-                          backgroundColor: 'transparent',
-                          minHeight: '32px',
-                        }}
-                      >
-                        <Zap size={10} />
-                        <span className="font-sans text-[9px] uppercase tracking-sovereign font-bold">
-                          Secure LL
-                        </span>
-                      </button>
-                    )}
-                  </div>
                 </li>
               ))}
             </ol>
+
+            {/* Footer note — explains why there are no Secure buttons here */}
+            <p
+              className="font-sans italic text-[11px] text-center px-6 pb-5 shrink-0 leading-snug"
+              style={{ color: 'hsl(var(--slate-plaid))' }}
+            >
+              Lightning Lanes appear as Strategic Windows when the system finds a path
+              that fits your day — never as a list to grab from.
+            </p>
           </motion.aside>
         </>
       )}
