@@ -47,7 +47,7 @@ const FindAndSeekWidget = () => {
           {items.map((item) => (
             <motion.div
               key={item.id}
-              className={`w-1.5 h-1.5 ${item.found ? 'bg-accent' : 'bg-border'}`}
+              className={`w-1.5 h-1.5 rounded-full ${item.found ? 'bg-accent' : 'bg-border'}`}
               animate={item.id === justFound ? { scale: [1, 2, 1] } : {}}
             />
           ))}

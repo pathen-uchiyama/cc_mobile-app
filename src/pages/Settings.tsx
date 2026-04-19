@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Eye, Zap, Heart, Sparkles, Vibrate } from 'lucide-react';
+import { ArrowLeft, Eye, Zap, Heart, Sparkles, Vibrate, FlaskConical } from 'lucide-react';
 import { useCompanion, type ServiceTier } from '@/contexts/CompanionContext';
 
 const TIERS: { id: ServiceTier; label: string; tagline: string }[] = [
@@ -54,6 +54,7 @@ const Settings = () => {
     llTrackerVisible, setLlTrackerVisible,
     hapticsEnabled, setHapticsEnabled,
     celebrationsEnabled, setCelebrationsEnabled,
+    devPanelEnabled, setDevPanelEnabled,
   } = useCompanion();
 
   return (
@@ -158,6 +159,22 @@ const Settings = () => {
               description="Subtle taps when the Sovereign Key fires."
               value={hapticsEnabled}
               onChange={setHapticsEnabled}
+            />
+          </div>
+        </section>
+
+        {/* Developer */}
+        <section>
+          <p className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold mb-1 px-1">
+            Developer
+          </p>
+          <div className="bg-card rounded-xl px-4 shadow-boutique">
+            <ToggleRow
+              icon={FlaskConical}
+              label="Snipe Simulator"
+              description="Show a dev panel in the bottom-left of the in-park view to manually fire celebrations."
+              value={devPanelEnabled}
+              onChange={setDevPanelEnabled}
             />
           </div>
         </section>

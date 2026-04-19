@@ -23,6 +23,10 @@ interface CompanionState {
   /** Whimsical celebrations on / off. */
   celebrationsEnabled: boolean;
   setCelebrationsEnabled: (v: boolean) => void;
+
+  /** Dev panel (snipe simulator) visibility. */
+  devPanelEnabled: boolean;
+  setDevPanelEnabled: (v: boolean) => void;
 }
 
 const CompanionContext = createContext<CompanionState | null>(null);
@@ -45,6 +49,7 @@ export const CompanionProvider = ({ children }: { children: ReactNode }) => {
   const [llTrackerVisible, setLlTrackerVisibleState] = useState<boolean>(() => readBool('companion.llTracker', true));
   const [hapticsEnabled, setHapticsEnabledState] = useState<boolean>(() => readBool('companion.haptics', true));
   const [celebrationsEnabled, setCelebrationsEnabledState] = useState<boolean>(() => readBool('companion.celebrations', true));
+  const [devPanelEnabled, setDevPanelEnabledState] = useState<boolean>(() => readBool('companion.devPanel', false));
 
   const persist = (key: string, value: string) => {
     try { window.localStorage.setItem(key, value); } catch { /* ignore */ }
@@ -55,12 +60,14 @@ export const CompanionProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => persist('companion.llTracker', llTrackerVisible ? '1' : '0'), [llTrackerVisible]);
   useEffect(() => persist('companion.haptics', hapticsEnabled ? '1' : '0'), [hapticsEnabled]);
   useEffect(() => persist('companion.celebrations', celebrationsEnabled ? '1' : '0'), [celebrationsEnabled]);
+  useEffect(() => persist('companion.devPanel', devPanelEnabled ? '1' : '0'), [devPanelEnabled]);
 
   const toggleMinimalist = useCallback(() => setMinimalist((v) => !v), []);
   const setTier = useCallback((t: ServiceTier) => setTierState(t), []);
   const setLlTrackerVisible = useCallback((v: boolean) => setLlTrackerVisibleState(v), []);
   const setHapticsEnabled = useCallback((v: boolean) => setHapticsEnabledState(v), []);
   const setCelebrationsEnabled = useCallback((v: boolean) => setCelebrationsEnabledState(v), []);
+  const setDevPanelEnabled = useCallback((v: boolean) => setDevPanelEnabledState(v), []);
 
   // Two-finger swipe-down anywhere toggles Minimalist Mode.
   useEffect(() => {
@@ -104,6 +111,7 @@ export const CompanionProvider = ({ children }: { children: ReactNode }) => {
         llTrackerVisible, setLlTrackerVisible,
         hapticsEnabled, setHapticsEnabled,
         celebrationsEnabled, setCelebrationsEnabled,
+        devPanelEnabled, setDevPanelEnabled,
       }}
     >
       {children}
