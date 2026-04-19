@@ -120,24 +120,24 @@ const InPark = () => {
   const { celebrate } = useCelebrate();
 
   const useQuietView = minimalist || tier === 'sovereign';
-  const hero = PLAN.find((p) => p.rank === 'now');
+  const hero = plan.find((p) => p.rank === 'now') ?? plan[0];
 
   // Type A = manager tier with LL tracking on. They get the Strategic Dashboard.
   const isTypeA = tier === 'manager' && llTrackerVisible;
 
   // Mark Must-Dos as in-stack if their attraction matches one of the 3 visible cards.
-  const stackAttractions = new Set(PLAN.slice(0, 3).map((p) => p.attraction));
-  const mustDoIcons: MustDoIcon[] = MUST_DOS.map((m) => ({
+  const stackAttractions = new Set(plan.slice(0, 3).map((p) => p.attraction));
+  const mustDoIcons: MustDoIcon[] = mustDos.map((m) => ({
     id: m.id,
     label: m.attraction,
     inStack: stackAttractions.has(m.attraction),
-    done: false,
+    done: !!m.done,
   }));
-  const mustDoEntries: MustDoEntry[] = MUST_DOS.map((m) => ({
+  const mustDoEntries: MustDoEntry[] = mustDos.map((m) => ({
     id: m.id,
     attraction: m.attraction,
     inStack: stackAttractions.has(m.attraction),
-    done: false,
+    done: !!m.done,
   }));
 
   // The Assisted Drawer is the canonical LL surface — invisible by default,
