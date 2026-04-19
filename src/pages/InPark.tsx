@@ -231,10 +231,8 @@ const InPark = () => {
               <PriorityFootnote />
             </div>
 
-            {/* The Grand Quest — discoverable chip row for memory capture */}
-            <div className="mt-5">
-              <SideQuestsRow />
-            </div>
+            {/* Memory Capture & Initiate Seek now live as the Engagement Ribbon
+                at the base of the Hero card — no separate chip row. */}
           </main>
 
           {/* Contextual Booking Drawer — the ONLY place Lightning Lanes are managed. */}
