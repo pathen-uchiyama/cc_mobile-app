@@ -58,12 +58,13 @@ const FocusMove = ({
       className="relative bg-card w-full overflow-hidden"
       style={{
         borderRadius: '16px',
+        // Hero elevation — Deep Obsidian shadow, 12px blur for physical lift
         boxShadow:
-          '0 0 0 1px hsl(var(--obsidian) / 0.04), 0 24px 60px hsl(var(--obsidian) / 0.12)',
+          '0 0 0 1px hsl(var(--gold) / 0.08), 0 2px 4px hsl(var(--obsidian) / 0.04), 0 18px 12px -8px hsl(220 20% 10% / 0.18), 0 32px 64px -12px hsl(220 20% 10% / 0.22)',
       }}
     >
-      {/* ─── TOP HALF · TACTICAL ─── */}
-      <div className="p-6 pb-5">
+      {/* ─── TOP HALF · TACTICAL ─── (24px no-bleed padding) */}
+      <div className="p-6 pb-5" style={{ padding: '24px', paddingBottom: '20px' }}>
         {/* Eyebrow + live wait */}
         <div className="flex items-start justify-between mb-4">
           <span className="font-sans text-[9px] uppercase tracking-sovereign text-accent font-bold flex items-center gap-1.5">
@@ -149,29 +150,30 @@ const FocusMove = ({
         </div>
       </div>
 
-      {/* ─── BOTTOM HALF · ENGAGEMENT ZONE (Grand Quest) ─── */}
+      {/* ─── MEMORY RIBBON · The Grand Quest ─── */}
       {questPrompt && (
         <div
-          className="mx-5 mb-5 p-4"
           style={{
-            borderRadius: '16px',
-            border: '1.5px solid hsl(var(--gold) / 0.5)',
+            margin: '0 24px 24px 24px',
+            padding: '16px 18px',
+            borderRadius: '14px',
+            // Burnished Gold ribbon — visually anchored to the bottom edge of the card
+            border: '1px solid hsl(36 47% 35% / 0.55)',
             background:
-              'linear-gradient(180deg, hsl(var(--gold) / 0.06) 0%, hsl(var(--gold) / 0.02) 100%)',
+              'linear-gradient(180deg, hsl(36 47% 35% / 0.08) 0%, hsl(36 47% 35% / 0.02) 100%)',
           }}
         >
-          <div className="flex items-center gap-1.5 mb-1.5">
-            <QuestIcon size={11} style={{ color: 'hsl(var(--gold))' }} />
+          <div className="flex items-center gap-1.5 mb-2">
+            <QuestIcon size={11} style={{ color: 'hsl(36 47% 35%)' }} />
             <span
               className="font-sans text-[8px] uppercase tracking-sovereign font-bold"
-              style={{ color: 'hsl(var(--gold))' }}
+              style={{ color: 'hsl(36 47% 35%)', letterSpacing: '0.14em' }}
             >
               The Grand Quest
             </span>
           </div>
           <p
-            className="font-display text-[15px] leading-snug text-foreground mb-3"
-            style={{ fontFamily: '"Publico Headline", "Playfair Display", serif' }}
+            className="font-sans italic text-[14px] leading-snug text-foreground/85 mb-3"
           >
             {questPrompt}
           </p>
@@ -180,9 +182,9 @@ const FocusMove = ({
             onClick={onCaptureMemory}
             className="w-full flex items-center justify-center gap-1.5 py-2.5 bg-transparent cursor-pointer font-sans text-[11px] font-semibold uppercase tracking-sovereign min-h-[40px]"
             style={{
-              borderRadius: '16px',
-              border: '1px solid hsl(var(--gold) / 0.4)',
-              color: 'hsl(var(--gold))',
+              borderRadius: '14px',
+              border: '1px solid hsl(36 47% 35% / 0.45)',
+              color: 'hsl(36 47% 35%)',
             }}
           >
             <QuestIcon size={12} />
