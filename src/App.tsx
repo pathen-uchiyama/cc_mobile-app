@@ -12,6 +12,7 @@ import Upgrades from "./pages/Upgrades";
 import JoyReport from "./pages/JoyReport";
 import PlanWizard from "./pages/PlanWizard";
 import NotFound from "./pages/NotFound";
+import { CompanionProvider } from "./contexts/CompanionContext";
 
 const queryClient = new QueryClient();
 
@@ -20,6 +21,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <CompanionProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Welcome />} />
@@ -33,6 +35,7 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
+      </CompanionProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

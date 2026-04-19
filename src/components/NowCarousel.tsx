@@ -1,11 +1,13 @@
 import { motion } from 'framer-motion';
-import { MapPin, Clock, Zap } from 'lucide-react';
+import { Zap } from 'lucide-react';
+import DirectionalNowCard from './DirectionalNowCard';
 
 interface TimelineEvent {
   id: string;
   time: string;
   title: string;
   location: string;
+  destination: string;
   wait?: string;
   status: 'now' | 'next' | 'later';
   llSecured?: boolean;
@@ -18,6 +20,7 @@ const AGENDA: TimelineEvent[] = [
     time: '10:15',
     title: 'Pirates of the Caribbean',
     location: 'Adventureland',
+    destination: 'Adventureland',
     wait: '12 min',
     status: 'now',
     type: 'ride',
@@ -27,42 +30,17 @@ const AGENDA: TimelineEvent[] = [
     time: '11:00',
     title: 'Haunted Mansion',
     location: 'Liberty Square',
+    destination: 'Liberty Square',
     wait: '25 min',
     status: 'next',
-    llSecured: true,
-    type: 'ride',
-  },
-  {
-    id: '3',
-    time: '11:30',
-    title: 'Be Our Guest Restaurant',
-    location: 'Fantasyland',
-    status: 'later',
-    type: 'dining',
-  },
-  {
-    id: '4',
-    time: '13:00',
-    title: 'Festival of Fantasy Parade',
-    location: 'Main Street U.S.A.',
-    status: 'later',
-    type: 'show',
-  },
-  {
-    id: '5',
-    time: '14:30',
-    title: 'Space Mountain',
-    location: 'Tomorrowland',
-    wait: '45 min',
-    status: 'later',
     llSecured: true,
     type: 'ride',
   },
 ];
 
 const NowCarousel = () => {
-  const nowEvent = AGENDA.find(e => e.status === 'now');
-  const nextEvent = AGENDA.find(e => e.status === 'next');
+  const nowEvent = AGENDA.find((e) => e.status === 'now');
+  const nextEvent = AGENDA.find((e) => e.status === 'next');
 
   return (
     <div>
@@ -74,36 +52,17 @@ const NowCarousel = () => {
         </span>
       </div>
 
-      {/* Current moment — hero card */}
+      {/* Directional now card */}
       {nowEvent && (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-card p-5 shadow-boutique rounded-xl mb-3 relative"
-        >
-          {/* Wait time — prominent upper right */}
-          {nowEvent.wait && (
-            <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-accent/15 px-3 py-1.5 rounded-full">
-              <Clock size={12} className="text-accent" />
-              <span className="font-sans text-sm text-accent font-bold tabular-nums">{nowEvent.wait}</span>
-            </div>
-          )}
-
-          <span className="font-sans text-[8px] uppercase tracking-sovereign text-accent font-bold flex items-center gap-1.5 mb-3">
-            <motion.div
-              className="w-2 h-2 bg-accent rounded-full"
-              animate={{ scale: [1, 1.4, 1], opacity: [1, 0.5, 1] }}
-              transition={{ repeat: Infinity, duration: 2 }}
-            />
-            Happening Now · {nowEvent.time}
-          </span>
-
-          <h3 className="font-display text-xl text-foreground mb-1">{nowEvent.title}</h3>
-          <div className="flex items-center gap-1 mt-2">
-            <MapPin size={10} className="text-muted-foreground" />
-            <span className="font-sans text-[10px] text-muted-foreground">{nowEvent.location}</span>
-          </div>
-        </motion.div>
+        <div className="mb-3">
+          <DirectionalNowCard
+            time={nowEvent.time}
+            title={nowEvent.title}
+            location={nowEvent.location}
+            destination={nowEvent.destination}
+            wait={nowEvent.wait}
+          />
+        </div>
       )}
 
       {/* Next up — compact strip */}
