@@ -1,81 +1,153 @@
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Zap, Clock, Sparkles } from 'lucide-react';
+import { Zap, Sparkles, Check } from 'lucide-react';
+import { useCelebrate, WHISPERS } from '@/contexts/CelebrationContext';
+import type { ServiceTier } from '@/contexts/CompanionContext';
 
 interface LLReservation {
   id: string;
   ride: string;
   window: string;
+  /** "ll" or "ill" */
   type: 'll' | 'ill';
+  /** Has the return window already opened? */
+  active?: boolean;
+  /** Has it been used / redeemed? */
+  used?: boolean;
 }
 
 const RESERVATIONS: LLReservation[] = [
-  { id: '1', ride: 'Haunted Mansion', window: '11–12', type: 'll' },
-  { id: '2', ride: 'Jungle Cruise', window: '1:15–2:15', type: 'll' },
-  { id: '3', ride: 'Big Thunder', window: '2:45–3:45', type: 'll' },
-];
-
-const ILL_RESERVATIONS: LLReservation[] = [
+  { id: '1', ride: 'Pirates', window: '10:15', type: 'll', used: true },
+  { id: '2', ride: 'Haunted Mansion', window: '11:00', type: 'll', active: true },
+  { id: '3', ride: 'Jungle Cruise', window: '1:15', type: 'll' },
+  { id: '4', ride: 'Big Thunder', window: '2:45', type: 'll' },
   { id: 'ill1', ride: 'Tron', window: '12:30', type: 'ill' },
   { id: 'ill2', ride: 'Guardians', window: '3:00', type: 'ill' },
 ];
 
-type Tier = 'standard' | 'manager' | 'autonomous';
-
 interface LightningLaneTrackerProps {
   visible: boolean;
-  tier?: Tier;
+  tier?: ServiceTier;
 }
 
+/**
+ * The Pocket Concierge Strip — Module 3 of the Boutique Pivot.
+ *
+ *  - Auto-scrolls (visually) to "what's next" via order
+ *  - Active LL pulses in Burnished Gold
+ *  - Past LLs collapse into a single "✓ N used" pill
+ *  - Manager CTA only appears when AI has actually found a swap (witty copy)
+ *  - Hidden for Sovereign tier (fully autonomous)
+ *  - Hidden for Explorer tier (no upgrade)
+ */
 const LightningLaneTracker = ({ visible, tier = 'manager' }: LightningLaneTrackerProps) => {
-  if (!visible) return null;
+  const { celebrate } = useCelebrate();
 
-  const showManagerCTA = tier === 'manager';
+  // Sovereign = invisible (it just happens). Explorer = no access.
+  if (!visible || tier === 'sovereign') return null;
+
+  const used = useMemo(() => RESERVATIONS.filter(r => r.used), []);
+  const upcoming = useMemo(
+    () => RESERVATIONS.filter(r => !r.used).sort((a, b) => (b.active ? 1 : 0) - (a.active ? 1 : 0)),
+    []
+  );
+  const ill = upcoming.filter(r => r.type === 'ill');
+  const standard = upcoming.filter(r => r.type === 'll');
+
+  // Simulated AI opportunity — only Manager tier sees the witty intervention
+  const swapOpportunity = tier === 'manager';
+
+  const acceptSwap = () => {
+    const tip = WHISPERS.llSnipe[Math.floor(Math.random() * WHISPERS.llSnipe.length)];
+    celebrate(tip, 'LL Sniped');
+  };
 
   return (
-    <div className="bg-card/60 rounded-xl border border-border/60 px-3 py-2.5">
-      {/* Header row */}
-      <div className="flex items-center justify-between mb-2">
+    <div className="bg-card/60 rounded-xl border border-border/60 p-3">
+      {/* Header: brand + collapsed "used" pill + ILL count */}
+      <div className="flex items-center justify-between mb-2.5">
         <div className="flex items-center gap-1.5">
           <Zap size={10} className="text-accent" />
           <span className="font-sans text-[8px] uppercase tracking-sovereign text-accent font-bold">
-            Lightning Lane
+            Pocket Concierge
           </span>
         </div>
         <div className="flex items-center gap-1.5">
-          {ILL_RESERVATIONS.slice(0, 2).map((res) => (
-            <span key={res.id} className="font-sans text-[7px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-md font-bold uppercase tracking-sovereign">
-              ILL {res.ride} · {res.window}
+          {used.length > 0 && (
+            <span className="font-sans text-[8px] text-muted-foreground flex items-center gap-1 bg-muted/60 px-2 py-0.5 rounded-full">
+              <Check size={9} />
+              {used.length} used
             </span>
-          ))}
+          )}
+          {ill.length > 0 && (
+            <span className="font-sans text-[8px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold uppercase tracking-sovereign">
+              {ill.length} ILL
+            </span>
+          )}
         </div>
       </div>
 
-      {/* LL slots — 3 compact columns */}
-      <div className="grid grid-cols-3 gap-1.5">
-        {RESERVATIONS.map((res) => (
+      {/* Time-aware ribbon — horizontal scroll, active LL pulses */}
+      <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-3 px-3 pb-1">
+        {standard.map((res) => {
+          const isActive = res.active;
+          return (
+            <motion.div
+              key={res.id}
+              animate={isActive ? { scale: [1, 1.02, 1] } : {}}
+              transition={isActive ? { repeat: Infinity, duration: 2.4, ease: 'easeInOut' } : {}}
+              className={`shrink-0 min-w-[90px] rounded-lg px-2.5 py-2 text-center border transition-colors ${
+                isActive
+                  ? 'bg-accent/15 border-accent/50 shadow-boutique'
+                  : 'bg-accent/5 border-accent/10'
+              }`}
+              style={
+                isActive
+                  ? { boxShadow: '0 0 0 1px hsl(var(--gold) / 0.3), 0 0 20px hsl(var(--gold) / 0.2)' }
+                  : undefined
+              }
+            >
+              <p className={`font-sans text-[10px] font-semibold truncate leading-tight ${
+                isActive ? 'text-foreground' : 'text-foreground/80'
+              }`}>
+                {res.ride}
+              </p>
+              <span className={`font-sans text-[8px] tabular-nums ${
+                isActive ? 'text-accent font-bold' : 'text-muted-foreground'
+              }`}>
+                {isActive ? 'OPEN NOW' : res.window}
+              </span>
+            </motion.div>
+          );
+        })}
+
+        {/* ILL chips inline at end */}
+        {ill.map((res) => (
           <div
             key={res.id}
-            className="bg-accent/6 border border-accent/10 rounded-lg px-2 py-1.5 text-center"
+            className="shrink-0 min-w-[80px] rounded-lg px-2.5 py-2 text-center bg-primary/8 border border-primary/15"
           >
-            <p className="font-sans text-[9px] font-semibold text-foreground truncate leading-tight">
-              {res.ride}
+            <p className="font-sans text-[9px] font-bold text-primary truncate leading-tight uppercase tracking-sovereign">
+              ILL · {res.ride}
             </p>
-            <span className="font-sans text-[7px] text-muted-foreground tabular-nums">
+            <span className="font-sans text-[8px] text-muted-foreground tabular-nums">
               {res.window}
             </span>
           </div>
         ))}
       </div>
 
-      {/* Manager CTA — only for manager tier */}
-      {showManagerCTA && (
+      {/* Witty AI intervention — only when there's an actual opportunity */}
+      {swapOpportunity && (
         <motion.button
-          whileTap={{ scale: 0.97 }}
-          className="w-full mt-2 py-1.5 bg-primary/10 text-primary font-sans text-[8px] uppercase tracking-sovereign font-bold border-none cursor-pointer rounded-lg flex items-center justify-center gap-1"
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={acceptSwap}
+          className="w-full mt-2.5 py-2 bg-gradient-to-r from-accent/10 via-accent/15 to-accent/10 hover:from-accent/15 hover:to-accent/15 text-foreground font-sans text-[10px] border border-accent/30 cursor-pointer rounded-lg flex items-center justify-center gap-1.5 transition-colors"
         >
-          <Sparkles size={8} />
-          LL Manager
-          <span className="text-accent">✨</span>
+          <Sparkles size={10} className="text-accent" />
+          <span className="italic">Space Mountain just opened a back door. Take it?</span>
         </motion.button>
       )}
     </div>
