@@ -14,6 +14,8 @@ import SovereignView from '@/components/SovereignView';
 import NeedOverlay from '@/components/NeedOverlay';
 import RecalibrateSheet from '@/components/RecalibrateSheet';
 import SwapSuggestionsSheet from '@/components/SwapSuggestionsSheet';
+import BottomSheet from '@/components/BottomSheet';
+import FindAndSeekWidget from '@/components/FindAndSeekWidget';
 import DevPanel from '@/components/DevPanel';
 import WhisperStrip from '@/components/WhisperStrip';
 import { useCompanion } from '@/contexts/CompanionContext';
