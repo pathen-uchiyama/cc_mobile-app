@@ -129,12 +129,14 @@ const InPark = () => {
     done: false,
   }));
 
-  // The Assisted Drawer is the canonical LL surface — surfaces only when a window is found.
+  // The Assisted Drawer is the canonical LL surface — invisible by default,
+  // surfaces only when the strategy engine identifies a Strategic Opportunity.
+  // Tier 3 (sovereign) renders as a top toast + auto-confirm (handled inside the drawer).
   useEffect(() => {
-    if (useQuietView || tier !== 'manager' || drawerHandled) return;
+    if (minimalist || drawerHandled) return;
     const t = setTimeout(() => setDrawerOpen(true), 4000);
     return () => clearTimeout(t);
-  }, [useQuietView, tier, drawerHandled]);
+  }, [minimalist, drawerHandled]);
 
   const commitHero = () => {
     const tip = WHISPERS.arrival[Math.floor(Math.random() * WHISPERS.arrival.length)];
