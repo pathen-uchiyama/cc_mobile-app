@@ -1,7 +1,9 @@
 import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, X, ArrowRight } from 'lucide-react';
+import { Sparkles, X, ArrowRight, Check } from 'lucide-react';
+import { toast } from 'sonner';
 import { useHaptics } from '@/hooks/useHaptics';
+import { useCompanion, type ServiceTier } from '@/contexts/CompanionContext';
 
 interface AssistedDrawerProps {
   open: boolean;
@@ -17,29 +19,59 @@ interface AssistedDrawerProps {
 }
 
 /**
- * Contextual Booking Drawer — the ONLY surface where Lightning Lanes are managed.
+ * Contextual Booking Drawer — the Interaction Hub for the Assisted Path.
  *
- * Triggered exclusively by the strategy engine when a window is found.
- * Single Strategic Executive Decision: one Deep Obsidian "Secure Path" button.
+ * Stays INVISIBLE by default. Only triggers when the strategy engine
+ * identifies a Strategic Opportunity (LL window matching a Must-Do).
  *
- * Copy spec: "Strategic Window Found: We can secure {attraction} for {window}.
- * This saves {savedMinutes} minutes and {reasoning}. Secure?"
+ * Tier-aware UI injection:
+ *   • Tier 1 (explorer)  — "Secure Path" CTA. The user takes action.
+ *   • Tier 2 (manager)   — "Confirm Strategy" CTA. The app already prepped it.
+ *   • Tier 3 (sovereign) — Auto-confirms via top toast, then dismisses. The
+ *                          drawer never visually opens; the Hero updates itself.
  *
- * Haptics: double-pulse on appearance, long pulse on confirm.
+ * The Logic Whisper (Inter Italic, "Why now") is required on every render.
  */
+const tierCopy: Record<ServiceTier, { eyebrow: string; cta: string }> = {
+  explorer: { eyebrow: 'Strategic Window Found', cta: 'Secure Path' },
+  manager: { eyebrow: 'Strategy Prepared', cta: 'Confirm Strategy' },
+  sovereign: { eyebrow: 'Strategy Success', cta: 'Done' },
+};
+
 const AssistedDrawer = ({
   open, attraction, window, savedMinutes, reasoning, onConfirm, onDismiss,
 }: AssistedDrawerProps) => {
   const { fire } = useHaptics();
+  const { tier } = useCompanion();
 
+  // Tier 3 — Sovereign: never visually opens. Fire a top-aligned toast and
+  // auto-confirm so the Hero card updates itself.
   useEffect(() => {
-    if (open) fire('recommendation');
-  }, [open, fire]);
+    if (!open) return;
+    if (tier === 'sovereign') {
+      fire('bookingSuccess');
+      toast.success(`${attraction} secured for ${window}`, {
+        description: reasoning
+          ? `Saved ${savedMinutes} minutes. ${reasoning.charAt(0).toUpperCase()}${reasoning.slice(1)}.`
+          : `Saved ${savedMinutes} minutes of standby.`,
+        position: 'top-center',
+        duration: 3200,
+      });
+      const t = setTimeout(() => onConfirm(), 600);
+      return () => clearTimeout(t);
+    }
+    fire('recommendation');
+  }, [open, tier, attraction, window, reasoning, savedMinutes, fire, onConfirm]);
 
   const handleConfirm = () => {
     fire('bookingSuccess');
     onConfirm();
   };
+
+  // Tier 3 — render nothing visible (toast handled in effect).
+  if (tier === 'sovereign') return null;
+
+  const { eyebrow, cta } = tierCopy[tier];
 
   return (
     <AnimatePresence>
@@ -56,12 +88,12 @@ const AssistedDrawer = ({
 
           <motion.aside
             role="dialog"
-            aria-label="Strategic Window Found"
+            aria-label={eyebrow}
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 28, stiffness: 240 }}
-            className="fixed bottom-[108px] left-1/2 -translate-x-1/2 z-[9980] w-full max-w-[480px] bg-card flex flex-col"
+            className="fixed bottom-[108px] left-1/2 -translate-x-1/2 z-[9980] w-[calc(100vw-24px)] max-w-[420px] bg-card flex flex-col"
             style={{
               minHeight: '46vh',
               maxHeight: '70vh',
@@ -88,7 +120,7 @@ const AssistedDrawer = ({
                   className="font-sans text-[10px] uppercase tracking-sovereign font-bold"
                   style={{ color: 'hsl(var(--gold))', letterSpacing: '0.16em' }}
                 >
-                  Strategic Window Found
+                  {eyebrow}
                 </span>
               </div>
 
@@ -96,22 +128,22 @@ const AssistedDrawer = ({
                 className="font-display text-[24px] leading-[1.18] text-foreground mb-4"
                 style={{ fontFamily: '"Publico Headline", "Playfair Display", serif' }}
               >
-                We can secure{' '}
+                {tier === 'manager' ? 'Ready to lock ' : 'We can secure '}
                 <span style={{ color: 'hsl(var(--gold))' }}>{attraction}</span>
                 {' '}for{' '}
                 <span className="tabular-nums">{window}</span>.
               </h3>
 
               <p className="font-sans italic text-[14px] text-foreground/85 leading-relaxed mb-5">
-                This saves{' '}
+                {tier === 'manager'
+                  ? <>The strategy is prepped — </>
+                  : <>This </>}
+                saves{' '}
                 <span className="not-italic font-semibold tabular-nums">{savedMinutes} minutes</span>
-                {reasoning ? (
-                  <> and {reasoning}.</>
-                ) : (
-                  <> of standby time.</>
-                )}
+                {reasoning ? <> and {reasoning}.</> : <> of standby time.</>}
               </p>
 
+              {/* Logic Whisper — required Inter Italic rationale */}
               <div
                 className="mt-auto px-3 py-2.5 rounded-xl flex items-start gap-2"
                 style={{
@@ -129,7 +161,7 @@ const AssistedDrawer = ({
                   className="font-sans italic text-[11px] leading-snug"
                   style={{ color: 'hsl(var(--slate-plaid))' }}
                 >
-                  Lightning Lanes are only surfaced here, when the system finds a path that fits your day.
+                  Securing this now ensures you can stack the afternoon for your Must-Dos.
                 </span>
               </div>
             </div>
@@ -141,8 +173,8 @@ const AssistedDrawer = ({
                 className="w-full bg-primary text-primary-foreground border-none cursor-pointer font-sans text-[14px] font-semibold flex items-center justify-center gap-2"
                 style={{ borderRadius: '16px', minHeight: '60px' }}
               >
-                Secure Path
-                <ArrowRight size={16} />
+                {cta}
+                {tier === 'manager' ? <Check size={16} /> : <ArrowRight size={16} />}
               </motion.button>
               <button
                 onClick={onDismiss}

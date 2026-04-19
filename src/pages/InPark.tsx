@@ -129,12 +129,14 @@ const InPark = () => {
     done: false,
   }));
 
-  // The Assisted Drawer is the canonical LL surface — surfaces only when a window is found.
+  // The Assisted Drawer is the canonical LL surface — invisible by default,
+  // surfaces only when the strategy engine identifies a Strategic Opportunity.
+  // Tier 3 (sovereign) renders as a top toast + auto-confirm (handled inside the drawer).
   useEffect(() => {
-    if (useQuietView || tier !== 'manager' || drawerHandled) return;
+    if (minimalist || drawerHandled) return;
     const t = setTimeout(() => setDrawerOpen(true), 4000);
     return () => clearTimeout(t);
-  }, [useQuietView, tier, drawerHandled]);
+  }, [minimalist, drawerHandled]);
 
   const commitHero = () => {
     const tip = WHISPERS.arrival[Math.floor(Math.random() * WHISPERS.arrival.length)];
@@ -237,18 +239,21 @@ const InPark = () => {
             </section>
           </main>
 
-          {/* Contextual Booking Drawer — the ONLY place Lightning Lanes are managed. */}
-          <AssistedDrawer
-            open={drawerOpen}
-            attraction="Pirates of the Caribbean"
-            window="1:15 PM"
-            savedMinutes={40}
-            reasoning="aligns with your lunch pivot at Skipper Canteen"
-            onConfirm={confirmDrawer}
-            onDismiss={dismissDrawer}
-          />
         </>
       )}
+
+      {/* Contextual Booking Drawer — globally mounted so Tier 3 (sovereign)
+          users still receive the auto-confirm toast even in the quiet view.
+          Invisible by default; surfaces only when a Strategic Opportunity hits. */}
+      <AssistedDrawer
+        open={drawerOpen}
+        attraction="Pirates of the Caribbean"
+        window="1:15 PM"
+        savedMinutes={40}
+        reasoning="aligns with your lunch pivot at Skipper Canteen"
+        onConfirm={confirmDrawer}
+        onDismiss={dismissDrawer}
+      />
 
       {/* The Hearth: Floating Obsidian dock with the centered Gold Sovereign Key.
           No side slots — the Key is the only OS anchor. Lightning Lanes are
