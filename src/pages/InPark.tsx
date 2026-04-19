@@ -282,8 +282,22 @@ const InPark = () => {
         </>
       )}
 
-      {/* Directive 2 — The Hearth: Floating Obsidian dock w/ centered Gold Sovereign Key */}
-      <HearthDock onSovereignTap={handleSovereignTap} active={audibleOpen || dashboardOpen} />
+      {/* Directive 2 — The Hearth: Floating Obsidian dock w/ centered Gold Sovereign Key.
+          Left slot exposes the Lightning Lane Vault for ANY ride in the park. */}
+      <HearthDock
+        onSovereignTap={handleSovereignTap}
+        active={audibleOpen || dashboardOpen}
+        leftSlot={
+          <button
+            onClick={() => setLLVaultOpen(true)}
+            aria-label="Open Lightning Lane Vault"
+            className="bg-transparent border-none cursor-pointer p-1.5 flex items-center justify-center"
+            style={{ color: 'hsl(var(--gold))' }}
+          >
+            <Zap size={18} />
+          </button>
+        }
+      />
 
       <AudibleMenu
         open={audibleOpen}
