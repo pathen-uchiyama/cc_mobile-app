@@ -146,9 +146,9 @@ const PivotButton = ({ action }: { action: PivotAction }) => {
       aria-label={action.badge ? `${action.label} — suggested` : action.label}
       title={action.label}
       className="relative w-10 h-10 flex items-center justify-center bg-transparent border-none cursor-pointer rounded-full"
-      style={{ color: 'hsl(var(--gold) / 0.85)' }}
+      style={{ color: 'hsl(var(--parchment))' }}
     >
-      <Icon size={17} strokeWidth={1.6} />
+      <Icon size={18} strokeWidth={1.9} />
       {action.badge && (
         <motion.span
           aria-hidden
