@@ -32,21 +32,30 @@ const AudibleMenu = ({ open, onClose, onBreak, onRefuel, onClosure, onReset }: A
     <AnimatePresence>
       {open && (
         <>
+          {/* Semi-transparent Aged Parchment overlay — not a new page */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-[9970] bg-foreground/30"
-            style={{ backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}
+            className="fixed inset-0 z-[9970]"
+            style={{
+              background: 'hsl(var(--parchment) / 0.82)',
+              backdropFilter: 'blur(8px) saturate(120%)',
+              WebkitBackdropFilter: 'blur(8px) saturate(120%)',
+            }}
           />
           <motion.div
             initial={{ opacity: 0, y: 24, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 24, scale: 0.96 }}
             transition={{ duration: 0.2 }}
-            className="fixed bottom-[112px] left-1/2 -translate-x-1/2 z-[9985] w-[320px] bg-card rounded-2xl p-5"
-            style={{ boxShadow: '0 24px 60px hsl(var(--obsidian) / 0.2)' }}
+            className="fixed bottom-[112px] left-1/2 -translate-x-1/2 z-[9985] w-[320px] bg-card/95 rounded-2xl"
+            style={{
+              padding: '24px',
+              boxShadow: '0 24px 60px hsl(var(--obsidian) / 0.2)',
+              border: '1px solid hsl(var(--gold) / 0.18)',
+            }}
           >
             <p className="font-sans text-[8px] uppercase tracking-sovereign font-bold text-center mb-4" style={{ color: 'hsl(var(--gold))' }}>
               Call an Audible

@@ -42,13 +42,16 @@ const HorizonCard = ({
       style={{
         width: '100%',
         borderRadius: '16px',
-        boxShadow: '0 6px 18px hsl(var(--obsidian) / 0.04)',
+        // Horizon = recessed; lighter shadow to sit "below" the Hero
+        boxShadow: '0 2px 6px hsl(var(--obsidian) / 0.04), 0 8px 16px -8px hsl(var(--obsidian) / 0.06)',
+        opacity: 0.94,
       }}
     >
-      {/* TACTICAL row */}
+      {/* TACTICAL row — 24px horizontal no-bleed padding */}
       <button
         onClick={() => setExpanded((v) => !v)}
-        className="w-full bg-transparent border-none p-0 cursor-pointer text-left px-5 py-3.5"
+        className="w-full bg-transparent border-none p-0 cursor-pointer text-left"
+        style={{ padding: '16px 24px' }}
         aria-expanded={expanded}
       >
         <div className="flex items-center justify-between gap-3">
@@ -110,33 +113,32 @@ const HorizonCard = ({
             transition={{ duration: 0.22 }}
             className="overflow-hidden"
           >
-            <div className="px-5 pb-4">
+            <div style={{ padding: '0 24px 20px 24px' }}>
               <p className="font-sans italic text-[12px] leading-snug mb-3" style={{ color: 'hsl(var(--slate-plaid))' }}>
                 {logic}
               </p>
 
               {questPrompt && (
                 <div
-                  className="p-3"
                   style={{
-                    borderRadius: '16px',
-                    border: '1.5px solid hsl(var(--gold) / 0.5)',
+                    padding: '14px 16px',
+                    borderRadius: '14px',
+                    border: '1px solid hsl(36 47% 35% / 0.55)',
                     background:
-                      'linear-gradient(180deg, hsl(var(--gold) / 0.06) 0%, hsl(var(--gold) / 0.02) 100%)',
+                      'linear-gradient(180deg, hsl(36 47% 35% / 0.08) 0%, hsl(36 47% 35% / 0.02) 100%)',
                   }}
                 >
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <Camera size={10} style={{ color: 'hsl(var(--gold))' }} />
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <Camera size={10} style={{ color: 'hsl(36 47% 35%)' }} />
                     <span
-                      className="font-sans text-[7px] uppercase tracking-sovereign font-bold"
-                      style={{ color: 'hsl(var(--gold))' }}
+                      className="font-sans text-[8px] uppercase tracking-sovereign font-bold"
+                      style={{ color: 'hsl(36 47% 35%)', letterSpacing: '0.14em' }}
                     >
-                      Grand Quest
+                      The Grand Quest
                     </span>
                   </div>
                   <p
-                    className="font-display text-[13px] leading-snug text-foreground mb-2"
-                    style={{ fontFamily: '"Publico Headline", "Playfair Display", serif' }}
+                    className="font-sans italic text-[13px] leading-snug text-foreground/85 mb-2"
                   >
                     {questPrompt}
                   </p>
@@ -147,9 +149,9 @@ const HorizonCard = ({
                     }}
                     className="w-full flex items-center justify-center gap-1.5 py-2 bg-transparent cursor-pointer font-sans text-[10px] font-semibold uppercase tracking-sovereign min-h-[36px]"
                     style={{
-                      borderRadius: '16px',
-                      border: '1px solid hsl(var(--gold) / 0.4)',
-                      color: 'hsl(var(--gold))',
+                      borderRadius: '14px',
+                      border: '1px solid hsl(36 47% 35% / 0.45)',
+                      color: 'hsl(36 47% 35%)',
                     }}
                   >
                     <Camera size={11} />
