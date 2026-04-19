@@ -7,7 +7,7 @@ import SideQuestsRow from '@/components/priority-stack/SideQuestsRow';
 import AssistedDrawer from '@/components/priority-stack/AssistedDrawer';
 import AudibleMenu from '@/components/priority-stack/AudibleMenu';
 import StrategicDashboard from '@/components/priority-stack/StrategicDashboard';
-import SovereignAnchor from '@/components/priority-stack/SovereignAnchor';
+import HearthDock from '@/components/HearthDock';
 import MinimalistView from '@/components/MinimalistView';
 import SovereignView from '@/components/SovereignView';
 import NeedOverlay from '@/components/NeedOverlay';
