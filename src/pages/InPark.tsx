@@ -252,10 +252,10 @@ const InPark = () => {
       <AudibleMenu
         open={audibleOpen}
         onClose={() => setAudibleOpen(false)}
-        onBreak={() => pivotWith('Need a break', () => setNeedType('quiet'))}
+        onBreak={() => pivotWith('Need a Break', () => setNeedType('quiet'))}
         onRefuel={() => pivotWith('Refuel', () => setNeedType('bathroom'))}
-        onClosure={() => pivotWith('Ride closure', () => setSwapFor(hero?.attraction ?? 'current ride'))}
-        onReset={() => pivotWith('Reset the pulse', () => setShowRecalibrate(true))}
+        onClosure={() => pivotWith('Rain Pivot', () => setSwapFor(hero?.attraction ?? 'current ride'))}
+        onReset={() => pivotWith('Recalculate Strategy', () => { setPivotSuggested(false); setShowRecalibrate(true); })}
       />
 
       <StrategicDashboard
