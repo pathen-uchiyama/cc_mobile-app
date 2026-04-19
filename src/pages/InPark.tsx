@@ -80,6 +80,11 @@ const WALKING_PROMPTS: WalkingPrompt[] = [];
 
 
 const InPark = () => {
+  // The Sovereign Stack lives in state so cards can be promoted, completed,
+  // and pulled in from the Must-Do dropdown — all with a shared-layout swap.
+  const [plan, setPlan] = useState<PlanItem[]>(PLAN);
+  const [mustDos, setMustDos] = useState<{ id: string; attraction: string; done?: boolean }[]>(MUST_DOS);
+
   // Sovereign Key contextual mode: 'audible' for relaxed users, 'dashboard' for Type A.
   const [audibleOpen, setAudibleOpen] = useState(false);
   const [dashboardOpen, setDashboardOpen] = useState(false);
