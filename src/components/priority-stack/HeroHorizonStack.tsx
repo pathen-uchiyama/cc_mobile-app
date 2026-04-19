@@ -40,8 +40,24 @@ const HeroHorizonStack = ({ items, onCommitHero }: HeroHorizonStackProps) => {
 
   return (
     <>
-      {/* Priority 1 — Hero (top 40% of viewport) */}
-      <div className="relative" style={{ minHeight: '40vh' }}>
+      {/* Forced-Focus eyebrow — names the constraint out loud */}
+      <div className="flex items-center justify-between mb-2 px-1">
+        <span
+          className="font-sans text-[9px] uppercase tracking-sovereign font-bold"
+          style={{ color: 'hsl(var(--gold))' }}
+        >
+          Top 3 Priorities
+        </span>
+        <span
+          className="font-sans text-[9px] uppercase tracking-sovereign"
+          style={{ color: 'hsl(var(--slate-plaid))' }}
+        >
+          The rest is folded
+        </span>
+      </div>
+
+      {/* Priority 1 — Hero Mandate: ≥25% of screen height */}
+      <div className="relative" style={{ minHeight: '25vh' }}>
         <FocusMove
           attraction={hero.attraction}
           location={hero.location}
@@ -53,7 +69,7 @@ const HeroHorizonStack = ({ items, onCommitHero }: HeroHorizonStackProps) => {
         />
       </div>
 
-      {/* Priority 2 & 3 — Horizon peeks */}
+      {/* Priority 2 & 3 — Horizon peeks (depth stack) */}
       {horizon.length > 0 && (
         <div className="relative -mt-3 space-y-2">
           {horizon.map((it, idx) => (
@@ -84,17 +100,18 @@ const HeroHorizonStack = ({ items, onCommitHero }: HeroHorizonStackProps) => {
         </div>
       )}
 
-      {/* The Fade — Full Ledger trigger */}
+      {/* The Fade — Full Ledger trigger (everything beyond Top 3) */}
       {overflow.length > 0 && (
         <button
           onClick={() => setLedgerOpen(true)}
           className="mt-4 mx-auto flex items-center gap-1.5 px-3 py-2 bg-transparent border-none cursor-pointer"
+          style={{ borderRadius: '16px' }}
         >
           <span
             className="font-sans text-[10px] uppercase tracking-sovereign font-semibold"
             style={{ color: 'hsl(var(--slate-plaid))' }}
           >
-            View full plan · {overflow.length} more
+            Full ledger · {overflow.length} more
           </span>
           <ChevronDown size={12} style={{ color: 'hsl(var(--slate-plaid))' }} />
         </button>
