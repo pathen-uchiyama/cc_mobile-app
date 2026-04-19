@@ -143,12 +143,26 @@ const PivotButton = ({ action }: { action: PivotAction }) => {
     <motion.button
       whileTap={{ scale: 0.9 }}
       onClick={action.onTap}
-      aria-label={action.label}
+      aria-label={action.badge ? `${action.label} — suggested` : action.label}
       title={action.label}
-      className="w-10 h-10 flex items-center justify-center bg-transparent border-none cursor-pointer rounded-full"
+      className="relative w-10 h-10 flex items-center justify-center bg-transparent border-none cursor-pointer rounded-full"
       style={{ color: 'hsl(var(--gold) / 0.85)' }}
     >
       <Icon size={17} strokeWidth={1.6} />
+      {action.badge && (
+        <motion.span
+          aria-hidden
+          className="absolute top-1.5 right-1.5 block rounded-full"
+          style={{
+            width: '7px',
+            height: '7px',
+            background: 'hsl(var(--gold))',
+            boxShadow: '0 0 0 2px hsl(var(--obsidian)), 0 0 8px hsl(var(--gold) / 0.7)',
+          }}
+          animate={{ opacity: [1, 0.45, 1], scale: [1, 1.18, 1] }}
+          transition={{ repeat: Infinity, duration: 1.8, ease: 'easeInOut' }}
+        />
+      )}
     </motion.button>
   );
 };
