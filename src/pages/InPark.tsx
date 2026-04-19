@@ -13,6 +13,8 @@ import NeedOverlay from '@/components/NeedOverlay';
 import RecalibrateSheet from '@/components/RecalibrateSheet';
 import SwapSuggestionsSheet from '@/components/SwapSuggestionsSheet';
 import DevPanel from '@/components/DevPanel';
+import WhisperStrip from '@/components/WhisperStrip';
+import LightningLaneTracker from '@/components/LightningLaneTracker';
 import { useCompanion } from '@/contexts/CompanionContext';
 import { useCelebrate, WHISPERS } from '@/contexts/CelebrationContext';
 
@@ -25,6 +27,8 @@ interface PlanItem {
   logic: string;
   wait?: string;
   llSecured?: boolean;
+  /** Crowd-vote count — explains why this attraction is on the plan. */
+  votes?: number;
 }
 
 const PLAN: PlanItem[] = [
@@ -36,6 +40,7 @@ const PLAN: PlanItem[] = [
     location: 'Adventureland',
     logic: 'Optimized to beat the 2 PM parade crowd — wait is 15m below average right now.',
     wait: '12 min',
+    votes: 1_708,
   },
   {
     id: '2',
@@ -46,6 +51,7 @@ const PLAN: PlanItem[] = [
     logic: 'LL secured — your walk lands you 2 minutes before the window opens.',
     wait: '25 min',
     llSecured: true,
+    votes: 2_410,
   },
   {
     id: '3',
@@ -55,6 +61,7 @@ const PLAN: PlanItem[] = [
     location: 'Adventureland',
     logic: 'Paired with lunch nearby to avoid backtracking after the parade.',
     wait: '30 min',
+    votes: 1_944,
   },
 ];
 
@@ -66,7 +73,7 @@ const InPark = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerHandled, setDrawerHandled] = useState(false);
 
-  const { minimalist, tier, devPanelEnabled } = useCompanion();
+  const { minimalist, tier, devPanelEnabled, llTrackerVisible } = useCompanion();
   const { celebrate } = useCelebrate();
 
   const useQuietView = minimalist || tier === 'sovereign';
@@ -111,7 +118,7 @@ const InPark = () => {
           {/* ── The Strategic Stack ── */}
           <main className="flex-1 pt-[72px] pb-[140px] px-5 flex flex-col">
             {/* Editorial title */}
-            <header className="mb-5 shrink-0">
+            <header className="mb-4 shrink-0">
               <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold">
                 Today
               </span>
@@ -120,10 +127,15 @@ const InPark = () => {
               </h1>
             </header>
 
+            {/* Contextual nudges — single-line whisper ticker */}
+            <div className="mb-4 -mx-5">
+              <WhisperStrip />
+            </div>
+
             {/* Visual Anchor — top 40% of viewport reserved for the Focus card */}
             <section
               className="shrink-0 flex items-start"
-              style={{ minHeight: '40vh' }}
+              style={{ minHeight: '38vh' }}
               aria-label="Focus priority"
             >
               {hero && (
@@ -132,6 +144,7 @@ const InPark = () => {
                   location={hero.location}
                   logic={hero.logic}
                   wait={hero.wait}
+                  votes={hero.votes}
                   ctaLabel="On Our Way"
                   onCommit={commitHero}
                 />
@@ -155,6 +168,7 @@ const InPark = () => {
                   logic={next.logic}
                   wait={next.wait}
                   llSecured={next.llSecured}
+                  votes={next.votes}
                 />
               )}
               {later && (
@@ -166,8 +180,14 @@ const InPark = () => {
                   logic={later.logic}
                   wait={later.wait}
                   llSecured={later.llSecured}
+                  votes={later.votes}
                 />
               )}
+            </section>
+
+            {/* Pocket Concierge — Lightning Lane management strip */}
+            <section className="mt-6" aria-label="Lightning Lane management">
+              <LightningLaneTracker visible={llTrackerVisible} tier={tier} />
             </section>
 
             {/* Crowd-voted priority rides */}

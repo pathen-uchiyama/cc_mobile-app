@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, ChevronDown } from 'lucide-react';
+import { Zap, ChevronDown, Users } from 'lucide-react';
 
 interface HorizonCardProps {
   rank: 'next' | 'later';
@@ -11,7 +11,12 @@ interface HorizonCardProps {
   llSecured?: boolean;
   /** 1 = Next (slight peek), 2 = Later (deeper peek) */
   depth?: 1 | 2;
+  /** Number of guests who voted this a priority. */
+  votes?: number;
 }
+
+const formatVotes = (n: number) =>
+  n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, '')}k` : n.toString();
 
 /**
  * Horizon Card — Priority 2 & 3.
@@ -21,7 +26,7 @@ interface HorizonCardProps {
  * Slate Plaid logic text reduces visual noise.
  */
 const HorizonCard = ({
-  rank, time, attraction, logic, wait, llSecured, depth = 1,
+  rank, time, attraction, logic, wait, llSecured, depth = 1, votes,
 }: HorizonCardProps) => {
   const [expanded, setExpanded] = useState(false);
 
@@ -57,6 +62,17 @@ const HorizonCard = ({
             <h3 className="font-display text-[17px] leading-tight text-foreground truncate">
               {attraction}
             </h3>
+            {votes !== undefined && (
+              <div className="flex items-center gap-1 mt-1">
+                <Users size={9} style={{ color: 'hsl(var(--gold))' }} />
+                <span
+                  className="font-sans text-[9px] font-semibold tabular-nums"
+                  style={{ color: 'hsl(var(--gold))' }}
+                >
+                  {formatVotes(votes)} voted priority
+                </span>
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-2 shrink-0">
             {wait && (
