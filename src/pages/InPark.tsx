@@ -66,12 +66,17 @@ const PLAN: PlanItem[] = [
 
 // The user's day-of Must-Do list — drives the Sovereign Progress Bar at the top
 // and the gold border on any matching card in the stack.
-const MUST_DOS: { id: string; attraction: string }[] = [
-  { id: 'm1', attraction: 'Pirates of the Caribbean' },
-  { id: 'm2', attraction: 'Haunted Mansion' },
-  { id: 'm3', attraction: 'Big Thunder Mountain' },
-  { id: 'm4', attraction: 'Space Mountain' },
-  { id: 'm5', attraction: 'Peter Pan\u2019s Flight' },
+//
+// Survey responses can flag an attraction as a multi-ride favorite — `desired`
+// captures how many times the party wants to ride it. `done` tracks completed
+// rides; the attraction stays "live" until done >= desired.
+type MustDo = { id: string; attraction: string; desired: number; done: number };
+const MUST_DOS: MustDo[] = [
+  { id: 'm1', attraction: 'Pirates of the Caribbean', desired: 1, done: 0 },
+  { id: 'm2', attraction: 'Haunted Mansion', desired: 2, done: 0 },
+  { id: 'm3', attraction: 'Big Thunder Mountain', desired: 2, done: 0 },
+  { id: 'm4', attraction: 'Space Mountain', desired: 1, done: 0 },
+  { id: 'm5', attraction: 'Peter Pan\u2019s Flight', desired: 1, done: 0 },
 ];
 
 // Walking prompts are intentionally retained as data but NOT rendered as cards
@@ -83,7 +88,7 @@ const InPark = () => {
   // The Sovereign Stack lives in state so cards can be promoted, completed,
   // and pulled in from the Must-Do dropdown — all with a shared-layout swap.
   const [plan, setPlan] = useState<PlanItem[]>(PLAN);
-  const [mustDos, setMustDos] = useState<{ id: string; attraction: string; done?: boolean }[]>(MUST_DOS);
+  const [mustDos, setMustDos] = useState<MustDo[]>(MUST_DOS);
 
   // Sovereign Key contextual mode: 'audible' for relaxed users, 'dashboard' for Type A.
   const [audibleOpen, setAudibleOpen] = useState(false);
@@ -131,13 +136,15 @@ const InPark = () => {
     id: m.id,
     label: m.attraction,
     inStack: stackAttractions.has(m.attraction),
-    done: !!m.done,
+    desired: m.desired,
+    done: m.done,
   }));
   const mustDoEntries: MustDoEntry[] = mustDos.map((m) => ({
     id: m.id,
     attraction: m.attraction,
     inStack: stackAttractions.has(m.attraction),
-    done: !!m.done,
+    desired: m.desired,
+    done: m.done,
   }));
 
   // The Assisted Drawer is the canonical LL surface — invisible by default,
