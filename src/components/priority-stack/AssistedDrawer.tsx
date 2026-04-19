@@ -57,8 +57,8 @@ const AssistedDrawer = ({
         position: 'top-center',
         duration: 3200,
       });
-      const t = window ? setTimeout(() => onConfirm(), 600) : null;
-      return () => { if (t) clearTimeout(t); };
+      const t = setTimeout(() => onConfirm(), 600);
+      return () => clearTimeout(t);
     }
     fire('recommendation');
   }, [open, tier, attraction, window, reasoning, savedMinutes, fire, onConfirm]);
