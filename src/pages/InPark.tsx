@@ -4,6 +4,7 @@ import LoomingHorizon from '@/components/LoomingHorizon';
 import HeroHorizonStack, { type PlanItem, type WalkingPrompt } from '@/components/priority-stack/HeroHorizonStack';
 import PivotShimmer from '@/components/priority-stack/PivotShimmer';
 import MustDoRibbon, { type MustDoIcon } from '@/components/priority-stack/MustDoRibbon';
+import MustDoDropdown, { type MustDoEntry } from '@/components/priority-stack/MustDoDropdown';
 
 import AssistedDrawer from '@/components/priority-stack/AssistedDrawer';
 import AudibleMenu from '@/components/priority-stack/AudibleMenu';
