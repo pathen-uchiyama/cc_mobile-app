@@ -9,8 +9,6 @@ import AssistedDrawer from '@/components/priority-stack/AssistedDrawer';
 import AudibleMenu from '@/components/priority-stack/AudibleMenu';
 import StrategicDashboard from '@/components/priority-stack/StrategicDashboard';
 import HearthDock from '@/components/HearthDock';
-import LLVaultSheet, { type LLRide } from '@/components/priority-stack/LLVaultSheet';
-import { Zap } from 'lucide-react';
 import MinimalistView from '@/components/MinimalistView';
 import SovereignView from '@/components/SovereignView';
 import NeedOverlay from '@/components/NeedOverlay';
@@ -106,38 +104,10 @@ const InPark = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerHandled, setDrawerHandled] = useState(false);
   const [findAndSeekOpen, setFindAndSeekOpen] = useState(false);
-  const [llVaultOpen, setLLVaultOpen] = useState(false);
 
-  /**
-   * Park-wide LL inventory — every ride, not just the planned ones. Drives the
-   * Lightning Lane Vault sheet so guests can secure LL for ANY ride from one surface.
-   */
-  const [llRides, setLLRides] = useState<LLRide[]>([
-    { id: 'r1',  attraction: 'Pirates of the Caribbean', land: 'Adventureland', nextWindow: null,        wait: '12 min', secured: true },
-    { id: 'r2',  attraction: 'Haunted Mansion',          land: 'Liberty Square', nextWindow: '11:00 AM', wait: '25 min', secured: true },
-    { id: 'r3',  attraction: 'Jungle Cruise',            land: 'Adventureland', nextWindow: '1:15 PM',   wait: '30 min' },
-    { id: 'r4',  attraction: 'Big Thunder Mountain',     land: 'Frontierland',  nextWindow: '2:30 PM',   wait: '20 min', secured: true },
-    { id: 'r5',  attraction: 'Space Mountain',           land: 'Tomorrowland',  nextWindow: '4:00 PM',   wait: '35 min' },
-    { id: 'r6',  attraction: "it's a small world",       land: 'Fantasyland',   nextWindow: '12:45 PM',  wait: '15 min' },
-    { id: 'r7',  attraction: 'Peter Pan\u2019s Flight',  land: 'Fantasyland',   nextWindow: '5:30 PM',   wait: '55 min' },
-    { id: 'r8',  attraction: 'Buzz Lightyear',           land: 'Tomorrowland',  nextWindow: '6:15 PM',   wait: '25 min' },
-    { id: 'r9',  attraction: 'TRON Lightcycle / Run',    land: 'Tomorrowland',  nextWindow: '12:30 PM',  wait: '70 min', ill: true },
-    { id: 'r10', attraction: 'Seven Dwarfs Mine Train',  land: 'Fantasyland',   nextWindow: '7:00 PM',   wait: '60 min', ill: true },
-  ]);
-
-  const secureRideById = (rideId: string) => {
-    setLLRides((prev) => prev.map((r) => (r.id === rideId ? { ...r, secured: true } : r)));
-    celebrate('Lightning Lane secured.', 'LL Secured');
-  };
-
-  /** Inline secure for a planned item — looks up by attraction name. */
-  const secureLLForPlanItem = (planItemId: string) => {
-    const plan = PLAN.find((p) => p.id === planItemId);
-    if (!plan) return;
-    const ride = llRides.find((r) => r.attraction === plan.attraction);
-    if (ride) secureRideById(ride.id);
-    else celebrate('Lightning Lane secured.', 'LL Secured');
-  };
+  // Lightning Lanes are managed EXCLUSIVELY through the Contextual Booking
+  // Drawer (`AssistedDrawer`). There is no manual "Secure" surface anywhere —
+  // the strategy engine surfaces a Strategic Window when one fits the day.
 
   // Pivot state — shows the Pivot Shimmer while the strategy recalculates after an Audible.
   const [pivotLabel, setPivotLabel] = useState<string | null>(null);
