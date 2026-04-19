@@ -103,9 +103,18 @@ const InPark = () => {
   const [swapFor, setSwapFor] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerHandled, setDrawerHandled] = useState(false);
+  const [findAndSeekOpen, setFindAndSeekOpen] = useState(false);
 
   // Pivot state — shows the Pivot Shimmer while the strategy recalculates after an Audible.
   const [pivotLabel, setPivotLabel] = useState<string | null>(null);
+
+  // Mocked: surfaces the Burnished Gold pulse + "A New Path is Available" headline on the Hero card.
+  // In production this is driven by the strategy engine (weather, wait deltas, party sentiment).
+  const [pivotSuggested, setPivotSuggested] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setPivotSuggested(true), 6000);
+    return () => clearTimeout(t);
+  }, []);
 
   const { minimalist, tier, devPanelEnabled, llTrackerVisible } = useCompanion();
   const { celebrate } = useCelebrate();
