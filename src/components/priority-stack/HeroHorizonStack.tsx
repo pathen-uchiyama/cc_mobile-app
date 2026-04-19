@@ -35,12 +35,6 @@ interface HeroHorizonStackProps {
   items: PlanItem[];
   walkingPrompts?: WalkingPrompt[];
   onCommitHero: () => void;
-  /** Hero's quick "Secure LL" — fires for the current Hero ride. */
-  onSecureLL?: () => void;
-  /** Inline LL action for any non-Hero ride from the Full Ledger. */
-  onSecureLLForItem?: (itemId: string) => void;
-  /** Opens the global LL Vault sheet (any ride in the park). */
-  onOpenLLVault?: () => void;
   onCaptureMemory?: (planItemId: string) => void;
   onCaptureWalking?: (walkingId: string) => void;
   onFindAndSeek?: (planItemId: string) => void;
@@ -61,9 +55,6 @@ const HeroHorizonStack = ({
   items,
   walkingPrompts = [],
   onCommitHero,
-  onSecureLL,
-  onSecureLLForItem,
-  onOpenLLVault,
   onCaptureMemory,
   onCaptureWalking,
   onFindAndSeek,
