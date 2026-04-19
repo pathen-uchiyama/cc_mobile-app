@@ -28,7 +28,7 @@ interface HorizonCardProps {
  */
 const HorizonCard = ({
   rank, time, attraction, logic, wait, llSecured, depth = 1, party,
-  questPrompt, onCaptureMemory,
+  questPrompt, onCaptureMemory, onFindAndSeek,
 }: HorizonCardProps) => {
   const [expanded, setExpanded] = useState(false);
 
