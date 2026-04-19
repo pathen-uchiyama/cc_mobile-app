@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import LoomingHorizon from '@/components/LoomingHorizon';
-import HeroHorizonStack from '@/components/priority-stack/HeroHorizonStack';
+import HeroHorizonStack, { type PlanItem, type WalkingPrompt } from '@/components/priority-stack/HeroHorizonStack';
+import PivotShimmer from '@/components/priority-stack/PivotShimmer';
 import PriorityFootnote from '@/components/priority-stack/PriorityFootnote';
 import SideQuestsRow from '@/components/priority-stack/SideQuestsRow';
 import AssistedDrawer from '@/components/priority-stack/AssistedDrawer';
@@ -18,18 +19,6 @@ import WhisperStrip from '@/components/WhisperStrip';
 import { useCompanion } from '@/contexts/CompanionContext';
 import { useCelebrate, WHISPERS } from '@/contexts/CelebrationContext';
 
-interface PlanItem {
-  id: string;
-  rank: 'now' | 'next' | 'later';
-  time: string;
-  attraction: string;
-  location: string;
-  logic: string;
-  wait?: string;
-  llSecured?: boolean;
-  votes?: number;
-}
-
 const PLAN: PlanItem[] = [
   {
     id: '1',
@@ -40,6 +29,8 @@ const PLAN: PlanItem[] = [
     logic: 'Standby is at a 10-minute low — head now to beat the parade crowd.',
     wait: '12 min',
     votes: 1_708,
+    questPrompt: 'Find the hidden Mickey on the weather vane above the bridge.',
+    questType: 'photo',
   },
   {
     id: '2',
@@ -51,6 +42,8 @@ const PLAN: PlanItem[] = [
     wait: '25 min',
     llSecured: true,
     votes: 2_410,
+    questPrompt: 'Look up in the queue — the chandelier tells a story. Catch the third pendant.',
+    questType: 'photo',
   },
   {
     id: '3',
@@ -61,6 +54,8 @@ const PLAN: PlanItem[] = [
     logic: 'Paired with lunch nearby to avoid backtracking after the parade.',
     wait: '30 min',
     votes: 1_944,
+    questPrompt: 'Whisper the punchline of the skipper\'s best joke into the Vault.',
+    questType: 'voice',
   },
   {
     id: '4',
@@ -84,6 +79,18 @@ const PLAN: PlanItem[] = [
     votes: 2_984,
   },
 ];
+
+// GPS-triggered Walking Cards interleaved between attraction cards.
+const WALKING_PROMPTS: WalkingPrompt[] = [
+  {
+    id: 'w1',
+    afterIndex: 1,
+    whimsy: 'Pause at the railing — there\'s a perfect castle reflection in the water this morning.',
+    type: 'photo',
+    nearby: 'Liberty Square bridge',
+  },
+];
+
 
 const InPark = () => {
   // Sovereign Key contextual mode: 'audible' for relaxed users, 'dashboard' for Type A.
