@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Clock, MapPin, ArrowRight } from 'lucide-react';
+import { Clock, MapPin, ArrowRight, Users } from 'lucide-react';
 
 interface HeroCardProps {
   attraction: string;
@@ -8,7 +8,12 @@ interface HeroCardProps {
   wait?: string;
   ctaLabel?: string;
   onCommit?: () => void;
+  /** Number of guests who voted this a priority — drives the "why is this here" chip. */
+  votes?: number;
 }
+
+const formatVotes = (n: number) =>
+  n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, '')}k` : n.toString();
 
 /**
  * The Focus Card — Priority 1.
@@ -23,6 +28,7 @@ const HeroCard = ({
   wait,
   ctaLabel = 'On Our Way',
   onCommit,
+  votes,
 }: HeroCardProps) => {
   return (
     <motion.article
@@ -65,10 +71,24 @@ const HeroCard = ({
         {logic}
       </p>
 
-      {/* Location row */}
-      <div className="flex items-center gap-1.5 mb-5">
-        <MapPin size={11} className="text-muted-foreground" />
-        <span className="font-sans text-[11px] text-muted-foreground">{location}</span>
+      {/* Location + social proof */}
+      <div className="flex items-center justify-between gap-2 mb-5">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <MapPin size={11} className="text-muted-foreground" />
+          <span className="font-sans text-[11px] text-muted-foreground truncate">{location}</span>
+        </div>
+        {votes !== undefined && (
+          <div
+            className="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full"
+            style={{ backgroundColor: 'hsl(var(--gold) / 0.12)' }}
+            title={`${votes.toLocaleString()} guests voted this a priority today`}
+          >
+            <Users size={10} style={{ color: 'hsl(var(--gold))' }} />
+            <span className="font-sans text-[10px] font-bold tabular-nums" style={{ color: 'hsl(var(--gold))' }}>
+              {formatVotes(votes)} voted
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Primary CTA — Deep Obsidian, 16px corners, thumb-zone */}
