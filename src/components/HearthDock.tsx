@@ -22,6 +22,8 @@ interface HearthDockProps {
   onBreak?: () => void;
   onRain?: () => void;
   onReset?: () => void;
+  /** Per-pivot proactive-suggestion flags from the strategy engine. */
+  badges?: Partial<Record<PivotAction['id'], boolean>>;
 }
 
 /**
