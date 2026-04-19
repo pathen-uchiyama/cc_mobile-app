@@ -203,7 +203,7 @@ const FocusMove = ({
         )}
       </div>
 
-      {/* ─── ENGAGEMENT RIBBON · 50/50 split, full-width, 56px touch targets ─── */}
+      {/* ─── ENGAGEMENT RIBBON · 50/50 split, full-width, 54px touch targets ─── */}
       <div
         className="grid grid-cols-2"
         style={{
@@ -216,7 +216,7 @@ const FocusMove = ({
           onClick={onCaptureMemory}
           className="flex items-center justify-center gap-2 bg-transparent cursor-pointer font-sans text-[11px] font-semibold uppercase tracking-sovereign"
           style={{
-            minHeight: '56px',
+            minHeight: '54px',
             color: 'hsl(36 47% 35%)',
             borderRight: '1px solid hsl(36 47% 35% / 0.35)',
           }}
@@ -230,13 +230,13 @@ const FocusMove = ({
           onClick={onFindAndSeek}
           className="flex items-center justify-center gap-2 bg-transparent cursor-pointer font-sans text-[11px] font-semibold uppercase tracking-sovereign"
           style={{
-            minHeight: '56px',
+            minHeight: '54px',
             color: 'hsl(36 47% 35%)',
           }}
-          aria-label="Find and Seek"
+          aria-label="Initiate Seek"
         >
           <Search size={14} />
-          Find &amp; Seek
+          Initiate Seek
         </motion.button>
       </div>
     </motion.article>
