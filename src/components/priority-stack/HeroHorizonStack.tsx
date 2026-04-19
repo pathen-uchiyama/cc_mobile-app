@@ -97,8 +97,8 @@ const HeroHorizonStack = ({
       {/* Optional walking prompt above the Hero */}
       {walkingAfter(0).length > 0 && <div className="mb-3 space-y-2">{renderWalking(0)}</div>}
 
-      {/* Priority 1 — Hero (≥25vh, dual-purpose) */}
-      <div className="relative" style={{ minHeight: '25vh' }}>
+      {/* Priority 1 — Hero (≥25vh, dual-purpose, elevated) */}
+      <div className="relative" style={{ minHeight: '32vh', marginBottom: '4px' }}>
         <FocusMove
           attraction={hero.attraction}
           location={hero.location}
@@ -115,11 +115,11 @@ const HeroHorizonStack = ({
       </div>
 
       {/* Walking prompt between Hero and Next */}
-      {walkingAfter(1).length > 0 && <div className="mt-3 space-y-2">{renderWalking(1)}</div>}
+      {walkingAfter(1).length > 0 && <div className="mt-4 space-y-2">{renderWalking(1)}</div>}
 
-      {/* Priority 2 & 3 — Horizon peeks */}
+      {/* Priority 2 & 3 — Horizon peeks (visibly recessed) */}
       {horizon.length > 0 && (
-        <div className="relative mt-3 space-y-2">
+        <div className="relative mt-5 space-y-3">
           {horizon.map((it, idx) => (
             <motion.div
               key={it.id}
@@ -127,7 +127,7 @@ const HeroHorizonStack = ({
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.3, delay: 0.1 + idx * 0.08 }}
               style={{
-                width: idx === 0 ? '94%' : '88%',
+                width: idx === 0 ? '92%' : '84%',
                 margin: '0 auto',
                 position: 'relative',
                 zIndex: 10 - idx,
