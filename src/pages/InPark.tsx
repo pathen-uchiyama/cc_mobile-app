@@ -100,9 +100,15 @@ const InPark = () => {
   // Mocked: surfaces the Burnished Gold pulse + "A New Path is Available" headline on the Hero card.
   // In production this is driven by the strategy engine (weather, wait deltas, party sentiment).
   const [pivotSuggested, setPivotSuggested] = useState(false);
+  // Per-pivot proactive-suggestion flags shown as gold dots on the dock icons.
+  const [pivotBadges, setPivotBadges] = useState<Partial<Record<'restroom' | 'refuel' | 'break' | 'rain' | 'reset', boolean>>>({});
   useEffect(() => {
     const t = setTimeout(() => setPivotSuggested(true), 6000);
-    return () => clearTimeout(t);
+    // Mock: weather radar shows rain in 30 min → flag Rain Pivot.
+    const rainFlag = setTimeout(() => setPivotBadges((b) => ({ ...b, rain: true })), 8000);
+    // Mock: party sentiment dips + lunch window opens → flag Refuel.
+    const refuelFlag = setTimeout(() => setPivotBadges((b) => ({ ...b, refuel: true })), 12000);
+    return () => { clearTimeout(t); clearTimeout(rainFlag); clearTimeout(refuelFlag); };
   }, []);
 
   const { minimalist, tier, devPanelEnabled, llTrackerVisible } = useCompanion();
