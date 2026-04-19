@@ -14,6 +14,8 @@ import SovereignView from '@/components/SovereignView';
 import NeedOverlay from '@/components/NeedOverlay';
 import RecalibrateSheet from '@/components/RecalibrateSheet';
 import SwapSuggestionsSheet from '@/components/SwapSuggestionsSheet';
+import BottomSheet from '@/components/BottomSheet';
+import FindAndSeekWidget from '@/components/FindAndSeekWidget';
 import DevPanel from '@/components/DevPanel';
 import WhisperStrip from '@/components/WhisperStrip';
 import { useCompanion } from '@/contexts/CompanionContext';
@@ -101,9 +103,18 @@ const InPark = () => {
   const [swapFor, setSwapFor] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerHandled, setDrawerHandled] = useState(false);
+  const [findAndSeekOpen, setFindAndSeekOpen] = useState(false);
 
   // Pivot state — shows the Pivot Shimmer while the strategy recalculates after an Audible.
   const [pivotLabel, setPivotLabel] = useState<string | null>(null);
+
+  // Mocked: surfaces the Burnished Gold pulse + "A New Path is Available" headline on the Hero card.
+  // In production this is driven by the strategy engine (weather, wait deltas, party sentiment).
+  const [pivotSuggested, setPivotSuggested] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setPivotSuggested(true), 6000);
+    return () => clearTimeout(t);
+  }, []);
 
   const { minimalist, tier, devPanelEnabled, llTrackerVisible } = useCompanion();
   const { celebrate } = useCelebrate();
@@ -203,6 +214,9 @@ const InPark = () => {
                       onSecureLL={() => setDrawerOpen(true)}
                       onCaptureMemory={(id) => celebrate('Memory tucked into the Vault.', `Captured · ${id}`)}
                       onCaptureWalking={(id) => celebrate('A small wonder, recorded.', `Walking · ${id}`)}
+                      onFindAndSeek={() => setFindAndSeekOpen(true)}
+                      pivotSuggested={pivotSuggested && !pivotLabel}
+                      pivotHeadline="A New Path is Available"
                     />
                   </motion.div>
                 )}
@@ -238,10 +252,10 @@ const InPark = () => {
       <AudibleMenu
         open={audibleOpen}
         onClose={() => setAudibleOpen(false)}
-        onBreak={() => pivotWith('Need a break', () => setNeedType('quiet'))}
+        onBreak={() => pivotWith('Need a Break', () => setNeedType('quiet'))}
         onRefuel={() => pivotWith('Refuel', () => setNeedType('bathroom'))}
-        onClosure={() => pivotWith('Ride closure', () => setSwapFor(hero?.attraction ?? 'current ride'))}
-        onReset={() => pivotWith('Reset the pulse', () => setShowRecalibrate(true))}
+        onClosure={() => pivotWith('Rain Pivot', () => setSwapFor(hero?.attraction ?? 'current ride'))}
+        onReset={() => pivotWith('Recalculate Strategy', () => { setPivotSuggested(false); setShowRecalibrate(true); })}
       />
 
       <StrategicDashboard
@@ -262,6 +276,17 @@ const InPark = () => {
         onClose={() => setSwapFor(null)}
         skipped={swapFor ?? undefined}
       />
+
+      <BottomSheet
+        open={findAndSeekOpen}
+        onClose={() => setFindAndSeekOpen(false)}
+        snap="full"
+        eyebrow="The Grand Quest"
+        title="Find & Seek"
+        subtitle="Hidden details, ranked by proximity."
+      >
+        <FindAndSeekWidget />
+      </BottomSheet>
     </div>
   );
 };

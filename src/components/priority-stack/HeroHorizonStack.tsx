@@ -38,6 +38,10 @@ interface HeroHorizonStackProps {
   onSecureLL?: () => void;
   onCaptureMemory?: (planItemId: string) => void;
   onCaptureWalking?: (walkingId: string) => void;
+  onFindAndSeek?: (planItemId: string) => void;
+  /** When true, the Hero card glows gold + shows "A New Path is Available". */
+  pivotSuggested?: boolean;
+  pivotHeadline?: string;
 }
 
 /**
@@ -55,6 +59,9 @@ const HeroHorizonStack = ({
   onSecureLL,
   onCaptureMemory,
   onCaptureWalking,
+  onFindAndSeek,
+  pivotSuggested = false,
+  pivotHeadline,
 }: HeroHorizonStackProps) => {
   const [ledgerOpen, setLedgerOpen] = useState(false);
 
@@ -112,6 +119,9 @@ const HeroHorizonStack = ({
           questPrompt={hero.questPrompt}
           questType={hero.questType}
           onCaptureMemory={() => onCaptureMemory?.(hero.id)}
+          onFindAndSeek={() => onFindAndSeek?.(hero.id)}
+          pivotSuggested={pivotSuggested}
+          pivotHeadline={pivotHeadline}
         />
       </div>
 
@@ -147,6 +157,7 @@ const HeroHorizonStack = ({
                 party={it.party}
                 questPrompt={it.questPrompt}
                 onCaptureMemory={() => onCaptureMemory?.(it.id)}
+                onFindAndSeek={() => onFindAndSeek?.(it.id)}
               />
               {/* Walking prompt between Next and Later */}
               {idx === 0 && walkingAfter(2).length > 0 && (
