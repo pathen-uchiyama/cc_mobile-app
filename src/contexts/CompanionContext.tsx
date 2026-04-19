@@ -1,29 +1,66 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 
+export type ServiceTier = 'explorer' | 'manager' | 'sovereign';
+
 interface CompanionState {
   /** Minimalist Mode hides everything except a single whisper + Sovereign Key. */
   minimalist: boolean;
   toggleMinimalist: () => void;
   setMinimalist: (v: boolean) => void;
+
+  /** Service tier — gates AI features. */
+  tier: ServiceTier;
+  setTier: (t: ServiceTier) => void;
+
+  /** Whether the Lightning Lane tracker is visible in the in-park view. */
+  llTrackerVisible: boolean;
+  setLlTrackerVisible: (v: boolean) => void;
+
+  /** Haptics on / off. */
+  hapticsEnabled: boolean;
+  setHapticsEnabled: (v: boolean) => void;
+
+  /** Whimsical celebrations on / off. */
+  celebrationsEnabled: boolean;
+  setCelebrationsEnabled: (v: boolean) => void;
 }
 
 const CompanionContext = createContext<CompanionState | null>(null);
 
-export const CompanionProvider = ({ children }: { children: ReactNode }) => {
-  const [minimalist, setMinimalist] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    return window.localStorage.getItem('companion.minimalist') === '1';
-  });
+const readBool = (key: string, fallback: boolean) => {
+  if (typeof window === 'undefined') return fallback;
+  const v = window.localStorage.getItem(key);
+  if (v === null) return fallback;
+  return v === '1';
+};
 
-  useEffect(() => {
-    try {
-      window.localStorage.setItem('companion.minimalist', minimalist ? '1' : '0');
-    } catch {
-      /* ignore */
-    }
-  }, [minimalist]);
+const readStr = <T extends string>(key: string, fallback: T): T => {
+  if (typeof window === 'undefined') return fallback;
+  return (window.localStorage.getItem(key) as T) || fallback;
+};
+
+export const CompanionProvider = ({ children }: { children: ReactNode }) => {
+  const [minimalist, setMinimalist] = useState<boolean>(() => readBool('companion.minimalist', false));
+  const [tier, setTierState] = useState<ServiceTier>(() => readStr<ServiceTier>('companion.tier', 'manager'));
+  const [llTrackerVisible, setLlTrackerVisibleState] = useState<boolean>(() => readBool('companion.llTracker', true));
+  const [hapticsEnabled, setHapticsEnabledState] = useState<boolean>(() => readBool('companion.haptics', true));
+  const [celebrationsEnabled, setCelebrationsEnabledState] = useState<boolean>(() => readBool('companion.celebrations', true));
+
+  const persist = (key: string, value: string) => {
+    try { window.localStorage.setItem(key, value); } catch { /* ignore */ }
+  };
+
+  useEffect(() => persist('companion.minimalist', minimalist ? '1' : '0'), [minimalist]);
+  useEffect(() => persist('companion.tier', tier), [tier]);
+  useEffect(() => persist('companion.llTracker', llTrackerVisible ? '1' : '0'), [llTrackerVisible]);
+  useEffect(() => persist('companion.haptics', hapticsEnabled ? '1' : '0'), [hapticsEnabled]);
+  useEffect(() => persist('companion.celebrations', celebrationsEnabled ? '1' : '0'), [celebrationsEnabled]);
 
   const toggleMinimalist = useCallback(() => setMinimalist((v) => !v), []);
+  const setTier = useCallback((t: ServiceTier) => setTierState(t), []);
+  const setLlTrackerVisible = useCallback((v: boolean) => setLlTrackerVisibleState(v), []);
+  const setHapticsEnabled = useCallback((v: boolean) => setHapticsEnabledState(v), []);
+  const setCelebrationsEnabled = useCallback((v: boolean) => setCelebrationsEnabledState(v), []);
 
   // Two-finger swipe-down anywhere toggles Minimalist Mode.
   useEffect(() => {
@@ -60,7 +97,15 @@ export const CompanionProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   return (
-    <CompanionContext.Provider value={{ minimalist, toggleMinimalist, setMinimalist }}>
+    <CompanionContext.Provider
+      value={{
+        minimalist, toggleMinimalist, setMinimalist,
+        tier, setTier,
+        llTrackerVisible, setLlTrackerVisible,
+        hapticsEnabled, setHapticsEnabled,
+        celebrationsEnabled, setCelebrationsEnabled,
+      }}
+    >
       {children}
     </CompanionContext.Provider>
   );

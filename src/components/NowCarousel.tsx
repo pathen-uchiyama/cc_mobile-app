@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion';
 import { Zap } from 'lucide-react';
 import DirectionalNowCard from './DirectionalNowCard';
+import { useCelebrate, WHISPERS } from '@/contexts/CelebrationContext';
+import { useCompanion } from '@/contexts/CompanionContext';
 
 interface TimelineEvent {
   id: string;
@@ -38,9 +40,28 @@ const AGENDA: TimelineEvent[] = [
   },
 ];
 
-const NowCarousel = () => {
+interface NowCarouselProps {
+  onSkip?: (rideTitle: string) => void;
+}
+
+const NowCarousel = ({ onSkip }: NowCarouselProps) => {
   const nowEvent = AGENDA.find((e) => e.status === 'now');
   const nextEvent = AGENDA.find((e) => e.status === 'next');
+  const { celebrate } = useCelebrate();
+  const { tier } = useCompanion();
+
+  const handleCommit = () => {
+    const tip = WHISPERS.arrival[Math.floor(Math.random() * WHISPERS.arrival.length)];
+    celebrate(tip, "On Your Way");
+  };
+
+  const handleSkip = () => {
+    if (!nowEvent) return;
+    // Only Manager tier sees the AI swap sheet; others just dismiss.
+    if (tier === 'manager' || tier === 'sovereign') {
+      onSkip?.(nowEvent.title);
+    }
+  };
 
   return (
     <div>
@@ -61,6 +82,8 @@ const NowCarousel = () => {
             location={nowEvent.location}
             destination={nowEvent.destination}
             wait={nowEvent.wait}
+            onSkip={handleSkip}
+            onCommit={handleCommit}
           />
         </div>
       )}
