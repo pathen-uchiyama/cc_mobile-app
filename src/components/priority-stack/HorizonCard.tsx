@@ -105,8 +105,6 @@ const HorizonCard = ({
         </p>
       </div>
 
-      {/* Engagement Ribbon — same shape as Hero, primary touch zones */}
-      <EngagementRibbon onCaptureMemory={onCaptureMemory} onFindAndSeek={onFindAndSeek} />
     </motion.article>
   );
 };
