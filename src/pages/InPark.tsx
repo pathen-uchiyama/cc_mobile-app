@@ -276,6 +276,17 @@ const InPark = () => {
         onClose={() => setSwapFor(null)}
         skipped={swapFor ?? undefined}
       />
+
+      <BottomSheet
+        open={findAndSeekOpen}
+        onClose={() => setFindAndSeekOpen(false)}
+        snap="full"
+        eyebrow="The Grand Quest"
+        title="Find & Seek"
+        subtitle="Hidden details, ranked by proximity."
+      >
+        <FindAndSeekWidget />
+      </BottomSheet>
     </div>
   );
 };
