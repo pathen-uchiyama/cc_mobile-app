@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, ChevronDown, Users, Camera, Search } from 'lucide-react';
+import { Zap, ChevronDown, Users } from 'lucide-react';
 
 interface HorizonCardProps {
   rank: 'next' | 'later';
