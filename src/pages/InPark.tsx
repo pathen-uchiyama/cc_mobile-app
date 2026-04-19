@@ -214,7 +214,7 @@ const InPark = () => {
               <PriorityFootnote />
             </div>
 
-            {/* Side Quests — discoverable chip row */}
+            {/* The Grand Quest — discoverable chip row for memory capture */}
             <div className="mt-5">
               <SideQuestsRow />
             </div>
