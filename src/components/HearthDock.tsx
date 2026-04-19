@@ -7,6 +7,8 @@ export interface PivotAction {
   label: string;
   icon: LucideIcon;
   onTap: () => void;
+  /** When true, a Burnished Gold dot pulses on the icon — strategy engine flag. */
+  badge?: boolean;
 }
 
 interface HearthDockProps {
@@ -20,6 +22,8 @@ interface HearthDockProps {
   onBreak?: () => void;
   onRain?: () => void;
   onReset?: () => void;
+  /** Per-pivot proactive-suggestion flags from the strategy engine. */
+  badges?: Partial<Record<PivotAction['id'], boolean>>;
 }
 
 /**
@@ -41,6 +45,7 @@ const HearthDock = ({
   onBreak,
   onRain,
   onReset,
+  badges = {},
 }: HearthDockProps) => {
   const { fire } = useHaptics();
 
@@ -55,13 +60,13 @@ const HearthDock = ({
   };
 
   const left: PivotAction[] = [
-    { id: 'restroom', label: 'Restroom', icon: Bath, onTap: handlePivot(onRestroom) },
-    { id: 'refuel', label: 'Refuel', icon: Utensils, onTap: handlePivot(onRefuel) },
+    { id: 'restroom', label: 'Restroom', icon: Bath, onTap: handlePivot(onRestroom), badge: !!badges.restroom },
+    { id: 'refuel', label: 'Refuel', icon: Utensils, onTap: handlePivot(onRefuel), badge: !!badges.refuel },
   ];
   const right: PivotAction[] = [
-    { id: 'break', label: 'Need a Break', icon: Coffee, onTap: handlePivot(onBreak) },
-    { id: 'rain', label: 'Rain Pivot', icon: CloudRain, onTap: handlePivot(onRain) },
-    { id: 'reset', label: 'Reset Strategy', icon: RefreshCw, onTap: handlePivot(onReset) },
+    { id: 'break', label: 'Need a Break', icon: Coffee, onTap: handlePivot(onBreak), badge: !!badges.break },
+    { id: 'rain', label: 'Rain Pivot', icon: CloudRain, onTap: handlePivot(onRain), badge: !!badges.rain },
+    { id: 'reset', label: 'Reset Strategy', icon: RefreshCw, onTap: handlePivot(onReset), badge: !!badges.reset },
   ];
 
   return (
@@ -138,12 +143,26 @@ const PivotButton = ({ action }: { action: PivotAction }) => {
     <motion.button
       whileTap={{ scale: 0.9 }}
       onClick={action.onTap}
-      aria-label={action.label}
+      aria-label={action.badge ? `${action.label} — suggested` : action.label}
       title={action.label}
-      className="w-10 h-10 flex items-center justify-center bg-transparent border-none cursor-pointer rounded-full"
+      className="relative w-10 h-10 flex items-center justify-center bg-transparent border-none cursor-pointer rounded-full"
       style={{ color: 'hsl(var(--gold) / 0.85)' }}
     >
       <Icon size={17} strokeWidth={1.6} />
+      {action.badge && (
+        <motion.span
+          aria-hidden
+          className="absolute top-1.5 right-1.5 block rounded-full"
+          style={{
+            width: '7px',
+            height: '7px',
+            background: 'hsl(var(--gold))',
+            boxShadow: '0 0 0 2px hsl(var(--obsidian)), 0 0 8px hsl(var(--gold) / 0.7)',
+          }}
+          animate={{ opacity: [1, 0.45, 1], scale: [1, 1.18, 1] }}
+          transition={{ repeat: Infinity, duration: 1.8, ease: 'easeInOut' }}
+        />
+      )}
     </motion.button>
   );
 };

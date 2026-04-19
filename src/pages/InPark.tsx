@@ -100,9 +100,15 @@ const InPark = () => {
   // Mocked: surfaces the Burnished Gold pulse + "A New Path is Available" headline on the Hero card.
   // In production this is driven by the strategy engine (weather, wait deltas, party sentiment).
   const [pivotSuggested, setPivotSuggested] = useState(false);
+  // Per-pivot proactive-suggestion flags shown as gold dots on the dock icons.
+  const [pivotBadges, setPivotBadges] = useState<Partial<Record<'restroom' | 'refuel' | 'break' | 'rain' | 'reset', boolean>>>({});
   useEffect(() => {
     const t = setTimeout(() => setPivotSuggested(true), 6000);
-    return () => clearTimeout(t);
+    // Mock: weather radar shows rain in 30 min → flag Rain Pivot.
+    const rainFlag = setTimeout(() => setPivotBadges((b) => ({ ...b, rain: true })), 8000);
+    // Mock: party sentiment dips + lunch window opens → flag Refuel.
+    const refuelFlag = setTimeout(() => setPivotBadges((b) => ({ ...b, refuel: true })), 12000);
+    return () => { clearTimeout(t); clearTimeout(rainFlag); clearTimeout(refuelFlag); };
   }, []);
 
   const { minimalist, tier, devPanelEnabled, llTrackerVisible } = useCompanion();
@@ -261,11 +267,12 @@ const InPark = () => {
       <HearthDock
         onSovereignTap={handleSovereignTap}
         active={audibleOpen || dashboardOpen}
-        onRestroom={() => pivotWith('Restroom', () => setNeedType('bathroom'))}
-        onRefuel={() => pivotWith('Refuel', () => setNeedType('food'))}
-        onBreak={() => pivotWith('Need a Break', () => setNeedType('quiet'))}
-        onRain={() => pivotWith('Rain Pivot', () => setSwapFor(hero?.attraction ?? 'current ride'))}
-        onReset={() => pivotWith('Reset Strategy', () => { setPivotSuggested(false); setShowRecalibrate(true); })}
+        badges={pivotBadges}
+        onRestroom={() => { setPivotBadges((b) => ({ ...b, restroom: false })); pivotWith('Restroom', () => setNeedType('bathroom')); }}
+        onRefuel={() => { setPivotBadges((b) => ({ ...b, refuel: false })); pivotWith('Refuel', () => setNeedType('food')); }}
+        onBreak={() => { setPivotBadges((b) => ({ ...b, break: false })); pivotWith('Need a Break', () => setNeedType('quiet')); }}
+        onRain={() => { setPivotBadges((b) => ({ ...b, rain: false })); pivotWith('Rain Pivot', () => setSwapFor(hero?.attraction ?? 'current ride')); }}
+        onReset={() => { setPivotBadges((b) => ({ ...b, reset: false })); pivotWith('Reset Strategy', () => { setPivotSuggested(false); setShowRecalibrate(true); }); }}
       />
 
       <AudibleMenu
