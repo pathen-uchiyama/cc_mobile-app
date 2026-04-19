@@ -4,10 +4,11 @@
 
 @layer base {
   :root {
-    /* Castle Companion — The Sovereign Protocol */
-    --parchment: 40 33% 96%;
-    --obsidian: 207 27% 15%;
-    --gold: 42 52% 55%;
+    /* Castle Companion — The Sovereign Protocol
+     * Aged Parchment #F9F7F2 · Deep Obsidian #1A1A1B · Burnished Gold #947120 */
+    --parchment: 40 33% 97%;        /* #F9F7F2 */
+    --obsidian: 240 2% 10%;         /* #1A1A1B */
+    --gold: 41 64% 33%;             /* #947120 */
     --thistle: 270 30% 71%;
     --slate-plaid: 207 10% 54%;
     --slate-divider: 207 10% 54%;
@@ -41,7 +42,7 @@
     --input: var(--slate-divider);
     --ring: var(--gold);
 
-    --radius: 12px;
+    --radius: 16px;
 
     --sidebar-background: var(--parchment);
     --sidebar-foreground: var(--obsidian);
