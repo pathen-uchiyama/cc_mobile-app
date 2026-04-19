@@ -9,6 +9,8 @@ import AssistedDrawer from '@/components/priority-stack/AssistedDrawer';
 import AudibleMenu from '@/components/priority-stack/AudibleMenu';
 import StrategicDashboard from '@/components/priority-stack/StrategicDashboard';
 import HearthDock from '@/components/HearthDock';
+import LLVaultSheet, { type LLRide } from '@/components/priority-stack/LLVaultSheet';
+import { Zap } from 'lucide-react';
 import MinimalistView from '@/components/MinimalistView';
 import SovereignView from '@/components/SovereignView';
 import NeedOverlay from '@/components/NeedOverlay';
