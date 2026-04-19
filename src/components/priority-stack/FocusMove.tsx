@@ -51,6 +51,9 @@ const FocusMove = ({
   questPrompt,
   questType = 'photo',
   onCaptureMemory,
+  onFindAndSeek,
+  pivotSuggested = false,
+  pivotHeadline = 'A New Path is Available',
 }: FocusMoveProps) => {
   const QuestIcon = questType === 'photo' ? Camera : Compass;
 
@@ -62,14 +65,49 @@ const FocusMove = ({
       className="relative bg-card w-full overflow-hidden"
       style={{
         borderRadius: '16px',
-        // Hero elevation — Deep Obsidian shadow, 12px blur for physical lift
         boxShadow:
           '0 0 0 1px hsl(var(--gold) / 0.08), 0 2px 4px hsl(var(--obsidian) / 0.04), 0 18px 12px -8px hsl(220 20% 10% / 0.18), 0 32px 64px -12px hsl(220 20% 10% / 0.22)',
       }}
     >
+      {/* Burnished Gold pulse — surfaces when the system detects a strategic pivot */}
+      {pivotSuggested && (
+        <motion.span
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{ borderRadius: '16px', boxShadow: '0 0 0 2px hsl(36 47% 35% / 0.55)' }}
+          animate={{ opacity: [0.35, 1, 0.35] }}
+          transition={{ repeat: Infinity, duration: 2.2, ease: 'easeInOut' }}
+        />
+      )}
+
+      {/* Pivot Suggestion banner — Publico Headline */}
+      {pivotSuggested && (
+        <motion.div
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{
+            padding: '12px 24px',
+            background: 'linear-gradient(180deg, hsl(36 47% 35% / 0.14) 0%, hsl(36 47% 35% / 0.04) 100%)',
+            borderBottom: '1px solid hsl(36 47% 35% / 0.35)',
+          }}
+        >
+          <span
+            className="font-sans text-[8px] uppercase tracking-sovereign font-bold block mb-0.5"
+            style={{ color: 'hsl(36 47% 35%)', letterSpacing: '0.16em' }}
+          >
+            The Pulse has Shifted
+          </span>
+          <p
+            className="font-display text-[16px] leading-tight text-foreground"
+            style={{ fontFamily: '"Publico Headline", "Playfair Display", serif' }}
+          >
+            {pivotHeadline}
+          </p>
+        </motion.div>
+      )}
+
       {/* ─── TOP HALF · TACTICAL ─── (24px no-bleed padding) */}
       <div className="p-6 pb-5" style={{ padding: '24px', paddingBottom: '20px' }}>
-        {/* Eyebrow + live wait */}
         <div className="flex items-start justify-between mb-4">
           <span className="font-sans text-[9px] uppercase tracking-sovereign text-accent font-bold flex items-center gap-1.5">
             <motion.span
@@ -89,7 +127,6 @@ const FocusMove = ({
           )}
         </div>
 
-        {/* Attraction — Publico Headline */}
         <h2
           className="font-display text-[28px] leading-[1.05] text-foreground mb-2"
           style={{ fontFamily: '"Publico Headline", "Playfair Display", serif' }}
@@ -97,7 +134,6 @@ const FocusMove = ({
           {attraction}
         </h2>
 
-        {/* Logic Whisper — Inter Italic */}
         <p className="font-sans italic text-[14px] text-foreground/75 leading-snug mb-4">
           {logic}
         </p>
@@ -126,7 +162,6 @@ const FocusMove = ({
           )}
         </div>
 
-        {/* Tactical actions — primary commit + Secure LL */}
         <div className="grid grid-cols-[2fr_1fr] gap-2">
           <motion.button
             whileTap={{ scale: 0.98 }}
@@ -152,50 +187,59 @@ const FocusMove = ({
             Secure LL
           </motion.button>
         </div>
-      </div>
 
-      {/* ─── MEMORY RIBBON · Keepsake ─── */}
-      {questPrompt && (
-        <div
-          style={{
-            margin: '0 24px 24px 24px',
-            padding: '16px 18px',
-            borderRadius: '14px',
-            // Burnished Gold ribbon — visually anchored to the bottom edge of the card
-            border: '1px solid hsl(36 47% 35% / 0.55)',
-            background:
-              'linear-gradient(180deg, hsl(36 47% 35% / 0.08) 0%, hsl(36 47% 35% / 0.02) 100%)',
-          }}
-        >
-          <div className="flex items-center gap-1.5 mb-2">
-            <QuestIcon size={11} style={{ color: 'hsl(36 47% 35%)' }} />
-            <span
-              className="font-sans text-[8px] uppercase tracking-sovereign font-bold"
-              style={{ color: 'hsl(36 47% 35%)', letterSpacing: '0.14em' }}
-            >
-              A Keepsake
-            </span>
-          </div>
+        {questPrompt && (
           <p
-            className="font-sans italic text-[14px] leading-snug text-foreground/85 mb-3"
-          >
-            {questPrompt}
-          </p>
-          <motion.button
-            whileTap={{ scale: 0.97 }}
-            onClick={onCaptureMemory}
-            className="w-full flex items-center justify-center gap-1.5 py-2.5 bg-transparent cursor-pointer font-sans text-[11px] font-semibold uppercase tracking-sovereign min-h-[40px]"
+            className="font-sans italic text-[13px] leading-snug mt-4 pt-4"
             style={{
-              borderRadius: '14px',
-              border: '1px solid hsl(36 47% 35% / 0.45)',
               color: 'hsl(36 47% 35%)',
+              borderTop: '1px dashed hsl(36 47% 35% / 0.35)',
             }}
           >
-            <QuestIcon size={12} />
-            Record Memory
-          </motion.button>
-        </div>
-      )}
+            <span className="font-sans not-italic text-[8px] uppercase tracking-sovereign font-bold block mb-1" style={{ letterSpacing: '0.14em' }}>
+              A Keepsake
+            </span>
+            {questPrompt}
+          </p>
+        )}
+      </div>
+
+      {/* ─── ENGAGEMENT RIBBON · 50/50 split, full-width, 56px touch targets ─── */}
+      <div
+        className="grid grid-cols-2"
+        style={{
+          borderTop: '1px solid hsl(36 47% 35% / 0.35)',
+          background: 'linear-gradient(180deg, hsl(36 47% 35% / 0.08) 0%, hsl(36 47% 35% / 0.02) 100%)',
+        }}
+      >
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          onClick={onCaptureMemory}
+          className="flex items-center justify-center gap-2 bg-transparent cursor-pointer font-sans text-[11px] font-semibold uppercase tracking-sovereign"
+          style={{
+            minHeight: '56px',
+            color: 'hsl(36 47% 35%)',
+            borderRight: '1px solid hsl(36 47% 35% / 0.35)',
+          }}
+          aria-label="Record Memory"
+        >
+          <QuestIcon size={14} />
+          Record Memory
+        </motion.button>
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          onClick={onFindAndSeek}
+          className="flex items-center justify-center gap-2 bg-transparent cursor-pointer font-sans text-[11px] font-semibold uppercase tracking-sovereign"
+          style={{
+            minHeight: '56px',
+            color: 'hsl(36 47% 35%)',
+          }}
+          aria-label="Find and Seek"
+        >
+          <Search size={14} />
+          Find &amp; Seek
+        </motion.button>
+      </div>
     </motion.article>
   );
 };
