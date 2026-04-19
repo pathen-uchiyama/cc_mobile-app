@@ -154,6 +154,66 @@ const InPark = () => {
     celebrate(tip, 'On Your Way');
   };
 
+  /** Mark the Hero as completed — removes it from the stack and promotes the next item. */
+  const completeHero = () => {
+    if (!hero) return;
+    setPlan((prev) => {
+      const remaining = prev.filter((p) => p.id !== hero.id);
+      if (remaining.length === 0) return remaining;
+      const [first, second, ...rest] = remaining;
+      return [
+        { ...first, rank: 'now' as const },
+        ...(second ? [{ ...second, rank: 'next' as const }] : []),
+        ...rest.map((r) => ({ ...r, rank: 'later' as const })),
+      ];
+    });
+    setMustDos((prev) => prev.map((m) => (m.attraction === hero.attraction ? { ...m, done: true } : m)));
+    celebrate(`${hero.attraction} — tucked into the Vault.`, 'Marked Done');
+  };
+
+  /** Promote a Horizon card into the Hero slot — shared-layout swap. */
+  const promoteToHero = (planItemId: string) => {
+    setPlan((prev) => {
+      const target = prev.find((p) => p.id === planItemId);
+      if (!target) return prev;
+      const others = prev.filter((p) => p.id !== planItemId);
+      const reordered: PlanItem[] = [
+        { ...target, rank: 'now' },
+        ...others.map((o, i) => ({ ...o, rank: i === 0 ? ('next' as const) : ('later' as const) })),
+      ];
+      return reordered;
+    });
+  };
+
+  /** Promote an off-stack Must-Do into the Hero slot. Synthesizes a PlanItem. */
+  const promoteMustDoToHero = (mustDoId: string, attraction: string) => {
+    setPlan((prev) => {
+      // If already in the plan, just promote it.
+      const existing = prev.find((p) => p.attraction === attraction);
+      if (existing) {
+        const others = prev.filter((p) => p.id !== existing.id);
+        return [
+          { ...existing, rank: 'now' as const },
+          ...others.map((o, i) => ({ ...o, rank: i === 0 ? ('next' as const) : ('later' as const) })),
+        ];
+      }
+      // Otherwise synthesize a fresh card and demote the rest.
+      const synthesized: PlanItem = {
+        id: `must-${mustDoId}`,
+        rank: 'now',
+        time: 'Now',
+        attraction,
+        location: 'On the way',
+        logic: 'Pulled from your Must-Do list — strategy is recalculating.',
+        wait: '—',
+        mustDo: true,
+      };
+      const demoted = prev.map((o, i) => ({ ...o, rank: i === 0 ? ('next' as const) : ('later' as const) }));
+      return [synthesized, ...demoted];
+    });
+    celebrate(`${attraction} promoted to your main card.`, 'Pulled In');
+  };
+
   const confirmDrawer = () => {
     const tip = WHISPERS.llSnipe[Math.floor(Math.random() * WHISPERS.llSnipe.length)];
     celebrate(tip, 'LL Secured');
