@@ -271,7 +271,7 @@ const InPark = () => {
         open={audibleOpen}
         onClose={() => setAudibleOpen(false)}
         onBreak={() => pivotWith('Need a Break', () => setNeedType('quiet'))}
-        onRefuel={() => pivotWith('Refuel', () => setNeedType('bathroom'))}
+        onRefuel={() => pivotWith('Refuel', () => setNeedType('food'))}
         onClosure={() => pivotWith('Rain Pivot', () => setSwapFor(hero?.attraction ?? 'current ride'))}
         onReset={() => pivotWith('Reset Strategy', () => { setPivotSuggested(false); setShowRecalibrate(true); })}
       />
