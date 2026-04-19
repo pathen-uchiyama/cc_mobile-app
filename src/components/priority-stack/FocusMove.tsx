@@ -24,6 +24,8 @@ interface FocusMoveProps {
   pivotHeadline?: string;
   /** When true, the card is one of the user's Must-Do attractions — gold border. */
   mustDo?: boolean;
+  /** Mark this Hero as completed/seen — removes it from the stack. */
+  onComplete?: () => void;
 }
 
 /**
