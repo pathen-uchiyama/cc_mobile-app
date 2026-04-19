@@ -62,6 +62,8 @@ const HeroHorizonStack = ({
   walkingPrompts = [],
   onCommitHero,
   onSecureLL,
+  onSecureLLForItem,
+  onOpenLLVault,
   onCaptureMemory,
   onCaptureWalking,
   onFindAndSeek,
@@ -193,6 +195,8 @@ const HeroHorizonStack = ({
         open={ledgerOpen}
         onClose={() => setLedgerOpen(false)}
         items={items}
+        onSecureLL={onSecureLLForItem}
+        onOpenVault={onOpenLLVault}
       />
     </>
   );
