@@ -38,6 +38,10 @@ interface HeroHorizonStackProps {
   onSecureLL?: () => void;
   onCaptureMemory?: (planItemId: string) => void;
   onCaptureWalking?: (walkingId: string) => void;
+  onFindAndSeek?: (planItemId: string) => void;
+  /** When true, the Hero card glows gold + shows "A New Path is Available". */
+  pivotSuggested?: boolean;
+  pivotHeadline?: string;
 }
 
 /**
