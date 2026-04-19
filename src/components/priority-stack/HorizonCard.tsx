@@ -33,8 +33,8 @@ const HorizonCard = ({
 }: HorizonCardProps) => {
   const ring = mustDo
     ? '0 0 0 2px hsl(var(--gold) / 0.85), '
-    : '0 0 0 1px hsl(var(--obsidian) / 0.06), ';
-  const boxShadow = `${ring}0 6px 14px -6px hsl(var(--obsidian) / 0.10), 0 16px 32px -12px hsl(var(--obsidian) / 0.10)`;
+    : '0 0 0 1px hsl(var(--obsidian) / 0.18), ';
+  const boxShadow = `${ring}0 6px 14px -6px hsl(var(--obsidian) / 0.12), 0 16px 32px -12px hsl(var(--obsidian) / 0.12)`;
 
   return (
     <motion.article
