@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, Star } from 'lucide-react';
+import { ChevronDown, Star, ArrowUp } from 'lucide-react';
 
 export interface MustDoEntry {
   id: string;
