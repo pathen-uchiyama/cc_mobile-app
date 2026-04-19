@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import LoomingHorizon from '@/components/LoomingHorizon';
 import HeroHorizonStack, { type PlanItem, type WalkingPrompt } from '@/components/priority-stack/HeroHorizonStack';
 import PivotShimmer from '@/components/priority-stack/PivotShimmer';
-import PriorityFootnote from '@/components/priority-stack/PriorityFootnote';
+import MustDoRibbon, { type MustDoIcon } from '@/components/priority-stack/MustDoRibbon';
 
 import AssistedDrawer from '@/components/priority-stack/AssistedDrawer';
 import AudibleMenu from '@/components/priority-stack/AudibleMenu';
@@ -33,6 +33,7 @@ const PLAN: PlanItem[] = [
     party: { yes: 4, total: 5 },
     questPrompt: 'Find the hidden Mickey on the weather vane above the bridge.',
     questType: 'photo',
+    mustDo: true,
   },
   {
     id: '2',
@@ -46,6 +47,7 @@ const PLAN: PlanItem[] = [
     party: { yes: 5, total: 5 },
     questPrompt: 'Look up in the queue — the chandelier tells a story. Catch the third pendant.',
     questType: 'photo',
+    mustDo: true,
   },
   {
     id: '3',
@@ -59,39 +61,21 @@ const PLAN: PlanItem[] = [
     questPrompt: 'Whisper the punchline of the skipper\'s best joke into the Vault.',
     questType: 'voice',
   },
-  {
-    id: '4',
-    rank: 'later',
-    time: '2:30',
-    attraction: 'Big Thunder Mountain',
-    location: 'Frontierland',
-    logic: 'Window aligns with your LL drop — fast in, fast out.',
-    wait: '20 min',
-    llSecured: true,
-    party: { yes: 4, total: 5 },
-  },
-  {
-    id: '5',
-    rank: 'later',
-    time: '4:00',
-    attraction: 'Space Mountain',
-    location: 'Tomorrowland',
-    logic: 'Late afternoon dip in standby — strategic pivot from the parade exodus.',
-    wait: '35 min',
-    party: { yes: 3, total: 5 },
-  },
 ];
 
-// GPS-triggered Walking Cards interleaved between attraction cards.
-const WALKING_PROMPTS: WalkingPrompt[] = [
-  {
-    id: 'w1',
-    afterIndex: 1,
-    whimsy: 'Pause at the railing — there\'s a perfect castle reflection in the water this morning.',
-    type: 'photo',
-    nearby: 'Liberty Square bridge',
-  },
+// The user's day-of Must-Do list — drives the Sovereign Progress Bar at the top
+// and the gold border on any matching card in the stack.
+const MUST_DOS: { id: string; attraction: string }[] = [
+  { id: 'm1', attraction: 'Pirates of the Caribbean' },
+  { id: 'm2', attraction: 'Haunted Mansion' },
+  { id: 'm3', attraction: 'Big Thunder Mountain' },
+  { id: 'm4', attraction: 'Space Mountain' },
+  { id: 'm5', attraction: 'Peter Pan\u2019s Flight' },
 ];
+
+// Walking prompts are intentionally retained as data but NOT rendered as cards
+// — the page must never show more than 3 cards. Whimsy surfaces via WhisperStrip.
+const WALKING_PROMPTS: WalkingPrompt[] = [];
 
 
 const InPark = () => {
