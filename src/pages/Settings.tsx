@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Eye, Zap, Heart, Sparkles, Vibrate } from 'lucide-react';
+import { ArrowLeft, Eye, Zap, Heart, Sparkles, Vibrate, FlaskConical } from 'lucide-react';
 import { useCompanion, type ServiceTier } from '@/contexts/CompanionContext';
 
 const TIERS: { id: ServiceTier; label: string; tagline: string }[] = [
@@ -54,6 +54,7 @@ const Settings = () => {
     llTrackerVisible, setLlTrackerVisible,
     hapticsEnabled, setHapticsEnabled,
     celebrationsEnabled, setCelebrationsEnabled,
+    devPanelEnabled, setDevPanelEnabled,
   } = useCompanion();
 
   return (
