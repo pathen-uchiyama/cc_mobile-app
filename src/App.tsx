@@ -14,6 +14,7 @@ import PlanWizard from "./pages/PlanWizard";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import { CompanionProvider } from "./contexts/CompanionContext";
+import { JoyEventsProvider } from "./contexts/JoyEventsContext";
 import { CelebrationProvider } from "./contexts/CelebrationContext";
 
 const queryClient = new QueryClient();
@@ -24,22 +25,24 @@ const App = () => (
       <Toaster />
       <Sonner />
       <CompanionProvider>
-        <CelebrationProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Welcome />} />
-              <Route path="/home" element={<Home />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/park" element={<InPark />} />
-              <Route path="/edit-itinerary" element={<EditItinerary />} />
-              <Route path="/upgrades" element={<Upgrades />} />
-              <Route path="/joy-report" element={<JoyReport />} />
-              <Route path="/plan-wizard" element={<PlanWizard />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </CelebrationProvider>
+        <JoyEventsProvider>
+          <CelebrationProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Welcome />} />
+                <Route path="/home" element={<Home />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/park" element={<InPark />} />
+                <Route path="/edit-itinerary" element={<EditItinerary />} />
+                <Route path="/upgrades" element={<Upgrades />} />
+                <Route path="/joy-report" element={<JoyReport />} />
+                <Route path="/plan-wizard" element={<PlanWizard />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </CelebrationProvider>
+        </JoyEventsProvider>
       </CompanionProvider>
     </TooltipProvider>
   </QueryClientProvider>

@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useCallback, ReactNode, useEffect 
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
 import { useCompanion } from './CompanionContext';
+import { useJoyEvents, type JoyEventType } from './JoyEventsContext';
 
 interface Celebration {
   id: number;
@@ -12,7 +13,7 @@ interface Celebration {
 }
 
 interface CelebrationContextValue {
-  celebrate: (tip: string, eyebrow?: string) => void;
+  celebrate: (tip: string, eyebrow?: string, eventType?: JoyEventType) => void;
 }
 
 const CelebrationContext = createContext<CelebrationContextValue | null>(null);
@@ -25,13 +26,19 @@ const triggerHaptic = (pattern: number | number[]) => {
 
 export const CelebrationProvider = ({ children }: { children: ReactNode }) => {
   const { celebrationsEnabled, hapticsEnabled } = useCompanion();
+  const { log } = useJoyEvents();
   const [active, setActive] = useState<Celebration | null>(null);
 
-  const celebrate = useCallback((tip: string, eyebrow?: string) => {
+  const celebrate = useCallback((tip: string, eyebrow?: string, eventType?: JoyEventType) => {
+    // Always log the event, even if the user has muted celebrations —
+    // the Joy Report still reflects what happened.
+    if (eventType) {
+      log({ type: eventType, title: eyebrow ?? 'Moment', quote: tip });
+    }
     if (!celebrationsEnabled) return;
     if (hapticsEnabled) triggerHaptic([12, 30, 12, 30, 30]);
     setActive({ id: Date.now(), tip, eyebrow });
-  }, [celebrationsEnabled, hapticsEnabled]);
+  }, [celebrationsEnabled, hapticsEnabled, log]);
 
   // Auto-dismiss after 3.2s
   useEffect(() => {
@@ -40,7 +47,7 @@ export const CelebrationProvider = ({ children }: { children: ReactNode }) => {
     return () => clearTimeout(t);
   }, [active]);
 
-  // Generate a few sparkle positions
+  // Generate sparkle positions
   const sparkles = Array.from({ length: 8 });
 
   return (
