@@ -163,6 +163,22 @@ const Settings = () => {
           </div>
         </section>
 
+        {/* Developer */}
+        <section>
+          <p className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold mb-1 px-1">
+            Developer
+          </p>
+          <div className="bg-card rounded-xl px-4 shadow-boutique">
+            <ToggleRow
+              icon={FlaskConical}
+              label="Snipe Simulator"
+              description="Show a dev panel in the bottom-left of the in-park view to manually fire celebrations."
+              value={devPanelEnabled}
+              onChange={setDevPanelEnabled}
+            />
+          </div>
+        </section>
+
         {/* Footer note */}
         <p className="font-sans text-[9px] text-muted-foreground/60 text-center italic px-4 pt-2">
           Settings save automatically to this device.

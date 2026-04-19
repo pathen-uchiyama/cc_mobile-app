@@ -12,7 +12,9 @@ import CheckInOverlay from '@/components/CheckInOverlay';
 import RecalibrateSheet from '@/components/RecalibrateSheet';
 import LightningLaneTracker from '@/components/LightningLaneTracker';
 import MinimalistView from '@/components/MinimalistView';
+import SovereignView from '@/components/SovereignView';
 import SwapSuggestionsSheet from '@/components/SwapSuggestionsSheet';
+import DevPanel from '@/components/DevPanel';
 import { useCompanion } from '@/contexts/CompanionContext';
 
 const InPark = () => {
@@ -21,13 +23,17 @@ const InPark = () => {
   const [showCheckIn, setShowCheckIn] = useState(false);
   const [showRecalibrate, setShowRecalibrate] = useState(false);
   const [swapFor, setSwapFor] = useState<string | null>(null);
-  const { minimalist, llTrackerVisible, tier } = useCompanion();
+  const { minimalist, llTrackerVisible, tier, devPanelEnabled } = useCompanion();
+
+  // Sovereign tier = invisible execution. Minimalist Mode also collapses everything.
+  const useQuietView = minimalist || tier === 'sovereign';
 
   return (
     <div className="h-screen bg-background max-w-[480px] mx-auto relative flex flex-col overflow-hidden">
-      {minimalist ? (
-        // ── Minimalist Mode: just one whisper + the Sovereign Key ──
-        <MinimalistView parkName="Magic Kingdom" />
+      {useQuietView ? (
+        minimalist
+          ? <MinimalistView parkName="Magic Kingdom" />
+          : <SovereignView parkName="Magic Kingdom" />
       ) : (
         <>
           {/* ── Fixed top: header + whisper strip ── */}
@@ -70,7 +76,7 @@ const InPark = () => {
         </>
       )}
 
-      {/* ── The Sovereign Key — present in BOTH modes for muscle memory ── */}
+      {/* ── The Sovereign Key — present in ALL modes for muscle memory ── */}
       <SovereignKey
         onBathroom={() => setNeedType('bathroom')}
         onQuietSpace={() => setNeedType('quiet')}
@@ -79,6 +85,9 @@ const InPark = () => {
         onCheckIn={() => setShowCheckIn(true)}
         onRecalibrate={() => setShowRecalibrate(true)}
       />
+
+      {/* Dev panel — opt-in via Settings */}
+      {devPanelEnabled && <DevPanel />}
 
       {/* Overlays — all unified through BottomSheet */}
       <AnimatePresence>
