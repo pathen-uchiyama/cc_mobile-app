@@ -264,7 +264,7 @@ const InPark = () => {
         onBreak={() => pivotWith('Need a Break', () => setNeedType('quiet'))}
         onRefuel={() => pivotWith('Refuel', () => setNeedType('bathroom'))}
         onClosure={() => pivotWith('Rain Pivot', () => setSwapFor(hero?.attraction ?? 'current ride'))}
-        onReset={() => pivotWith('Recalculate Strategy', () => { setPivotSuggested(false); setShowRecalibrate(true); })}
+        onReset={() => pivotWith('Reset Strategy', () => { setPivotSuggested(false); setShowRecalibrate(true); })}
       />
 
       <StrategicDashboard

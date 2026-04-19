@@ -14,7 +14,7 @@ const items = [
   { id: 'break',   label: 'Need a Break',          icon: Coffee },
   { id: 'refuel',  label: 'Refuel',                icon: Utensils },
   { id: 'closure', label: 'Rain Pivot',            icon: CloudRain },
-  { id: 'reset',   label: 'Recalculate Strategy',  icon: RefreshCw },
+  { id: 'reset',   label: 'Reset Strategy',        icon: RefreshCw },
 ] as const;
 
 /**
