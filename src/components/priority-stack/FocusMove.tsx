@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Clock, MapPin, ArrowRight, Users, Zap, Camera, Compass } from 'lucide-react';
+import { Clock, MapPin, ArrowRight, Users, Zap, Camera, Compass, Search } from 'lucide-react';
 
 interface FocusMoveProps {
   attraction: string;
@@ -17,6 +17,12 @@ interface FocusMoveProps {
   /** Quest type drives the icon + verb on the capture button. */
   questType?: 'photo' | 'voice';
   onCaptureMemory?: () => void;
+  /** Find & Seek action — right side of the Engagement Ribbon. */
+  onFindAndSeek?: () => void;
+  /** When true, the system has detected a strategic pivot opportunity. */
+  pivotSuggested?: boolean;
+  /** Headline for the pivot suggestion (Publico Headline). */
+  pivotHeadline?: string;
 }
 
 /**

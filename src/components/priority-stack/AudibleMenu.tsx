@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Coffee, Utensils, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Coffee, Utensils, CloudRain, RefreshCw } from 'lucide-react';
 
 interface AudibleMenuProps {
   open: boolean;
@@ -11,10 +11,10 @@ interface AudibleMenuProps {
 }
 
 const items = [
-  { id: 'break',   label: 'We Need a Break',         icon: Coffee },
-  { id: 'refuel',  label: 'Our Appetites are Calling', icon: Utensils },
-  { id: 'closure', label: 'A Sudden Change',         icon: AlertTriangle },
-  { id: 'reset',   label: 'The Realm is Quiet',      icon: RefreshCw },
+  { id: 'break',   label: 'Need a Break',          icon: Coffee },
+  { id: 'refuel',  label: 'Refuel',                icon: Utensils },
+  { id: 'closure', label: 'Rain Pivot',            icon: CloudRain },
+  { id: 'reset',   label: 'Recalculate Strategy',  icon: RefreshCw },
 ] as const;
 
 /**
