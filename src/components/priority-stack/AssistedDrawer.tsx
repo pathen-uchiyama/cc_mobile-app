@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, X } from 'lucide-react';
+import { useHaptics } from '@/hooks/useHaptics';
 
 interface AssistedDrawerProps {
   open: boolean;
@@ -15,10 +17,25 @@ interface AssistedDrawerProps {
  *
  * Triggered only when the backend finds a Lightning Lane window.
  * Single Strategic Executive Decision: Confirm (Obsidian) or Dismiss (subtle).
+ *
+ * Haptics:
+ * - Double pulse the moment a recommendation appears.
+ * - Single long pulse on successful Confirm.
  */
 const AssistedDrawer = ({
   open, attraction, window, savedMinutes, onConfirm, onDismiss,
 }: AssistedDrawerProps) => {
+  const { fire } = useHaptics();
+
+  useEffect(() => {
+    if (open) fire('recommendation');
+  }, [open, fire]);
+
+  const handleConfirm = () => {
+    fire('bookingSuccess');
+    onConfirm();
+  };
+
   return (
     <AnimatePresence>
       {open && (
