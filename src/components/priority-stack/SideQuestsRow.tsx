@@ -23,7 +23,7 @@ const SideQuestsRow = () => {
           className="font-sans text-[9px] uppercase tracking-sovereign font-semibold shrink-0 mr-1"
           style={{ color: 'hsl(var(--gold))' }}
         >
-          The Grand Quest
+          Keepsakes
         </span>
         <button
           onClick={() => setActive('memory')}
@@ -64,7 +64,7 @@ const SideQuestsRow = () => {
             >
               <div className="flex items-center justify-between mb-4">
                 <span className="font-sans text-[9px] uppercase tracking-sovereign font-semibold" style={{ color: 'hsl(var(--gold))' }}>
-                  The Grand Quest
+                  Keepsakes
                 </span>
                 <button
                   onClick={() => setActive(null)}

@@ -2,32 +2,34 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, Users, X } from 'lucide-react';
 
-interface FootRide {
+interface PartyPick {
   id: string;
   name: string;
-  votes: number;
+  /** Initials of party members who flagged this attraction in the pre-trip questionnaire. */
+  flaggedBy: string[];
 }
 
-const RIDES: FootRide[] = [
-  { id: 'r1', name: 'Tron Lightcycle Run', votes: 4_812 },
-  { id: 'r2', name: 'Seven Dwarfs Mine Train', votes: 3_647 },
-  { id: 'r3', name: 'Space Mountain', votes: 2_984 },
-  { id: 'r4', name: 'Big Thunder Mountain', votes: 2_215 },
-  { id: 'r5', name: 'Pirates of the Caribbean', votes: 1_708 },
+/** Party size — drives the "X of Y" denominator everywhere this list appears. */
+const PARTY_SIZE = 5;
+
+/** Pre-trip questionnaire results from the traveling party (not a public crowd database). */
+const PARTY_PICKS: PartyPick[] = [
+  { id: 'r1', name: 'Haunted Mansion',           flaggedBy: ['M', 'D', 'A', 'J', 'S'] },
+  { id: 'r2', name: 'Pirates of the Caribbean',  flaggedBy: ['M', 'D', 'A', 'J']      },
+  { id: 'r3', name: 'Big Thunder Mountain',      flaggedBy: ['D', 'A', 'J', 'S']      },
+  { id: 'r4', name: 'Space Mountain',            flaggedBy: ['M', 'A', 'S']           },
+  { id: 'r5', name: 'Jungle Cruise',             flaggedBy: ['M', 'D', 'J']           },
 ];
 
-const formatVotes = (n: number) =>
-  n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, '')}k` : n.toString();
-
 /**
- * Priority Footnote — a single tappable line.
+ * Party Picks Footnote — a single tappable line.
  *
- * Replaces the spreadsheet-style ride list. The full ranking
- * lives behind a tap so it's reference, not chrome.
+ * Surfaces the traveling party's pre-trip questionnaire results.
+ * NOT a crowd-sourced database — only the people on this trip.
  */
 const PriorityFootnote = () => {
   const [open, setOpen] = useState(false);
-  const top = RIDES.slice(0, 3).map((r) => r.name.split(' ')[0]).join(' · ');
+  const top = PARTY_PICKS.slice(0, 3).map((r) => r.name.split(' ')[0]).join(' · ');
 
   return (
     <>
@@ -39,7 +41,7 @@ const PriorityFootnote = () => {
           className="font-sans text-[10px] uppercase tracking-sovereign font-semibold shrink-0"
           style={{ color: 'hsl(var(--slate-plaid))' }}
         >
-          Today's most-wanted
+          Your party's picks
         </span>
         <span
           className="font-sans italic text-[11px] flex-1 min-w-0 truncate"
@@ -72,11 +74,14 @@ const PriorityFootnote = () => {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <span className="font-sans text-[8px] uppercase tracking-sovereign text-muted-foreground font-semibold">
-                    Voted by guests today
+                    From your pre-trip questionnaire
                   </span>
                   <h3 className="font-display text-[20px] text-foreground mt-1">
-                    Today's most-wanted
+                    Your party's picks
                   </h3>
+                  <p className="font-sans italic text-[11px] mt-1" style={{ color: 'hsl(var(--slate-plaid))' }}>
+                    What the {PARTY_SIZE} of you said you wanted most.
+                  </p>
                 </div>
                 <button
                   onClick={() => setOpen(false)}
@@ -87,7 +92,7 @@ const PriorityFootnote = () => {
               </div>
 
               <ol className="list-none p-0 m-0 space-y-3">
-                {RIDES.map((r, i) => (
+                {PARTY_PICKS.map((r, i) => (
                   <li key={r.id} className="flex items-center gap-3">
                     <span
                       className="font-display text-[16px] tabular-nums w-6 shrink-0"
@@ -101,7 +106,7 @@ const PriorityFootnote = () => {
                     <div className="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent/10">
                       <Users size={10} className="text-accent" />
                       <span className="font-sans text-[11px] font-bold text-accent tabular-nums">
-                        {formatVotes(r.votes)}
+                        {r.flaggedBy.length} of {PARTY_SIZE}
                       </span>
                     </div>
                   </li>

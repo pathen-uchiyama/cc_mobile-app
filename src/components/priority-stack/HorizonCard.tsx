@@ -11,15 +11,12 @@ interface HorizonCardProps {
   llSecured?: boolean;
   /** 1 = Next (slight peek), 2 = Later (deeper peek) */
   depth?: 1 | 2;
-  /** Number of guests who voted this a priority. */
-  votes?: number;
-  /** Grand Quest prompt for the Engagement Zone. */
+  /** Party poll: how many of the traveling party flagged this. */
+  party?: { yes: number; total: number };
+  /** Keepsake prompt for the Memory Ribbon. */
   questPrompt?: string;
   onCaptureMemory?: () => void;
 }
-
-const formatVotes = (n: number) =>
-  n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, '')}k` : n.toString();
 
 /**
  * Dual-Purpose Horizon Card — Priority 2 & 3.
@@ -28,7 +25,7 @@ const formatVotes = (n: number) =>
  * Bottom half = Engagement Zone (Grand Quest), revealed on expand.
  */
 const HorizonCard = ({
-  rank, time, attraction, logic, wait, llSecured, depth = 1, votes,
+  rank, time, attraction, logic, wait, llSecured, depth = 1, party,
   questPrompt, onCaptureMemory,
 }: HorizonCardProps) => {
   const [expanded, setExpanded] = useState(false);
@@ -73,14 +70,14 @@ const HorizonCard = ({
             >
               {attraction}
             </h3>
-            {votes !== undefined && (
+            {party !== undefined && (
               <div className="flex items-center gap-1 mt-1">
                 <Users size={9} style={{ color: 'hsl(var(--gold))' }} />
                 <span
                   className="font-sans text-[9px] font-semibold tabular-nums"
                   style={{ color: 'hsl(var(--gold))' }}
                 >
-                  {formatVotes(votes)} voted priority
+                  {party.yes} of {party.total} want this
                 </span>
               </div>
             )}
@@ -134,7 +131,7 @@ const HorizonCard = ({
                       className="font-sans text-[8px] uppercase tracking-sovereign font-bold"
                       style={{ color: 'hsl(36 47% 35%)', letterSpacing: '0.14em' }}
                     >
-                      Sovereign Whisper
+                      A Keepsake
                     </span>
                   </div>
                   <p
