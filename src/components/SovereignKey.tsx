@@ -3,8 +3,9 @@ import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
   User, Bath, TreePine, Mic, Heart, MapPin, RefreshCw,
-  Home, Pencil, FileText, Zap, Apple, Frown, Battery,
+  Home, Pencil, FileText, Zap, Apple, Frown, Battery, Settings as SettingsIcon,
 } from 'lucide-react';
+import { useCompanion } from '@/contexts/CompanionContext';
 
 interface SovereignKeyProps {
   onBathroom: () => void;
@@ -208,6 +209,7 @@ const SovereignKey = ({
               { label: 'Account', icon: User, to: '/auth' },
               { label: 'Edit Plan', icon: Pencil, to: '/edit-itinerary' },
               { label: 'Joy Report', icon: FileText, to: '/joy-report' },
+              { label: 'Settings', icon: SettingsIcon, to: '/settings' },
               { label: 'Upgrades', icon: Zap, to: '/upgrades', accent: true },
             ].map((item, i, arr) => {
               const Icon = item.icon;
