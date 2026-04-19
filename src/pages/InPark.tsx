@@ -83,7 +83,7 @@ const InPark = () => {
   // Sovereign Key contextual mode: 'audible' for relaxed users, 'dashboard' for Type A.
   const [audibleOpen, setAudibleOpen] = useState(false);
   const [dashboardOpen, setDashboardOpen] = useState(false);
-  const [needType, setNeedType] = useState<'bathroom' | 'quiet' | null>(null);
+  const [needType, setNeedType] = useState<'bathroom' | 'quiet' | 'food' | null>(null);
   const [showRecalibrate, setShowRecalibrate] = useState(false);
   const [swapFor, setSwapFor] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -261,8 +261,9 @@ const InPark = () => {
       <HearthDock
         onSovereignTap={handleSovereignTap}
         active={audibleOpen || dashboardOpen}
+        onRestroom={() => pivotWith('Restroom', () => setNeedType('bathroom'))}
+        onRefuel={() => pivotWith('Refuel', () => setNeedType('food'))}
         onBreak={() => pivotWith('Need a Break', () => setNeedType('quiet'))}
-        onRefuel={() => pivotWith('Refuel', () => setNeedType('bathroom'))}
         onRain={() => pivotWith('Rain Pivot', () => setSwapFor(hero?.attraction ?? 'current ride'))}
         onReset={() => pivotWith('Reset Strategy', () => { setPivotSuggested(false); setShowRecalibrate(true); })}
       />
@@ -271,7 +272,7 @@ const InPark = () => {
         open={audibleOpen}
         onClose={() => setAudibleOpen(false)}
         onBreak={() => pivotWith('Need a Break', () => setNeedType('quiet'))}
-        onRefuel={() => pivotWith('Refuel', () => setNeedType('bathroom'))}
+        onRefuel={() => pivotWith('Refuel', () => setNeedType('food'))}
         onClosure={() => pivotWith('Rain Pivot', () => setSwapFor(hero?.attraction ?? 'current ride'))}
         onReset={() => pivotWith('Reset Strategy', () => { setPivotSuggested(false); setShowRecalibrate(true); })}
       />
