@@ -1,10 +1,6 @@
-import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronDown } from 'lucide-react';
 import FocusMove from './FocusMove';
 import HorizonCard from './HorizonCard';
-import WalkingCard from './WalkingCard';
-import FullLedgerSheet from './FullLedgerSheet';
 
 export interface PlanItem {
   id: string;
@@ -20,11 +16,17 @@ export interface PlanItem {
   /** Keepsake prompt — surfaces in the Memory Ribbon of the card. */
   questPrompt?: string;
   questType?: 'photo' | 'voice';
+  /** When true, this attraction is one of the user's day-of Must-Dos — gold border. */
+  mustDo?: boolean;
 }
 
+/**
+ * Walking prompts are intentionally NOT rendered in the stack.
+ * Hard cap: the /park page renders at most 3 cards at any time.
+ * Walking whimsy surfaces as ambient toasts/whispers, never as a 4th card.
+ */
 export interface WalkingPrompt {
   id: string;
-  /** Where in the stack this prompt appears. 0 = above Hero, 1 = between Hero and Next, 2 = between Next and Later. */
   afterIndex: 0 | 1 | 2;
   whimsy: string;
   type?: 'photo' | 'voice' | 'observe';
@@ -33,9 +35,11 @@ export interface WalkingPrompt {
 
 interface HeroHorizonStackProps {
   items: PlanItem[];
+  /** Kept for API compatibility — currently ignored to enforce the 3-card cap. */
   walkingPrompts?: WalkingPrompt[];
   onCommitHero: () => void;
   onCaptureMemory?: (planItemId: string) => void;
+  /** Kept for API compatibility — walking cards are no longer rendered. */
   onCaptureWalking?: (walkingId: string) => void;
   onFindAndSeek?: (planItemId: string) => void;
   /** When true, the Hero card glows gold + shows "A New Path is Available". */
@@ -44,68 +48,54 @@ interface HeroHorizonStackProps {
 }
 
 /**
- * Hero & Horizon Stack — depth-based plan surface.
+ * The Sovereign Priority Stack — the ONLY plan surface.
  *
- * Top: Hero (≥25vh, dual-purpose).
- * Beneath: 2 Horizon cards peeking.
- * Interleaved: optional Walking Cards (Keepsakes only).
- * Overflow: Full Ledger sheet.
+ * Hard contract: never more than 3 cards on screen.
+ *   • Priority 1 — The Hero. Top 50% of viewport. Heavy Boutique Shadow.
+ *   • Priority 2 & 3 — The Horizon. ~20% smaller height, slightly offset.
+ *
+ * Every card carries the Engagement Ribbon (54px, Record Memory + Find & Seek).
+ * Must-Do attractions get a Burnished Gold border.
+ *
+ * No walking cards. No "Full Ledger". No overflow. The 4th+ items live in
+ * the Sovereign Key's Audible drawer ("Reset Strategy"), not this surface.
  */
 const HeroHorizonStack = ({
   items,
-  walkingPrompts = [],
   onCommitHero,
   onCaptureMemory,
-  onCaptureWalking,
   onFindAndSeek,
   pivotSuggested = false,
   pivotHeadline,
 }: HeroHorizonStackProps) => {
-  const [ledgerOpen, setLedgerOpen] = useState(false);
-
   const hero = items.find((i) => i.rank === 'now') ?? items[0];
-  const horizon = items.filter((i) => i.id !== hero?.id).slice(0, 2);
-  const overflow = items.filter((i) => i.id !== hero?.id).slice(2);
-
   if (!hero) return null;
-
-  const walkingAfter = (idx: 0 | 1 | 2) => walkingPrompts.filter((w) => w.afterIndex === idx);
-
-  const renderWalking = (idx: 0 | 1 | 2) =>
-    walkingAfter(idx).map((w) => (
-      <WalkingCard
-        key={w.id}
-        whimsy={w.whimsy}
-        type={w.type}
-        nearby={w.nearby}
-        onCapture={() => onCaptureWalking?.(w.id)}
-      />
-    ));
+  // Only the next 2 items beyond the hero — hard cap.
+  const horizon = items.filter((i) => i.id !== hero.id).slice(0, 2);
 
   return (
-    <>
+    <div className="flex flex-col">
       {/* Forced-Focus eyebrow */}
       <div className="flex items-center justify-between mb-2 px-1">
         <span
           className="font-sans text-[9px] uppercase tracking-sovereign font-bold"
           style={{ color: 'hsl(var(--gold))' }}
         >
-          Top 3 Priorities
+          The Sovereign Stack
         </span>
         <span
           className="font-sans text-[9px] uppercase tracking-sovereign"
           style={{ color: 'hsl(var(--slate-plaid))' }}
         >
-          The rest is folded
+          Three. No more.
         </span>
       </div>
 
-      {/* Optional walking prompt above the Hero */}
-      {walkingAfter(0).length > 0 && <div className="mb-3 space-y-2">{renderWalking(0)}</div>}
-
-      {/* Priority 1 — The Hero. The "Now". Card takes its natural height so the
-          Engagement Ribbon never overlaps the next item below. */}
-      <div className="relative" style={{ marginBottom: '12px' }}>
+      {/* Priority 1 — The Hero. Top 50% of viewport. */}
+      <div
+        className="relative"
+        style={{ height: '50vh', minHeight: '420px', marginBottom: '12px' }}
+      >
         <FocusMove
           attraction={hero.attraction}
           location={hero.location}
@@ -120,77 +110,46 @@ const HeroHorizonStack = ({
           onFindAndSeek={() => onFindAndSeek?.(hero.id)}
           pivotSuggested={pivotSuggested}
           pivotHeadline={pivotHeadline}
+          mustDo={hero.mustDo}
         />
       </div>
 
-      {/* Walking prompt between Hero and Next */}
-      {walkingAfter(1).length > 0 && <div className="mt-4 space-y-2">{renderWalking(1)}</div>}
-
-      {/* Priority 2 & 3 — The Horizon. ~20% smaller than the Hero. The "Near Future". */}
+      {/* Priority 2 & 3 — The Horizon. 20% smaller, slightly offset inward
+          to telegraph "near future" depth without scaling (which would shrink
+          touch targets and break the Engagement Ribbon's 54px contract). */}
       {horizon.length > 0 && (
-        <div className="relative mt-4 space-y-2.5">
+        <div className="relative space-y-2.5">
           {horizon.map((it, idx) => (
             <motion.div
               key={it.id}
-              initial={{ y: -8, opacity: 0 }}
+              initial={{ y: -6, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.3, delay: 0.1 + idx * 0.08 }}
+              transition={{ duration: 0.3, delay: 0.08 + idx * 0.08 }}
               style={{
-                // 20% smaller: scale(0.8) for both Horizon cards. Equal width — uniform "horizon line".
-                width: '92%',
+                // Slightly offset inward — second further than first.
+                width: idx === 0 ? '94%' : '88%',
                 margin: '0 auto',
-                position: 'relative',
-                zIndex: 10 - idx,
-                transform: 'scale(0.8)',
-                transformOrigin: 'top center',
-                // Pull the next card up to absorb the scale gap so spacing reads as intentional.
-                marginTop: idx === 0 ? '0' : '-32px',
               }}
             >
               <HorizonCard
                 rank={it.rank as 'next' | 'later'}
                 time={it.time}
                 attraction={it.attraction}
+                location={it.location}
                 logic={it.logic}
                 wait={it.wait}
                 llSecured={it.llSecured}
                 depth={(idx + 1) as 1 | 2}
                 party={it.party}
-                questPrompt={it.questPrompt}
+                mustDo={it.mustDo}
                 onCaptureMemory={() => onCaptureMemory?.(it.id)}
+                onFindAndSeek={() => onFindAndSeek?.(it.id)}
               />
-              {/* Walking prompt between Next and Later */}
-              {idx === 0 && walkingAfter(2).length > 0 && (
-                <div className="mt-3 space-y-2">{renderWalking(2)}</div>
-              )}
             </motion.div>
           ))}
         </div>
       )}
-
-      {/* The Fade — Full Ledger trigger */}
-      {overflow.length > 0 && (
-        <button
-          onClick={() => setLedgerOpen(true)}
-          className="mt-4 mx-auto flex items-center gap-1.5 px-3 py-2 bg-transparent border-none cursor-pointer"
-          style={{ borderRadius: '16px' }}
-        >
-          <span
-            className="font-sans text-[10px] uppercase tracking-sovereign font-semibold"
-            style={{ color: 'hsl(var(--slate-plaid))' }}
-          >
-            Full ledger · {overflow.length} more
-          </span>
-          <ChevronDown size={12} style={{ color: 'hsl(var(--slate-plaid))' }} />
-        </button>
-      )}
-
-      <FullLedgerSheet
-        open={ledgerOpen}
-        onClose={() => setLedgerOpen(false)}
-        items={items}
-      />
-    </>
+    </div>
   );
 };
 
