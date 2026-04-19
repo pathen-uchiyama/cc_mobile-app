@@ -119,6 +119,9 @@ const HeroHorizonStack = ({
           questPrompt={hero.questPrompt}
           questType={hero.questType}
           onCaptureMemory={() => onCaptureMemory?.(hero.id)}
+          onFindAndSeek={() => onFindAndSeek?.(hero.id)}
+          pivotSuggested={pivotSuggested}
+          pivotHeadline={pivotHeadline}
         />
       </div>
 
