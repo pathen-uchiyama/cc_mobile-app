@@ -194,8 +194,13 @@ const InPark = () => {
 
             {/* Sovereign Progress Bar — only the Must-Dos. Items currently in
                 the stack glow gold to mirror the card border. */}
-            <div className="mb-3">
+            <div className="mb-2">
               <MustDoRibbon items={mustDoIcons} />
+            </div>
+
+            {/* Dropdown of remaining Must-Dos not yet in the stack */}
+            <div className="mb-3">
+              <MustDoDropdown items={mustDoEntries} />
             </div>
 
             {/* Whisper ticker */}
