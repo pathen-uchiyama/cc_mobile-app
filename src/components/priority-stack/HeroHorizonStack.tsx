@@ -112,8 +112,11 @@ const HeroHorizonStack = ({
       {/* Optional walking prompt above the Hero */}
       {walkingAfter(0).length > 0 && <div className="mb-3 space-y-2">{renderWalking(0)}</div>}
 
-      {/* Priority 1 — Hero (~25% larger than Horizon, dual-purpose, elevated) */}
-      <div className="relative" style={{ minHeight: '40vh', marginBottom: '8px' }}>
+      {/* Priority 1 — The Hero. 50% of viewport height. The "Now". */}
+      <div
+        className="relative"
+        style={{ height: '50vh', minHeight: '420px', marginBottom: '12px' }}
+      >
         <FocusMove
           attraction={hero.attraction}
           location={hero.location}
