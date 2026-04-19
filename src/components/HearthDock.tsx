@@ -7,6 +7,8 @@ export interface PivotAction {
   label: string;
   icon: LucideIcon;
   onTap: () => void;
+  /** When true, a Burnished Gold dot pulses on the icon — strategy engine flag. */
+  badge?: boolean;
 }
 
 interface HearthDockProps {
