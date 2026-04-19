@@ -112,8 +112,11 @@ const HeroHorizonStack = ({
       {/* Optional walking prompt above the Hero */}
       {walkingAfter(0).length > 0 && <div className="mb-3 space-y-2">{renderWalking(0)}</div>}
 
-      {/* Priority 1 — Hero (~25% larger than Horizon, dual-purpose, elevated) */}
-      <div className="relative" style={{ minHeight: '40vh', marginBottom: '8px' }}>
+      {/* Priority 1 — The Hero. 50% of viewport height. The "Now". */}
+      <div
+        className="relative"
+        style={{ height: '50vh', minHeight: '420px', marginBottom: '12px' }}
+      >
         <FocusMove
           attraction={hero.attraction}
           location={hero.location}
@@ -135,9 +138,9 @@ const HeroHorizonStack = ({
       {/* Walking prompt between Hero and Next */}
       {walkingAfter(1).length > 0 && <div className="mt-4 space-y-2">{renderWalking(1)}</div>}
 
-      {/* Priority 2 & 3 — Horizon peeks (visibly recessed) */}
+      {/* Priority 2 & 3 — The Horizon. ~20% smaller than the Hero. The "Near Future". */}
       {horizon.length > 0 && (
-        <div className="relative mt-5 space-y-3">
+        <div className="relative mt-4 space-y-2.5">
           {horizon.map((it, idx) => (
             <motion.div
               key={it.id}
@@ -145,12 +148,15 @@ const HeroHorizonStack = ({
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.3, delay: 0.1 + idx * 0.08 }}
               style={{
-                width: idx === 0 ? '90%' : '82%',
+                // 20% smaller: scale(0.8) for both Horizon cards. Equal width — uniform "horizon line".
+                width: '92%',
                 margin: '0 auto',
                 position: 'relative',
                 zIndex: 10 - idx,
-                transform: idx === 0 ? 'scale(0.96)' : 'scale(0.92)',
+                transform: 'scale(0.8)',
                 transformOrigin: 'top center',
+                // Pull the next card up to absorb the scale gap so spacing reads as intentional.
+                marginTop: idx === 0 ? '0' : '-32px',
               }}
             >
               <HorizonCard

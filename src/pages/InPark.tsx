@@ -30,7 +30,7 @@ const PLAN: PlanItem[] = [
     time: '10:15',
     attraction: 'Pirates of the Caribbean',
     location: 'Adventureland',
-    logic: 'Standby is at a 10-minute low — head now to beat the parade crowd.',
+    logic: 'Optimized: 15m lower than predicted wait. Beats the 10:30 parade crowd.',
     wait: '12 min',
     party: { yes: 4, total: 5 },
     questPrompt: 'Find the hidden Mickey on the weather vane above the bridge.',
