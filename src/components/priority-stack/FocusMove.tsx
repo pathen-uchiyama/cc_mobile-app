@@ -1,11 +1,5 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, MapPin, ArrowRight, Users, Zap } from 'lucide-react';
-
-interface LLOpportunity {
-  ride: string;
-  window: string;
-  savedMin: number;
-}
+import { motion } from 'framer-motion';
+import { Clock, MapPin, ArrowRight, Users } from 'lucide-react';
 
 interface FocusMoveProps {
   attraction: string;
@@ -15,9 +9,6 @@ interface FocusMoveProps {
   votes?: number;
   ctaLabel?: string;
   onCommit?: () => void;
-  /** Optional inline LL recommendation — folded into the same decision card. */
-  llSuggestion?: LLOpportunity | null;
-  onSecureLL?: () => void;
 }
 
 const formatVotes = (n: number) =>
@@ -37,8 +28,6 @@ const FocusMove = ({
   votes,
   ctaLabel = 'On Our Way',
   onCommit,
-  llSuggestion,
-  onSecureLL,
 }: FocusMoveProps) => {
   return (
     <motion.article
@@ -102,60 +91,6 @@ const FocusMove = ({
           </div>
         )}
       </div>
-
-      {/* Inline LL fold — same card, supporting the same walk */}
-      <AnimatePresence>
-        {llSuggestion && (
-          <motion.div
-            initial={{ opacity: 0, height: 0, marginBottom: 0 }}
-            animate={{ opacity: 1, height: 'auto', marginBottom: 16 }}
-            exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-            transition={{ duration: 0.3 }}
-            className="overflow-hidden"
-          >
-            <div
-              className="rounded-xl p-3.5"
-              style={{
-                backgroundColor: 'hsl(var(--gold) / 0.08)',
-                border: '1px solid hsl(var(--gold) / 0.22)',
-              }}
-            >
-              <div className="flex items-center gap-1.5 mb-1">
-                <Zap size={10} style={{ color: 'hsl(var(--gold))' }} />
-                <span
-                  className="font-sans text-[8px] uppercase tracking-sovereign font-bold"
-                  style={{ color: 'hsl(var(--gold))' }}
-                >
-                  While you walk · save {llSuggestion.savedMin}m
-                </span>
-              </div>
-              <p className="font-sans text-[13px] text-foreground leading-snug">
-                Grab a Lightning Lane for{' '}
-                <span className="font-display">{llSuggestion.ride}</span> at{' '}
-                <span className="tabular-nums">{llSuggestion.window}</span>?
-              </p>
-              <div className="flex items-center gap-2 mt-2.5">
-                <button
-                  onClick={onSecureLL}
-                  className="flex-1 rounded-lg py-2 font-sans text-[11px] font-semibold border-none cursor-pointer"
-                  style={{
-                    backgroundColor: 'hsl(var(--gold))',
-                    color: 'hsl(var(--obsidian))',
-                  }}
-                >
-                  Secure it
-                </button>
-                <button
-                  onClick={onSecureLL}
-                  className="rounded-lg py-2 px-3 font-sans text-[11px] text-muted-foreground bg-transparent border-none cursor-pointer"
-                >
-                  Skip
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Primary CTA */}
       <motion.button
