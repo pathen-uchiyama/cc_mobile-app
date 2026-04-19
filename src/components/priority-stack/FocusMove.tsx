@@ -6,20 +6,18 @@ interface FocusMoveProps {
   location: string;
   logic: string;
   wait?: string;
-  votes?: number;
+  /** Party poll: how many of the traveling party flagged this as a must-do. */
+  party?: { yes: number; total: number };
   ctaLabel?: string;
   onCommit?: () => void;
   /** Tactical: secures the next Lightning Lane window for this walk. */
   onSecureLL?: () => void;
-  /** Grand Quest prompt — shown in the Engagement Zone (bottom half). */
+  /** Keepsake prompt — shown in the Memory Ribbon (bottom). */
   questPrompt?: string;
   /** Quest type drives the icon + verb on the capture button. */
   questType?: 'photo' | 'voice';
   onCaptureMemory?: () => void;
 }
-
-const formatVotes = (n: number) =>
-  n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, '')}k` : n.toString();
 
 /**
  * Dual-Purpose Focus Card — the ONLY decision on screen.
@@ -40,7 +38,7 @@ const FocusMove = ({
   location,
   logic,
   wait,
-  votes,
+  party,
   ctaLabel = 'On Our Way',
   onCommit,
   onSecureLL,
@@ -105,18 +103,18 @@ const FocusMove = ({
               {location}
             </span>
           </div>
-          {votes !== undefined && (
+          {party !== undefined && (
             <div
               className="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full"
               style={{ backgroundColor: 'hsl(var(--gold) / 0.12)' }}
-              title={`${votes.toLocaleString()} guests voted this a priority today`}
+              title={`${party.yes} of ${party.total} in your party flagged this a must-do`}
             >
               <Users size={10} style={{ color: 'hsl(var(--gold))' }} />
               <span
                 className="font-sans text-[10px] font-bold tabular-nums"
                 style={{ color: 'hsl(var(--gold))' }}
               >
-                {formatVotes(votes)} voted
+                {party.yes} of {party.total} want this
               </span>
             </div>
           )}
@@ -150,7 +148,7 @@ const FocusMove = ({
         </div>
       </div>
 
-      {/* ─── MEMORY RIBBON · The Grand Quest ─── */}
+      {/* ─── MEMORY RIBBON · Keepsake ─── */}
       {questPrompt && (
         <div
           style={{
@@ -169,7 +167,7 @@ const FocusMove = ({
               className="font-sans text-[8px] uppercase tracking-sovereign font-bold"
               style={{ color: 'hsl(36 47% 35%)', letterSpacing: '0.14em' }}
             >
-              Sovereign Whisper
+              A Keepsake
             </span>
           </div>
           <p
