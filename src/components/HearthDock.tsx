@@ -45,6 +45,7 @@ const HearthDock = ({
   onBreak,
   onRain,
   onReset,
+  badges = {},
 }: HearthDockProps) => {
   const { fire } = useHaptics();
 
