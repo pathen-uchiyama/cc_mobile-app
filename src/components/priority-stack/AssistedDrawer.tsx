@@ -58,11 +58,10 @@ const AssistedDrawer = ({
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 28, stiffness: 240 }}
-            className="fixed bottom-0 left-1/2 -translate-x-1/2 z-[9980] w-full max-w-[480px] bg-card flex flex-col"
+            className="fixed bottom-[108px] left-1/2 -translate-x-1/2 z-[9980] w-full max-w-[480px] bg-card flex flex-col"
             style={{
               height: '50vh',
-              borderTopLeftRadius: '16px',
-              borderTopRightRadius: '16px',
+              borderRadius: '16px',
               boxShadow: '0 -24px 60px hsl(var(--obsidian) / 0.18)',
             }}
           >
