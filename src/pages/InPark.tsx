@@ -187,8 +187,8 @@ const InPark = () => {
         </>
       )}
 
-      {/* Directive 3 — Sovereign Key (contextual: Dashboard for Type A, Audible for relaxed) */}
-      <SovereignAnchor onTap={handleSovereignTap} active={audibleOpen || dashboardOpen} />
+      {/* Directive 2 — The Hearth: Floating Obsidian dock w/ centered Gold Sovereign Key */}
+      <HearthDock onSovereignTap={handleSovereignTap} active={audibleOpen || dashboardOpen} />
 
       <AudibleMenu
         open={audibleOpen}
