@@ -1,10 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import LoomingHorizon from '@/components/LoomingHorizon';
-import WhisperStrip from '@/components/WhisperStrip';
 import HeroCard from '@/components/priority-stack/HeroCard';
 import HorizonCard from '@/components/priority-stack/HorizonCard';
-import StrategicOpportunityDrawer from '@/components/priority-stack/StrategicOpportunityDrawer';
+import AssistedDrawer from '@/components/priority-stack/AssistedDrawer';
 import AudibleMenu from '@/components/priority-stack/AudibleMenu';
 import SovereignAnchor from '@/components/priority-stack/SovereignAnchor';
 import MinimalistView from '@/components/MinimalistView';
@@ -34,7 +33,7 @@ const PLAN: PlanItem[] = [
     time: '10:15',
     attraction: 'Pirates of the Caribbean',
     location: 'Adventureland',
-    logic: 'Wait times 15m below avg — ideal window before crowds peak.',
+    logic: 'Optimized to beat the 2 PM parade crowd — wait is 15m below average right now.',
     wait: '12 min',
   },
   {
@@ -43,7 +42,7 @@ const PLAN: PlanItem[] = [
     time: '11:00',
     attraction: 'Haunted Mansion',
     location: 'Liberty Square',
-    logic: 'LL secured — walk arrives 2 min before window opens.',
+    logic: 'LL secured — your walk lands you 2 minutes before the window opens.',
     wait: '25 min',
     llSecured: true,
   },
@@ -53,7 +52,7 @@ const PLAN: PlanItem[] = [
     time: '1:15',
     attraction: 'Jungle Cruise',
     location: 'Adventureland',
-    logic: 'Paired with lunch nearby — minimal backtracking.',
+    logic: 'Paired with lunch nearby to avoid backtracking after the parade.',
     wait: '30 min',
   },
 ];
@@ -63,27 +62,39 @@ const InPark = () => {
   const [needType, setNeedType] = useState<'bathroom' | 'quiet' | null>(null);
   const [showRecalibrate, setShowRecalibrate] = useState(false);
   const [swapFor, setSwapFor] = useState<string | null>(null);
-  const [opportunityDismissed, setOpportunityDismissed] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerHandled, setDrawerHandled] = useState(false);
 
   const { minimalist, tier, devPanelEnabled } = useCompanion();
   const { celebrate } = useCelebrate();
 
   const useQuietView = minimalist || tier === 'sovereign';
   const hero = PLAN.find((p) => p.rank === 'now');
-  const horizons = PLAN.filter((p) => p.rank !== 'now');
+  const next = PLAN.find((p) => p.rank === 'next');
+  const later = PLAN.find((p) => p.rank === 'later');
 
-  // Strategic opportunity surfaces only for Manager tier (and not when dismissed)
-  const showOpportunity = tier === 'manager' && !opportunityDismissed;
+  // Backend "found a window" — simulate a 4s discovery for Manager tier
+  useEffect(() => {
+    if (useQuietView || tier !== 'manager' || drawerHandled) return;
+    const t = setTimeout(() => setDrawerOpen(true), 4000);
+    return () => clearTimeout(t);
+  }, [useQuietView, tier, drawerHandled]);
 
   const commitHero = () => {
     const tip = WHISPERS.arrival[Math.floor(Math.random() * WHISPERS.arrival.length)];
     celebrate(tip, 'On Your Way');
   };
 
-  const bookOpportunity = () => {
+  const confirmDrawer = () => {
     const tip = WHISPERS.llSnipe[Math.floor(Math.random() * WHISPERS.llSnipe.length)];
-    celebrate(tip, 'LL Sniped');
-    setOpportunityDismissed(true);
+    celebrate(tip, 'LL Secured');
+    setDrawerOpen(false);
+    setDrawerHandled(true);
+  };
+
+  const dismissDrawer = () => {
+    setDrawerOpen(false);
+    setDrawerHandled(true);
   };
 
   return (
@@ -94,12 +105,12 @@ const InPark = () => {
           : <SovereignView parkName="Magic Kingdom" />
       ) : (
         <>
-          <LoomingHorizon parkName="Magic Kingdom" />
+          <LoomingHorizon parkName="Magic Kingdom" pulseStatus="Strategy is Active" />
 
-          {/* Editorial top padding — 80px from page top */}
-          <main className="flex-1 pt-[80px] pb-[220px] px-5">
-            {/* Page Title */}
-            <header className="mb-6">
+          {/* ── The Strategic Stack ── */}
+          <main className="flex-1 pt-[72px] pb-[140px] px-5 flex flex-col">
+            {/* Editorial title */}
+            <header className="mb-5 shrink-0">
               <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold">
                 Today
               </span>
@@ -108,53 +119,73 @@ const InPark = () => {
               </h1>
             </header>
 
-            {/* Whisper strip — single observational line */}
-            <div className="mb-5">
-              <WhisperStrip />
-            </div>
-
-            {/* The Depth Stack — single column */}
-            <div className="space-y-3">
+            {/* Visual Anchor — top 40% of viewport reserved for the Focus card */}
+            <section
+              className="shrink-0 flex items-start"
+              style={{ minHeight: '40vh' }}
+              aria-label="Focus priority"
+            >
               {hero && (
                 <HeroCard
                   attraction={hero.attraction}
                   location={hero.location}
                   logic={hero.logic}
                   wait={hero.wait}
-                  ctaLabel="Secure Path"
+                  ctaLabel="On Our Way"
                   onCommit={commitHero}
                 />
               )}
-              {horizons.map((h) => (
+            </section>
+
+            {/* Horizon — Next & Later peek at 90% width */}
+            <section
+              className="mt-5 space-y-2.5"
+              aria-label="Horizon — upcoming priorities"
+            >
+              <p className="font-sans text-[8px] uppercase tracking-sovereign text-muted-foreground font-semibold px-1 mb-1">
+                On the Horizon
+              </p>
+              {next && (
                 <HorizonCard
-                  key={h.id}
-                  rank={h.rank as 'next' | 'later'}
-                  time={h.time}
-                  attraction={h.attraction}
-                  logic={h.logic}
-                  wait={h.wait}
-                  llSecured={h.llSecured}
+                  rank="next"
+                  depth={1}
+                  time={next.time}
+                  attraction={next.attraction}
+                  logic={next.logic}
+                  wait={next.wait}
+                  llSecured={next.llSecured}
                 />
-              ))}
-            </div>
+              )}
+              {later && (
+                <HorizonCard
+                  rank="later"
+                  depth={2}
+                  time={later.time}
+                  attraction={later.attraction}
+                  logic={later.logic}
+                  wait={later.wait}
+                  llSecured={later.llSecured}
+                />
+              )}
+            </section>
           </main>
 
-          {/* Strategic Opportunity drawer — appears above the Anchor */}
-          <StrategicOpportunityDrawer
-            open={showOpportunity}
-            attraction="Space Mountain"
-            window="LL window 12:45 – 1:45"
-            logic="A back-door window just opened — slots into your route with zero detour."
-            onBook={bookOpportunity}
-            onDismiss={() => setOpportunityDismissed(true)}
+          {/* Assisted Drawer — bottom-up, lower 50% */}
+          <AssistedDrawer
+            open={drawerOpen}
+            attraction="Pirates of the Caribbean"
+            window="1:20 PM"
+            savedMinutes={45}
+            onConfirm={confirmDrawer}
+            onDismiss={dismissDrawer}
           />
         </>
       )}
 
-      {/* The Sovereign Key — Golden Anchor (always visible) */}
+      {/* The Sovereign Anchor — always present */}
       <SovereignAnchor onTap={() => setAudibleOpen(true)} active={audibleOpen} />
 
-      {/* Audible Menu — 4 buttons */}
+      {/* Audible Menu — gold-outline secondary actions */}
       <AudibleMenu
         open={audibleOpen}
         onClose={() => setAudibleOpen(false)}
