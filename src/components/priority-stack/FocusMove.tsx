@@ -11,8 +11,6 @@ interface FocusMoveProps {
   party?: { yes: number; total: number };
   ctaLabel?: string;
   onCommit?: () => void;
-  /** Tactical: secures the next Lightning Lane window for this walk. */
-  onSecureLL?: () => void;
   /** Keepsake prompt — shown in the Memory Ribbon (bottom). */
   questPrompt?: string;
   /** Quest type drives the icon + verb on the capture button. */
@@ -50,27 +48,29 @@ const FocusMove = ({
   party,
   ctaLabel = 'On Our Way',
   onCommit,
-  onSecureLL,
   questPrompt,
-  questType = 'photo',
+  questType: _questType = 'photo',
   onCaptureMemory,
   onFindAndSeek,
   pivotSuggested = false,
   pivotHeadline = 'A New Path is Available',
+  mustDo = false,
 }: FocusMoveProps) => {
-  const QuestIcon = questType === 'photo' ? Camera : Compass;
+  // Boutique Shadow — heavy Deep Obsidian at 10% opacity per spec.
+  // Must-Do cards add a Burnished Gold border ring.
+  const ring = mustDo
+    ? '0 0 0 2px hsl(var(--gold) / 0.85), '
+    : '0 0 0 1px hsl(var(--gold) / 0.08), ';
+  const boxShadow =
+    `${ring}0 4px 8px hsl(var(--obsidian) / 0.04), 0 24px 48px -8px hsl(var(--obsidian) / 0.10), 0 48px 96px -16px hsl(var(--obsidian) / 0.10)`;
 
   return (
     <motion.article
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: 'easeOut' }}
-      className="relative bg-card w-full overflow-hidden"
-      style={{
-        borderRadius: '16px',
-        boxShadow:
-          '0 0 0 1px hsl(var(--gold) / 0.08), 0 2px 4px hsl(var(--obsidian) / 0.04), 0 18px 12px -8px hsl(220 20% 10% / 0.18), 0 32px 64px -12px hsl(220 20% 10% / 0.22)',
-      }}
+      className="relative bg-card w-full overflow-hidden flex flex-col h-full"
+      style={{ borderRadius: '16px', boxShadow }}
     >
       {/* Burnished Gold pulse — surfaces when the system detects a strategic pivot */}
       {pivotSuggested && (
