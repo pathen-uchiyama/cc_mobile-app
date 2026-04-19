@@ -43,16 +43,16 @@ interface LightningLaneTrackerProps {
 const LightningLaneTracker = ({ visible, tier = 'manager' }: LightningLaneTrackerProps) => {
   const { celebrate } = useCelebrate();
 
-  // Sovereign = invisible (it just happens). Explorer = no access.
-  if (!visible || tier === 'sovereign') return null;
-
   const used = useMemo(() => RESERVATIONS.filter(r => r.used), []);
   const upcoming = useMemo(
     () => RESERVATIONS.filter(r => !r.used).sort((a, b) => (b.active ? 1 : 0) - (a.active ? 1 : 0)),
     []
   );
-  const ill = upcoming.filter(r => r.type === 'ill');
-  const standard = upcoming.filter(r => r.type === 'll');
+  const ill = useMemo(() => upcoming.filter(r => r.type === 'ill'), [upcoming]);
+  const standard = useMemo(() => upcoming.filter(r => r.type === 'll'), [upcoming]);
+
+  // Sovereign = invisible (it just happens). Explorer = no access (handled by parent).
+  if (!visible || tier === 'sovereign') return null;
 
   // Simulated AI opportunity — only Manager tier sees the witty intervention
   const swapOpportunity = tier === 'manager';
