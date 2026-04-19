@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Zap, Clock } from 'lucide-react';
+import { X, Zap, Clock, Check } from 'lucide-react';
 
 interface LedgerItem {
   id: string;
@@ -16,6 +16,10 @@ interface FullLedgerSheetProps {
   open: boolean;
   onClose: () => void;
   items: LedgerItem[];
+  /** Inline LL action — fires when the user taps "Secure" on any row. */
+  onSecureLL?: (itemId: string) => void;
+  /** Optional escape hatch to the global LL Vault for ANY ride in the park. */
+  onOpenVault?: () => void;
 }
 
 /**
