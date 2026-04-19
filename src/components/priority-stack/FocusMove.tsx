@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Clock, MapPin, ArrowRight, Users } from 'lucide-react';
+import { Clock, MapPin, ArrowRight, Users, Check } from 'lucide-react';
 import EngagementRibbon from './EngagementRibbon';
 
 interface FocusMoveProps {
