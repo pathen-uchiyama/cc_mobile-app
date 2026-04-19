@@ -14,7 +14,9 @@ import RecalibrateSheet from '@/components/RecalibrateSheet';
 import SwapSuggestionsSheet from '@/components/SwapSuggestionsSheet';
 import DevPanel from '@/components/DevPanel';
 import WhisperStrip from '@/components/WhisperStrip';
-import LightningLaneTracker from '@/components/LightningLaneTracker';
+import NextLLMove from '@/components/priority-stack/NextLLMove';
+import MemoryMakerWidget from '@/components/MemoryMakerWidget';
+import FindAndSeekWidget from '@/components/FindAndSeekWidget';
 import { useCompanion } from '@/contexts/CompanionContext';
 import { useCelebrate, WHISPERS } from '@/contexts/CelebrationContext';
 
@@ -185,9 +187,24 @@ const InPark = () => {
               )}
             </section>
 
-            {/* Pocket Concierge — Lightning Lane management strip */}
-            <section className="mt-6" aria-label="Lightning Lane management">
-              <LightningLaneTracker visible={llTrackerVisible} tier={tier} />
+            {/* The Next LL Move — one ranked recommendation, not a spreadsheet */}
+            <section className="mt-6" aria-label="Next Lightning Lane recommendation">
+              <NextLLMove visible={llTrackerVisible} tier={tier} />
+            </section>
+
+            {/* Moments — Memory Maker + Find & Seek paired row */}
+            <section className="mt-7" aria-label="Moments and quests">
+              <p className="font-sans text-[8px] uppercase tracking-sovereign text-muted-foreground font-semibold px-1 mb-2">
+                Moments Worth Catching
+              </p>
+              <div className="grid grid-cols-2 gap-2.5" style={{ minHeight: '180px' }}>
+                <div className="bg-card rounded-2xl p-3" style={{ boxShadow: '0 6px 18px hsl(var(--obsidian) / 0.04)' }}>
+                  <MemoryMakerWidget />
+                </div>
+                <div className="bg-card rounded-2xl p-3" style={{ boxShadow: '0 6px 18px hsl(var(--obsidian) / 0.04)' }}>
+                  <FindAndSeekWidget />
+                </div>
+              </div>
             </section>
 
             {/* Crowd-voted priority rides */}
