@@ -6,8 +6,10 @@ export interface MustDoIcon {
   label: string;
   /** Whether this Must-Do is currently rendered as one of the 3 stack cards. */
   inStack?: boolean;
-  /** True once the user has experienced (committed to) this attraction. */
-  done?: boolean;
+  /** Total rides desired for this attraction (e.g. 2 = ride twice). Defaults to 1. */
+  desired?: number;
+  /** How many rides have been completed so far. Defaults to 0. */
+  done?: number;
 }
 
 interface MustDoRibbonProps {
@@ -17,17 +19,17 @@ interface MustDoRibbonProps {
 /**
  * Sovereign Progress Bar — the "Must-Do Guide".
  *
- * A thin ribbon under the page header showing only icons of the user's
- * must-do attractions for the day. Items currently sitting in the
- * Priority Stack glow Burnished Gold so the user can immediately see
- * which of their must-dos are being worked on right now.
- *
- * - Done = filled gold star
- * - In stack = gold ring (live, being worked on)
- * - Pending = quiet outline
+ * Each Must-Do can be ridden multiple times (e.g. survey says "ride Tron twice").
+ * The ribbon shows:
+ *  - A gold pip with a tiny "n/m" overlay for multi-ride targets
+ *  - Filled gold once doneCount >= desiredCount
+ *  - Gold ring while currently in the stack
  */
 const MustDoRibbon = ({ items }: MustDoRibbonProps) => {
   if (items.length === 0) return null;
+
+  const totalRides = items.reduce((s, i) => s + (i.desired ?? 1), 0);
+  const completedRides = items.reduce((s, i) => s + Math.min(i.done ?? 0, i.desired ?? 1), 0);
 
   return (
     <div className="w-full" aria-label="Must-Do guide">
@@ -42,7 +44,7 @@ const MustDoRibbon = ({ items }: MustDoRibbonProps) => {
           className="font-sans text-[8px] tabular-nums"
           style={{ color: 'hsl(var(--slate-plaid))' }}
         >
-          {items.filter((i) => i.done).length} of {items.length}
+          {completedRides} of {totalRides} rides
         </span>
       </div>
 
@@ -54,28 +56,37 @@ const MustDoRibbon = ({ items }: MustDoRibbonProps) => {
         }}
       >
         {items.map((it) => {
+          const desired = Math.max(1, it.desired ?? 1);
+          const done = Math.min(it.done ?? 0, desired);
+          const isComplete = done >= desired;
           const ring = it.inStack
             ? '0 0 0 2px hsl(var(--gold))'
-            : it.done
+            : isComplete
               ? '0 0 0 1px hsl(var(--gold) / 0.6)'
               : '0 0 0 1px hsl(var(--slate-plaid) / 0.3)';
-          const fill = it.done
+          const fill = isComplete
             ? 'hsl(var(--gold))'
             : it.inStack
               ? 'hsl(var(--gold) / 0.16)'
               : 'transparent';
-          const iconColor = it.done
+          const iconColor = isComplete
             ? 'hsl(var(--card))'
             : it.inStack
               ? 'hsl(var(--gold))'
               : 'hsl(var(--slate-plaid))';
 
+          const status = isComplete
+            ? `done ${done} of ${desired}`
+            : it.inStack
+              ? `in stack now, ${done} of ${desired} done`
+              : `pending, ${done} of ${desired} done`;
+
           return (
             <li
               key={it.id}
-              title={it.label}
-              aria-label={`${it.label} — ${it.done ? 'done' : it.inStack ? 'in stack now' : 'pending'}`}
-              className="shrink-0 flex items-center justify-center rounded-full"
+              title={`${it.label} — ${status}`}
+              aria-label={`${it.label} — ${status}`}
+              className="shrink-0 relative flex items-center justify-center rounded-full"
               style={{
                 width: '24px',
                 height: '24px',
@@ -83,7 +94,25 @@ const MustDoRibbon = ({ items }: MustDoRibbonProps) => {
                 boxShadow: ring,
               }}
             >
-              <Star size={10} style={{ color: iconColor }} fill={it.done ? iconColor : 'transparent'} />
+              <Star size={10} style={{ color: iconColor }} fill={isComplete ? iconColor : 'transparent'} />
+              {desired > 1 && (
+                <span
+                  aria-hidden
+                  className="absolute -top-1 -right-1 flex items-center justify-center rounded-full font-sans font-bold tabular-nums"
+                  style={{
+                    minWidth: '13px',
+                    height: '13px',
+                    padding: '0 3px',
+                    fontSize: '8px',
+                    lineHeight: 1,
+                    background: 'hsl(var(--obsidian))',
+                    color: 'hsl(var(--gold))',
+                    border: '1px solid hsl(var(--gold) / 0.6)',
+                  }}
+                >
+                  {done}/{desired}
+                </span>
+              )}
             </li>
           );
         })}

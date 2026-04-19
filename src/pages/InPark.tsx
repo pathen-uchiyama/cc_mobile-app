@@ -66,12 +66,17 @@ const PLAN: PlanItem[] = [
 
 // The user's day-of Must-Do list — drives the Sovereign Progress Bar at the top
 // and the gold border on any matching card in the stack.
-const MUST_DOS: { id: string; attraction: string }[] = [
-  { id: 'm1', attraction: 'Pirates of the Caribbean' },
-  { id: 'm2', attraction: 'Haunted Mansion' },
-  { id: 'm3', attraction: 'Big Thunder Mountain' },
-  { id: 'm4', attraction: 'Space Mountain' },
-  { id: 'm5', attraction: 'Peter Pan\u2019s Flight' },
+//
+// Survey responses can flag an attraction as a multi-ride favorite — `desired`
+// captures how many times the party wants to ride it. `done` tracks completed
+// rides; the attraction stays "live" until done >= desired.
+type MustDo = { id: string; attraction: string; desired: number; done: number };
+const MUST_DOS: MustDo[] = [
+  { id: 'm1', attraction: 'Pirates of the Caribbean', desired: 1, done: 0 },
+  { id: 'm2', attraction: 'Haunted Mansion', desired: 2, done: 0 },
+  { id: 'm3', attraction: 'Big Thunder Mountain', desired: 2, done: 0 },
+  { id: 'm4', attraction: 'Space Mountain', desired: 1, done: 0 },
+  { id: 'm5', attraction: 'Peter Pan\u2019s Flight', desired: 1, done: 0 },
 ];
 
 // Walking prompts are intentionally retained as data but NOT rendered as cards
@@ -83,7 +88,7 @@ const InPark = () => {
   // The Sovereign Stack lives in state so cards can be promoted, completed,
   // and pulled in from the Must-Do dropdown — all with a shared-layout swap.
   const [plan, setPlan] = useState<PlanItem[]>(PLAN);
-  const [mustDos, setMustDos] = useState<{ id: string; attraction: string; done?: boolean }[]>(MUST_DOS);
+  const [mustDos, setMustDos] = useState<MustDo[]>(MUST_DOS);
 
   // Sovereign Key contextual mode: 'audible' for relaxed users, 'dashboard' for Type A.
   const [audibleOpen, setAudibleOpen] = useState(false);
@@ -131,13 +136,15 @@ const InPark = () => {
     id: m.id,
     label: m.attraction,
     inStack: stackAttractions.has(m.attraction),
-    done: !!m.done,
+    desired: m.desired,
+    done: m.done,
   }));
   const mustDoEntries: MustDoEntry[] = mustDos.map((m) => ({
     id: m.id,
     attraction: m.attraction,
     inStack: stackAttractions.has(m.attraction),
-    done: !!m.done,
+    desired: m.desired,
+    done: m.done,
   }));
 
   // The Assisted Drawer is the canonical LL surface — invisible by default,
@@ -154,7 +161,15 @@ const InPark = () => {
     celebrate(tip, 'On Your Way');
   };
 
-  /** Mark the Hero as completed — removes it from the stack and promotes the next item. */
+  /**
+   * Mark the Hero ride as completed.
+   *
+   * Increments the Must-Do `done` counter (rides can be repeated, so we count
+   * each ride independently rather than flipping a boolean). Removes the card
+   * from the active stack and promotes the next item. If the attraction still
+   * has remaining rides (done < desired), the Must-Do stays on deck so the
+   * user can promote it again later.
+   */
   const completeHero = () => {
     if (!hero) return;
     setPlan((prev) => {
@@ -167,8 +182,30 @@ const InPark = () => {
         ...rest.map((r) => ({ ...r, rank: 'later' as const })),
       ];
     });
-    setMustDos((prev) => prev.map((m) => (m.attraction === hero.attraction ? { ...m, done: true } : m)));
-    celebrate(`${hero.attraction} — tucked into the Vault.`, 'Marked Done');
+    let toastSuffix = '';
+    setMustDos((prev) =>
+      prev.map((m) => {
+        if (m.attraction !== hero.attraction) return m;
+        const nextDone = Math.min(m.desired, m.done + 1);
+        const remaining = m.desired - nextDone;
+        toastSuffix =
+          m.desired > 1
+            ? remaining > 0
+              ? ` · ${remaining} ride${remaining === 1 ? '' : 's'} to go`
+              : ` · all ${m.desired} rides done`
+            : '';
+        return { ...m, done: nextDone };
+      }),
+    );
+    celebrate(`${hero.attraction} — tucked into the Vault.${toastSuffix}`, 'Marked Done');
+  };
+
+  /** Adjust the desired ride count for a Must-Do (e.g. user wants to ride Tron 3x instead of 2x). */
+  const adjustDesired = (mustDoId: string, nextDesired: number) => {
+    const clamped = Math.max(1, Math.min(10, nextDesired));
+    setMustDos((prev) =>
+      prev.map((m) => (m.id === mustDoId ? { ...m, desired: clamped } : m)),
+    );
   };
 
   /** Promote a Horizon card into the Hero slot — shared-layout swap. */
@@ -273,7 +310,11 @@ const InPark = () => {
 
             {/* Dropdown of remaining Must-Dos not yet in the stack */}
             <div className="mb-3">
-              <MustDoDropdown items={mustDoEntries} onPromote={promoteMustDoToHero} />
+              <MustDoDropdown
+                items={mustDoEntries}
+                onPromote={promoteMustDoToHero}
+                onAdjustDesired={adjustDesired}
+              />
             </div>
 
             {/* Whisper ticker */}
