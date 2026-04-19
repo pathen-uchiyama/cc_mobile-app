@@ -2,102 +2,172 @@ import { useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import LoomingHorizon from '@/components/LoomingHorizon';
 import WhisperStrip from '@/components/WhisperStrip';
-import NowCarousel from '@/components/NowCarousel';
-import MemoryMakerWidget from '@/components/MemoryMakerWidget';
-import FindAndSeekWidget from '@/components/FindAndSeekWidget';
-import SovereignKey from '@/components/SovereignKey';
-import SentimentSlider from '@/components/SentimentSlider';
-import NeedOverlay from '@/components/NeedOverlay';
-import CheckInOverlay from '@/components/CheckInOverlay';
-import RecalibrateSheet from '@/components/RecalibrateSheet';
-import LightningLaneTracker from '@/components/LightningLaneTracker';
+import HeroCard from '@/components/priority-stack/HeroCard';
+import HorizonCard from '@/components/priority-stack/HorizonCard';
+import StrategicOpportunityDrawer from '@/components/priority-stack/StrategicOpportunityDrawer';
+import AudibleMenu from '@/components/priority-stack/AudibleMenu';
+import SovereignAnchor from '@/components/priority-stack/SovereignAnchor';
 import MinimalistView from '@/components/MinimalistView';
 import SovereignView from '@/components/SovereignView';
+import NeedOverlay from '@/components/NeedOverlay';
+import RecalibrateSheet from '@/components/RecalibrateSheet';
 import SwapSuggestionsSheet from '@/components/SwapSuggestionsSheet';
 import DevPanel from '@/components/DevPanel';
 import { useCompanion } from '@/contexts/CompanionContext';
+import { useCelebrate, WHISPERS } from '@/contexts/CelebrationContext';
+
+interface PlanItem {
+  id: string;
+  rank: 'now' | 'next' | 'later';
+  time: string;
+  attraction: string;
+  location: string;
+  logic: string;
+  wait?: string;
+  llSecured?: boolean;
+}
+
+const PLAN: PlanItem[] = [
+  {
+    id: '1',
+    rank: 'now',
+    time: '10:15',
+    attraction: 'Pirates of the Caribbean',
+    location: 'Adventureland',
+    logic: 'Wait times 15m below avg — ideal window before crowds peak.',
+    wait: '12 min',
+  },
+  {
+    id: '2',
+    rank: 'next',
+    time: '11:00',
+    attraction: 'Haunted Mansion',
+    location: 'Liberty Square',
+    logic: 'LL secured — walk arrives 2 min before window opens.',
+    wait: '25 min',
+    llSecured: true,
+  },
+  {
+    id: '3',
+    rank: 'later',
+    time: '1:15',
+    attraction: 'Jungle Cruise',
+    location: 'Adventureland',
+    logic: 'Paired with lunch nearby — minimal backtracking.',
+    wait: '30 min',
+  },
+];
 
 const InPark = () => {
-  const [showPulse, setShowPulse] = useState(false);
+  const [audibleOpen, setAudibleOpen] = useState(false);
   const [needType, setNeedType] = useState<'bathroom' | 'quiet' | null>(null);
-  const [showCheckIn, setShowCheckIn] = useState(false);
   const [showRecalibrate, setShowRecalibrate] = useState(false);
   const [swapFor, setSwapFor] = useState<string | null>(null);
-  const { minimalist, llTrackerVisible, tier, devPanelEnabled } = useCompanion();
+  const [opportunityDismissed, setOpportunityDismissed] = useState(false);
 
-  // Sovereign tier = invisible execution. Minimalist Mode also collapses everything.
+  const { minimalist, tier, devPanelEnabled } = useCompanion();
+  const { celebrate } = useCelebrate();
+
   const useQuietView = minimalist || tier === 'sovereign';
+  const hero = PLAN.find((p) => p.rank === 'now');
+  const horizons = PLAN.filter((p) => p.rank !== 'now');
+
+  // Strategic opportunity surfaces only for Manager tier (and not when dismissed)
+  const showOpportunity = tier === 'manager' && !opportunityDismissed;
+
+  const commitHero = () => {
+    const tip = WHISPERS.arrival[Math.floor(Math.random() * WHISPERS.arrival.length)];
+    celebrate(tip, 'On Your Way');
+  };
+
+  const bookOpportunity = () => {
+    const tip = WHISPERS.llSnipe[Math.floor(Math.random() * WHISPERS.llSnipe.length)];
+    celebrate(tip, 'LL Sniped');
+    setOpportunityDismissed(true);
+  };
 
   return (
-    <div className="h-screen bg-background max-w-[480px] mx-auto relative flex flex-col overflow-hidden">
+    <div className="min-h-screen bg-background max-w-[480px] mx-auto relative flex flex-col">
       {useQuietView ? (
         minimalist
           ? <MinimalistView parkName="Magic Kingdom" />
           : <SovereignView parkName="Magic Kingdom" />
       ) : (
         <>
-          {/* ── Fixed top: header + whisper strip ── */}
-          <div className="shrink-0">
-            <LoomingHorizon parkName="Magic Kingdom" />
-            <div className="pt-[68px] pb-2">
+          <LoomingHorizon parkName="Magic Kingdom" />
+
+          {/* Editorial top padding — 80px from page top */}
+          <main className="flex-1 pt-[80px] pb-[220px] px-5">
+            {/* Page Title */}
+            <header className="mb-6">
+              <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold">
+                Today
+              </span>
+              <h1 className="font-display text-[28px] leading-tight text-foreground mt-1">
+                The Active Journey
+              </h1>
+            </header>
+
+            {/* Whisper strip — single observational line */}
+            <div className="mb-5">
               <WhisperStrip />
             </div>
-          </div>
 
-          {/* ── Middle: plan cards + LL tracker — no scroll ── */}
-          <section className="flex-1 min-h-0 flex flex-col justify-center px-4 gap-5">
-            <NowCarousel onSkip={(title) => setSwapFor(title)} />
-            <LightningLaneTracker visible={llTrackerVisible} tier={tier} />
-          </section>
+            {/* The Depth Stack — single column */}
+            <div className="space-y-3">
+              {hero && (
+                <HeroCard
+                  attraction={hero.attraction}
+                  location={hero.location}
+                  logic={hero.logic}
+                  wait={hero.wait}
+                  ctaLabel="Secure Path"
+                  onCommit={commitHero}
+                />
+              )}
+              {horizons.map((h) => (
+                <HorizonCard
+                  key={h.id}
+                  rank={h.rank as 'next' | 'later'}
+                  time={h.time}
+                  attraction={h.attraction}
+                  logic={h.logic}
+                  wait={h.wait}
+                  llSecured={h.llSecured}
+                />
+              ))}
+            </div>
+          </main>
 
-          {/* ── Bottom third: experiences side by side ── */}
-          <section className="shrink-0 h-[34vh] min-h-[220px] px-4 pb-[112px]">
-            <div className="flex items-center gap-3 mb-2.5 px-1">
-              <div className="w-1.5 h-1.5 bg-primary rounded-full" />
-              <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold">
-                Your Experiences
-              </span>
-            </div>
-            <div className="grid grid-cols-2 gap-3 h-[calc(100%-24px)]">
-              <MemoryMakerWidget />
-              <FindAndSeekWidget />
-            </div>
-          </section>
-
-          {/* Gold Thread */}
-          <div className="fixed bottom-[96px] inset-x-0 max-w-[480px] mx-auto z-40 pointer-events-none">
-            <div className="h-px bg-accent/30" />
-            <div className="bg-card/70 backdrop-blur-sm px-4 py-1 flex items-center justify-center">
-              <span className="font-sans text-[7px] uppercase tracking-sovereign text-muted-foreground">
-                ✨ Active Automation enabled via Sovereign Root
-              </span>
-            </div>
-          </div>
+          {/* Strategic Opportunity drawer — appears above the Anchor */}
+          <StrategicOpportunityDrawer
+            open={showOpportunity}
+            attraction="Space Mountain"
+            window="LL window 12:45 – 1:45"
+            logic="A back-door window just opened — slots into your route with zero detour."
+            onBook={bookOpportunity}
+            onDismiss={() => setOpportunityDismissed(true)}
+          />
         </>
       )}
 
-      {/* ── The Sovereign Key — present in ALL modes for muscle memory ── */}
-      <SovereignKey
-        onBathroom={() => setNeedType('bathroom')}
-        onQuietSpace={() => setNeedType('quiet')}
-        onMemory={() => {}}
-        onPulse={() => setShowPulse(true)}
-        onCheckIn={() => setShowCheckIn(true)}
-        onRecalibrate={() => setShowRecalibrate(true)}
+      {/* The Sovereign Key — Golden Anchor (always visible) */}
+      <SovereignAnchor onTap={() => setAudibleOpen(true)} active={audibleOpen} />
+
+      {/* Audible Menu — 4 buttons */}
+      <AudibleMenu
+        open={audibleOpen}
+        onClose={() => setAudibleOpen(false)}
+        onBreak={() => setNeedType('quiet')}
+        onRefuel={() => setNeedType('bathroom')}
+        onClosure={() => setSwapFor(hero?.attraction ?? 'current ride')}
+        onReset={() => setShowRecalibrate(true)}
       />
 
-      {/* Dev panel — opt-in via Settings */}
       {devPanelEnabled && <DevPanel />}
 
-      {/* Overlays — all unified through BottomSheet */}
-      <AnimatePresence>
-        {showPulse && <SentimentSlider onClose={() => setShowPulse(false)} />}
-      </AnimatePresence>
       <AnimatePresence>
         {needType && <NeedOverlay type={needType} onClose={() => setNeedType(null)} />}
-      </AnimatePresence>
-      <AnimatePresence>
-        {showCheckIn && <CheckInOverlay onClose={() => setShowCheckIn(false)} />}
       </AnimatePresence>
       <AnimatePresence>
         {showRecalibrate && <RecalibrateSheet onClose={() => setShowRecalibrate(false)} />}
