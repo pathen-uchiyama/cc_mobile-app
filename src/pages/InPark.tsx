@@ -102,6 +102,9 @@ const InPark = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerHandled, setDrawerHandled] = useState(false);
 
+  // Pivot state — shows the Pivot Shimmer while the strategy recalculates after an Audible.
+  const [pivotLabel, setPivotLabel] = useState<string | null>(null);
+
   const { minimalist, tier, devPanelEnabled, llTrackerVisible } = useCompanion();
   const { celebrate } = useCelebrate();
 
@@ -138,6 +141,19 @@ const InPark = () => {
   const handleSovereignTap = () => {
     if (isTypeA) setDashboardOpen(true);
     else setAudibleOpen(true);
+  };
+
+  /**
+   * Pivot the strategy after an Audible is selected.
+   * Shows the parchment shimmer while the new Top 3 "computes," then runs the side-effect.
+   */
+  const pivotWith = (label: string, after: () => void) => {
+    setAudibleOpen(false);
+    setPivotLabel(label);
+    window.setTimeout(() => {
+      setPivotLabel(null);
+      after();
+    }, 1400);
   };
 
   return (
