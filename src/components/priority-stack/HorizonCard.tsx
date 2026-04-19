@@ -134,7 +134,7 @@ const HorizonCard = ({
                       className="font-sans text-[8px] uppercase tracking-sovereign font-bold"
                       style={{ color: 'hsl(36 47% 35%)', letterSpacing: '0.14em' }}
                     >
-                      The Grand Quest
+                      Sovereign Whisper
                     </span>
                   </div>
                   <p
@@ -155,7 +155,7 @@ const HorizonCard = ({
                     }}
                   >
                     <Camera size={11} />
-                    Capture Memory
+                    Record Memory
                   </button>
                 </div>
               )}
