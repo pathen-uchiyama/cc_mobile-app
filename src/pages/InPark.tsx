@@ -14,7 +14,9 @@ import RecalibrateSheet from '@/components/RecalibrateSheet';
 import SwapSuggestionsSheet from '@/components/SwapSuggestionsSheet';
 import DevPanel from '@/components/DevPanel';
 import WhisperStrip from '@/components/WhisperStrip';
-import LightningLaneTracker from '@/components/LightningLaneTracker';
+import NextLLMove from '@/components/priority-stack/NextLLMove';
+import MemoryMakerWidget from '@/components/MemoryMakerWidget';
+import FindAndSeekWidget from '@/components/FindAndSeekWidget';
 import { useCompanion } from '@/contexts/CompanionContext';
 import { useCelebrate, WHISPERS } from '@/contexts/CelebrationContext';
 
