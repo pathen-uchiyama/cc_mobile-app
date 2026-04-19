@@ -4,7 +4,7 @@ import LoomingHorizon from '@/components/LoomingHorizon';
 import HeroHorizonStack, { type PlanItem, type WalkingPrompt } from '@/components/priority-stack/HeroHorizonStack';
 import PivotShimmer from '@/components/priority-stack/PivotShimmer';
 import PriorityFootnote from '@/components/priority-stack/PriorityFootnote';
-import SideQuestsRow from '@/components/priority-stack/SideQuestsRow';
+
 import AssistedDrawer from '@/components/priority-stack/AssistedDrawer';
 import AudibleMenu from '@/components/priority-stack/AudibleMenu';
 import StrategicDashboard from '@/components/priority-stack/StrategicDashboard';
@@ -231,10 +231,8 @@ const InPark = () => {
               <PriorityFootnote />
             </div>
 
-            {/* The Grand Quest — discoverable chip row for memory capture */}
-            <div className="mt-5">
-              <SideQuestsRow />
-            </div>
+            {/* Memory Capture & Initiate Seek now live as the Engagement Ribbon
+                at the base of the Hero card — no separate chip row. */}
           </main>
 
           {/* Contextual Booking Drawer — the ONLY place Lightning Lanes are managed. */}
