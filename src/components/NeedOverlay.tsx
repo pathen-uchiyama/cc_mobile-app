@@ -1,8 +1,8 @@
-import { MapPin, Clock } from 'lucide-react';
+import { MapPin, Clock, Utensils } from 'lucide-react';
 import BottomSheet from './BottomSheet';
 
 interface NeedOverlayProps {
-  type: 'bathroom' | 'quiet';
+  type: 'bathroom' | 'quiet' | 'food';
   onClose: () => void;
 }
 
@@ -18,24 +18,45 @@ const QUIET_SPACES = [
   { name: 'The Tomorrowland Transit Authority', distance: '4 min walk', note: 'Sit down, gentle breeze, low stimulation' },
 ];
 
+const FOOD = [
+  { name: 'Skipper Canteen', distance: '3 min walk', wait: '10 min', note: 'Sit-down, mobile order open' },
+  { name: 'Pecos Bill Tall Tale Inn', distance: '4 min walk', wait: '5 min', note: 'Quick service, fixings bar' },
+  { name: 'Sleepy Hollow Refreshments', distance: '6 min walk', wait: '< 5 min', note: 'Fresh waffles, walk-up window' },
+];
+
 const NeedOverlay = ({ type, onClose }: NeedOverlayProps) => {
-  const items = type === 'bathroom' ? BATHROOMS : QUIET_SPACES;
-  const title = type === 'bathroom' ? 'Nearest Restrooms' : 'Quiet Spaces Nearby';
-  const subtitle = type === 'bathroom'
-    ? 'Sorted by proximity to your current location'
-    : 'Low-stimulation zones for when you need a reset';
+  const config = {
+    bathroom: {
+      items: BATHROOMS,
+      title: 'Nearest Restrooms',
+      subtitle: 'Sorted by proximity to your current location',
+      eyebrow: 'Nearby Relief',
+    },
+    quiet: {
+      items: QUIET_SPACES,
+      title: 'Quiet Spaces Nearby',
+      subtitle: 'Low-stimulation zones for when you need a reset',
+      eyebrow: 'Quiet Companion',
+    },
+    food: {
+      items: FOOD,
+      title: 'Refuel Nearby',
+      subtitle: 'Closest dining, ranked by wait + walk',
+      eyebrow: 'Refuel',
+    },
+  }[type];
 
   return (
     <BottomSheet
       open={true}
       onClose={onClose}
       snap="half"
-      eyebrow={type === 'bathroom' ? 'Nearby Relief' : 'Quiet Companion'}
-      title={title}
-      subtitle={subtitle}
+      eyebrow={config.eyebrow}
+      title={config.title}
+      subtitle={config.subtitle}
     >
       <div className="space-y-3">
-        {items.map((item, i) => (
+        {config.items.map((item, i) => (
           <div key={i} className="bg-card p-4 shadow-boutique rounded-xl">
             <h3 className="font-sans text-sm font-semibold text-foreground mb-2">{item.name}</h3>
             <div className="flex items-center gap-4 flex-wrap">
@@ -48,6 +69,14 @@ const NeedOverlay = ({ type, onClose }: NeedOverlayProps) => {
                   <Clock size={11} className="text-muted-foreground" />
                   <span className="font-sans text-[10px] text-muted-foreground">
                     Crowd: <span className="text-foreground font-semibold">{item.crowd}</span>
+                  </span>
+                </div>
+              )}
+              {'wait' in item && (
+                <div className="flex items-center gap-1.5">
+                  <Utensils size={11} className="text-muted-foreground" />
+                  <span className="font-sans text-[10px] text-muted-foreground">
+                    Wait: <span className="text-foreground font-semibold">{item.wait}</span>
                   </span>
                 </div>
               )}
