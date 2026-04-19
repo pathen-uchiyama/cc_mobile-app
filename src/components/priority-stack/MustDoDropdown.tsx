@@ -12,14 +12,16 @@ export interface MustDoEntry {
 
 interface MustDoDropdownProps {
   items: MustDoEntry[];
+  /** Called when the user picks an off-stack Must-Do — promotes it into the Hero slot. */
+  onPromote?: (mustDoId: string, attraction: string) => void;
 }
 
 /**
  * Must-Do Dropdown — surfaces the Must-Do attractions that are NOT
- * currently in the Sovereign Stack. Lets the user peek at the rest of
- * their day-of priorities without polluting the 3-card surface.
+ * currently in the Sovereign Stack. Each row is tappable and promotes
+ * the attraction into the Hero slot via the parent's onPromote handler.
  */
-const MustDoDropdown = ({ items }: MustDoDropdownProps) => {
+const MustDoDropdown = ({ items, onPromote }: MustDoDropdownProps) => {
   const [open, setOpen] = useState(false);
   const offStack = items.filter((i) => !i.inStack && !i.done);
 
