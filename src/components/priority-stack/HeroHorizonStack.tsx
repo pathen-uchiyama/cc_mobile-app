@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { LayoutGroup, motion, AnimatePresence } from 'framer-motion';
 import FocusMove from './FocusMove';
 import HorizonCard from './HorizonCard';
 
@@ -20,11 +20,6 @@ export interface PlanItem {
   mustDo?: boolean;
 }
 
-/**
- * Walking prompts are intentionally NOT rendered in the stack.
- * Hard cap: the /park page renders at most 3 cards at any time.
- * Walking whimsy surfaces as ambient toasts/whispers, never as a 4th card.
- */
 export interface WalkingPrompt {
   id: string;
   afterIndex: 0 | 1 | 2;
@@ -35,14 +30,15 @@ export interface WalkingPrompt {
 
 interface HeroHorizonStackProps {
   items: PlanItem[];
-  /** Kept for API compatibility — currently ignored to enforce the 3-card cap. */
   walkingPrompts?: WalkingPrompt[];
   onCommitHero: () => void;
   onCaptureMemory?: (planItemId: string) => void;
-  /** Kept for API compatibility — walking cards are no longer rendered. */
   onCaptureWalking?: (walkingId: string) => void;
   onFindAndSeek?: (planItemId: string) => void;
-  /** When true, the Hero card glows gold + shows "A New Path is Available". */
+  /** Promote a Horizon card to the Hero slot — drives the swap animation. */
+  onPromote?: (planItemId: string) => void;
+  /** Mark the Hero as completed/seen — removes it from the stack. */
+  onCompleteHero?: () => void;
   pivotSuggested?: boolean;
   pivotHeadline?: string;
 }
@@ -51,26 +47,25 @@ interface HeroHorizonStackProps {
  * The Sovereign Priority Stack — the ONLY plan surface.
  *
  * Hard contract: never more than 3 cards on screen.
- *   • Priority 1 — The Hero. Top 50% of viewport. Heavy Boutique Shadow.
- *   • Priority 2 & 3 — The Horizon. ~20% smaller height, slightly offset.
+ *   • Priority 1 — The Hero. Heavy Boutique Shadow.
+ *   • Priority 2 & 3 — The Horizon. ~20% smaller, slightly offset.
  *
- * Every card carries the Engagement Ribbon (54px, Record Memory + Find & Seek).
- * Must-Do attractions get a Burnished Gold border.
- *
- * No walking cards. No "Full Ledger". No overflow. The 4th+ items live in
- * the Sovereign Key's Audible drawer ("Reset Strategy"), not this surface.
+ * Tapping a Horizon card promotes it to the Hero slot via a shared-layout
+ * swap (framer-motion LayoutGroup). The Hero exposes a "Mark complete"
+ * close affordance that removes it and pulls the next item up.
  */
 const HeroHorizonStack = ({
   items,
   onCommitHero,
   onCaptureMemory,
   onFindAndSeek,
+  onPromote,
+  onCompleteHero,
   pivotSuggested = false,
   pivotHeadline,
 }: HeroHorizonStackProps) => {
   const hero = items.find((i) => i.rank === 'now') ?? items[0];
   if (!hero) return null;
-  // Only the next 2 items beyond the hero — hard cap.
   const horizon = items.filter((i) => i.id !== hero.id).slice(0, 2);
 
   return (
@@ -91,65 +86,84 @@ const HeroHorizonStack = ({
         </span>
       </div>
 
-      {/* Priority 1 — The Hero. Natural height so the Engagement Ribbon
-          always hugs the bottom edge without being clipped. */}
-      <div className="relative" style={{ marginBottom: '14px' }}>
-        <FocusMove
-          attraction={hero.attraction}
-          location={hero.location}
-          logic={hero.logic}
-          wait={hero.wait}
-          party={hero.party}
-          ctaLabel="On Our Way"
-          onCommit={onCommitHero}
-          questPrompt={hero.questPrompt}
-          questType={hero.questType}
-          onCaptureMemory={() => onCaptureMemory?.(hero.id)}
-          onFindAndSeek={() => onFindAndSeek?.(hero.id)}
-          pivotSuggested={pivotSuggested}
-          pivotHeadline={pivotHeadline}
-          mustDo={hero.mustDo}
-        />
-      </div>
-
-      {/* Priority 2 & 3 — The Horizon. The third card sits BEHIND the second
-          (overlap via negative margin + lower z-index) to telegraph "deeper
-          future" depth. Both keep their own border + Burnished Gold ring
-          when applicable. */}
-      {horizon.length > 0 && (
-        <div className="relative">
-          {horizon.map((it, idx) => (
+      <LayoutGroup id="sovereign-stack">
+        {/* Hero slot — keyed by id so framer-motion morphs it on swap */}
+        <div className="relative" style={{ marginBottom: '14px' }}>
+          <AnimatePresence mode="popLayout" initial={false}>
             <motion.div
-              key={it.id}
-              initial={{ y: -6, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.3, delay: 0.08 + idx * 0.08 }}
-              style={{
-                width: idx === 0 ? '94%' : '86%',
-                margin: '0 auto',
-                position: 'relative',
-                zIndex: idx === 0 ? 2 : 1,
-                marginTop: idx === 0 ? 0 : '-28px',
-              }}
+              key={hero.id}
+              layout
+              layoutId={`plan-${hero.id}`}
+              initial={{ scale: 0.92, opacity: 0, y: 16 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.7, opacity: 0, y: -40, rotate: -2 }}
+              transition={{ type: 'spring', damping: 22, stiffness: 220 }}
             >
-              <HorizonCard
-                rank={it.rank as 'next' | 'later'}
-                time={it.time}
-                attraction={it.attraction}
-                location={it.location}
-                logic={it.logic}
-                wait={it.wait}
-                llSecured={it.llSecured}
-                depth={(idx + 1) as 1 | 2}
-                party={it.party}
-                mustDo={it.mustDo}
-                onCaptureMemory={() => onCaptureMemory?.(it.id)}
-                onFindAndSeek={() => onFindAndSeek?.(it.id)}
+              <FocusMove
+                attraction={hero.attraction}
+                location={hero.location}
+                logic={hero.logic}
+                wait={hero.wait}
+                party={hero.party}
+                ctaLabel="On Our Way"
+                onCommit={onCommitHero}
+                onComplete={onCompleteHero}
+                questPrompt={hero.questPrompt}
+                questType={hero.questType}
+                onCaptureMemory={() => onCaptureMemory?.(hero.id)}
+                onFindAndSeek={() => onFindAndSeek?.(hero.id)}
+                pivotSuggested={pivotSuggested}
+                pivotHeadline={pivotHeadline}
+                mustDo={hero.mustDo}
               />
             </motion.div>
-          ))}
+          </AnimatePresence>
         </div>
-      )}
+
+        {/* Horizon slots — tappable to promote into the Hero */}
+        {horizon.length > 0 && (
+          <div className="relative">
+            <AnimatePresence mode="popLayout" initial={false}>
+              {horizon.map((it, idx) => (
+                <motion.button
+                  type="button"
+                  key={it.id}
+                  layout
+                  layoutId={`plan-${it.id}`}
+                  onClick={() => onPromote?.(it.id)}
+                  aria-label={`Promote ${it.attraction} to the main card`}
+                  initial={{ y: -6, opacity: 0, scale: 0.96 }}
+                  animate={{ y: 0, opacity: 1, scale: 1 }}
+                  exit={{ y: 24, opacity: 0, scale: 0.92 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ type: 'spring', damping: 24, stiffness: 240, delay: 0.05 + idx * 0.06 }}
+                  className="block w-full bg-transparent border-none p-0 cursor-pointer text-left"
+                  style={{
+                    width: idx === 0 ? '94%' : '86%',
+                    margin: '0 auto',
+                    position: 'relative',
+                    zIndex: idx === 0 ? 2 : 1,
+                    marginTop: idx === 0 ? 0 : '-28px',
+                  }}
+                >
+                  <HorizonCard
+                    rank={it.rank as 'next' | 'later'}
+                    time={it.time}
+                    attraction={it.attraction}
+                    location={it.location}
+                    logic={it.logic}
+                    wait={it.wait}
+                    llSecured={it.llSecured}
+                    depth={(idx + 1) as 1 | 2}
+                    party={it.party}
+                    mustDo={it.mustDo}
+                  />
+                </motion.button>
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
+      </LayoutGroup>
     </div>
   );
 };

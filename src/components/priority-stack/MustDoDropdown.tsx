@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, Star } from 'lucide-react';
+import { ChevronDown, Star, ArrowUp } from 'lucide-react';
 
 export interface MustDoEntry {
   id: string;
@@ -12,14 +12,16 @@ export interface MustDoEntry {
 
 interface MustDoDropdownProps {
   items: MustDoEntry[];
+  /** Called when the user picks an off-stack Must-Do — promotes it into the Hero slot. */
+  onPromote?: (mustDoId: string, attraction: string) => void;
 }
 
 /**
  * Must-Do Dropdown — surfaces the Must-Do attractions that are NOT
- * currently in the Sovereign Stack. Lets the user peek at the rest of
- * their day-of priorities without polluting the 3-card surface.
+ * currently in the Sovereign Stack. Each row is tappable and promotes
+ * the attraction into the Hero slot via the parent's onPromote handler.
  */
-const MustDoDropdown = ({ items }: MustDoDropdownProps) => {
+const MustDoDropdown = ({ items, onPromote }: MustDoDropdownProps) => {
   const [open, setOpen] = useState(false);
   const offStack = items.filter((i) => !i.inStack && !i.done);
 
@@ -61,20 +63,38 @@ const MustDoDropdown = ({ items }: MustDoDropdownProps) => {
           >
             <div className="pt-2 flex flex-col gap-1.5">
               {offStack.map((it) => (
-                <li
+                <motion.li
                   key={it.id}
-                  className="flex items-center gap-2 px-3 py-2"
-                  style={{
-                    borderRadius: '8px',
-                    background: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--obsidian) / 0.06)',
-                  }}
+                  whileTap={{ scale: 0.98 }}
+                  className="list-none"
                 >
-                  <Star size={11} style={{ color: 'hsl(var(--gold))' }} />
-                  <span className="font-sans text-[12px] text-foreground">
-                    {it.attraction}
-                  </span>
-                </li>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onPromote?.(it.id, it.attraction);
+                      setOpen(false);
+                    }}
+                    className="w-full flex items-center justify-between gap-2 px-3 py-2.5 cursor-pointer text-left"
+                    style={{
+                      borderRadius: '8px',
+                      background: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--obsidian) / 0.06)',
+                    }}
+                    aria-label={`Promote ${it.attraction} to the main card`}
+                  >
+                    <span className="flex items-center gap-2 min-w-0">
+                      <Star size={11} style={{ color: 'hsl(var(--gold))' }} />
+                      <span className="font-sans text-[12px] text-foreground truncate">
+                        {it.attraction}
+                      </span>
+                    </span>
+                    <ArrowUp
+                      size={12}
+                      style={{ color: 'hsl(var(--gold))' }}
+                      strokeWidth={2.2}
+                    />
+                  </button>
+                </motion.li>
               ))}
             </div>
           </motion.ul>

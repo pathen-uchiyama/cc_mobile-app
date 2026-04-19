@@ -80,6 +80,11 @@ const WALKING_PROMPTS: WalkingPrompt[] = [];
 
 
 const InPark = () => {
+  // The Sovereign Stack lives in state so cards can be promoted, completed,
+  // and pulled in from the Must-Do dropdown — all with a shared-layout swap.
+  const [plan, setPlan] = useState<PlanItem[]>(PLAN);
+  const [mustDos, setMustDos] = useState<{ id: string; attraction: string; done?: boolean }[]>(MUST_DOS);
+
   // Sovereign Key contextual mode: 'audible' for relaxed users, 'dashboard' for Type A.
   const [audibleOpen, setAudibleOpen] = useState(false);
   const [dashboardOpen, setDashboardOpen] = useState(false);
@@ -115,24 +120,24 @@ const InPark = () => {
   const { celebrate } = useCelebrate();
 
   const useQuietView = minimalist || tier === 'sovereign';
-  const hero = PLAN.find((p) => p.rank === 'now');
+  const hero = plan.find((p) => p.rank === 'now') ?? plan[0];
 
   // Type A = manager tier with LL tracking on. They get the Strategic Dashboard.
   const isTypeA = tier === 'manager' && llTrackerVisible;
 
   // Mark Must-Dos as in-stack if their attraction matches one of the 3 visible cards.
-  const stackAttractions = new Set(PLAN.slice(0, 3).map((p) => p.attraction));
-  const mustDoIcons: MustDoIcon[] = MUST_DOS.map((m) => ({
+  const stackAttractions = new Set(plan.slice(0, 3).map((p) => p.attraction));
+  const mustDoIcons: MustDoIcon[] = mustDos.map((m) => ({
     id: m.id,
     label: m.attraction,
     inStack: stackAttractions.has(m.attraction),
-    done: false,
+    done: !!m.done,
   }));
-  const mustDoEntries: MustDoEntry[] = MUST_DOS.map((m) => ({
+  const mustDoEntries: MustDoEntry[] = mustDos.map((m) => ({
     id: m.id,
     attraction: m.attraction,
     inStack: stackAttractions.has(m.attraction),
-    done: false,
+    done: !!m.done,
   }));
 
   // The Assisted Drawer is the canonical LL surface — invisible by default,
@@ -147,6 +152,66 @@ const InPark = () => {
   const commitHero = () => {
     const tip = WHISPERS.arrival[Math.floor(Math.random() * WHISPERS.arrival.length)];
     celebrate(tip, 'On Your Way');
+  };
+
+  /** Mark the Hero as completed — removes it from the stack and promotes the next item. */
+  const completeHero = () => {
+    if (!hero) return;
+    setPlan((prev) => {
+      const remaining = prev.filter((p) => p.id !== hero.id);
+      if (remaining.length === 0) return remaining;
+      const [first, second, ...rest] = remaining;
+      return [
+        { ...first, rank: 'now' as const },
+        ...(second ? [{ ...second, rank: 'next' as const }] : []),
+        ...rest.map((r) => ({ ...r, rank: 'later' as const })),
+      ];
+    });
+    setMustDos((prev) => prev.map((m) => (m.attraction === hero.attraction ? { ...m, done: true } : m)));
+    celebrate(`${hero.attraction} — tucked into the Vault.`, 'Marked Done');
+  };
+
+  /** Promote a Horizon card into the Hero slot — shared-layout swap. */
+  const promoteToHero = (planItemId: string) => {
+    setPlan((prev) => {
+      const target = prev.find((p) => p.id === planItemId);
+      if (!target) return prev;
+      const others = prev.filter((p) => p.id !== planItemId);
+      const reordered: PlanItem[] = [
+        { ...target, rank: 'now' },
+        ...others.map((o, i) => ({ ...o, rank: i === 0 ? ('next' as const) : ('later' as const) })),
+      ];
+      return reordered;
+    });
+  };
+
+  /** Promote an off-stack Must-Do into the Hero slot. Synthesizes a PlanItem. */
+  const promoteMustDoToHero = (mustDoId: string, attraction: string) => {
+    setPlan((prev) => {
+      // If already in the plan, just promote it.
+      const existing = prev.find((p) => p.attraction === attraction);
+      if (existing) {
+        const others = prev.filter((p) => p.id !== existing.id);
+        return [
+          { ...existing, rank: 'now' as const },
+          ...others.map((o, i) => ({ ...o, rank: i === 0 ? ('next' as const) : ('later' as const) })),
+        ];
+      }
+      // Otherwise synthesize a fresh card and demote the rest.
+      const synthesized: PlanItem = {
+        id: `must-${mustDoId}`,
+        rank: 'now',
+        time: 'Now',
+        attraction,
+        location: 'On the way',
+        logic: 'Pulled from your Must-Do list — strategy is recalculating.',
+        wait: '—',
+        mustDo: true,
+      };
+      const demoted = prev.map((o, i) => ({ ...o, rank: i === 0 ? ('next' as const) : ('later' as const) }));
+      return [synthesized, ...demoted];
+    });
+    celebrate(`${attraction} promoted to your main card.`, 'Pulled In');
   };
 
   const confirmDrawer = () => {
@@ -208,7 +273,7 @@ const InPark = () => {
 
             {/* Dropdown of remaining Must-Dos not yet in the stack */}
             <div className="mb-3">
-              <MustDoDropdown items={mustDoEntries} />
+              <MustDoDropdown items={mustDoEntries} onPromote={promoteMustDoToHero} />
             </div>
 
             {/* Whisper ticker */}
@@ -231,11 +296,13 @@ const InPark = () => {
                     transition={{ duration: 0.3 }}
                   >
                     <HeroHorizonStack
-                      items={PLAN}
+                      items={plan}
                       walkingPrompts={WALKING_PROMPTS}
                       onCommitHero={commitHero}
                       onCaptureMemory={(id) => celebrate('Memory tucked into the Vault.', `Captured · ${id}`)}
                       onFindAndSeek={() => setFindAndSeekOpen(true)}
+                      onPromote={promoteToHero}
+                      onCompleteHero={completeHero}
                       pivotSuggested={pivotSuggested && !pivotLabel}
                       pivotHeadline="A New Path is Available"
                     />

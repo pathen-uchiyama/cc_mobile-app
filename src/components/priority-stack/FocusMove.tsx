@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Clock, MapPin, ArrowRight, Users } from 'lucide-react';
+import { Clock, MapPin, ArrowRight, Users, Check } from 'lucide-react';
 import EngagementRibbon from './EngagementRibbon';
 
 interface FocusMoveProps {
@@ -24,6 +24,8 @@ interface FocusMoveProps {
   pivotHeadline?: string;
   /** When true, the card is one of the user's Must-Do attractions — gold border. */
   mustDo?: boolean;
+  /** Mark this Hero as completed/seen — removes it from the stack. */
+  onComplete?: () => void;
 }
 
 /**
@@ -55,6 +57,7 @@ const FocusMove = ({
   pivotSuggested = false,
   pivotHeadline = 'A New Path is Available',
   mustDo = false,
+  onComplete,
 }: FocusMoveProps) => {
   // Boutique Shadow — heavy Deep Obsidian at 10% opacity per spec.
   // Must-Do cards add a Burnished Gold border ring.
@@ -112,7 +115,7 @@ const FocusMove = ({
       {/* ─── TOP HALF · TACTICAL ─── (24px no-bleed padding) — flex-1 so the
           card fills its slot and the Engagement Ribbon hugs the bottom. */}
       <div className="flex-1 p-6 pb-5" style={{ padding: '24px', paddingBottom: '20px' }}>
-        <div className="flex items-start justify-between mb-4">
+        <div className="flex items-start justify-between mb-4 gap-2">
           <span className="font-sans text-[9px] uppercase tracking-sovereign text-accent font-bold flex items-center gap-1.5">
             <motion.span
               className="inline-block w-2 h-2 bg-accent rounded-full"
@@ -121,14 +124,33 @@ const FocusMove = ({
             />
             Right Now
           </span>
-          {wait && (
-            <div className="flex items-center gap-1.5 bg-accent/15 px-3 py-1.5 rounded-full">
-              <Clock size={12} className="text-accent" />
-              <span className="font-sans text-sm text-accent font-bold tabular-nums">
-                {wait}
-              </span>
-            </div>
-          )}
+          <div className="flex items-center gap-1.5 shrink-0">
+            {wait && (
+              <div className="flex items-center gap-1.5 bg-accent/15 px-3 py-1.5 rounded-full">
+                <Clock size={12} className="text-accent" />
+                <span className="font-sans text-sm text-accent font-bold tabular-nums">
+                  {wait}
+                </span>
+              </div>
+            )}
+            {onComplete && (
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={onComplete}
+                aria-label={`Mark ${attraction} as done`}
+                title="Mark done"
+                className="flex items-center justify-center bg-transparent border-none cursor-pointer rounded-full"
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  border: '1px solid hsl(var(--gold) / 0.4)',
+                  color: 'hsl(var(--gold))',
+                }}
+              >
+                <Check size={14} strokeWidth={2.2} />
+              </motion.button>
+            )}
+          </div>
         </div>
 
         <h2
