@@ -46,6 +46,7 @@ const SovereignKey = ({
   onBathroom, onQuietSpace, onMemory, onPulse, onCheckIn, onRecalibrate,
 }: SovereignKeyProps) => {
   const navigate = useNavigate();
+  const { hapticsEnabled } = useCompanion();
   const [mode, setMode] = useState<Mode>('closed');
   const longPressTimer = useRef<number | null>(null);
   const longPressFired = useRef(false);
@@ -60,6 +61,7 @@ const SovereignKey = ({
   };
 
   const triggerHaptic = (pattern: number | number[] = 10) => {
+    if (!hapticsEnabled) return;
     if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
       try { navigator.vibrate(pattern); } catch { /* ignore */ }
     }

@@ -12,6 +12,7 @@ import CheckInOverlay from '@/components/CheckInOverlay';
 import RecalibrateSheet from '@/components/RecalibrateSheet';
 import LightningLaneTracker from '@/components/LightningLaneTracker';
 import MinimalistView from '@/components/MinimalistView';
+import SwapSuggestionsSheet from '@/components/SwapSuggestionsSheet';
 import { useCompanion } from '@/contexts/CompanionContext';
 
 const InPark = () => {
@@ -19,8 +20,8 @@ const InPark = () => {
   const [needType, setNeedType] = useState<'bathroom' | 'quiet' | null>(null);
   const [showCheckIn, setShowCheckIn] = useState(false);
   const [showRecalibrate, setShowRecalibrate] = useState(false);
-  const [showLL, setShowLL] = useState(true);
-  const { minimalist } = useCompanion();
+  const [swapFor, setSwapFor] = useState<string | null>(null);
+  const { minimalist, llTrackerVisible, tier } = useCompanion();
 
   return (
     <div className="h-screen bg-background max-w-[480px] mx-auto relative flex flex-col overflow-hidden">
@@ -39,8 +40,8 @@ const InPark = () => {
 
           {/* ── Middle: plan cards + LL tracker — no scroll ── */}
           <section className="flex-1 min-h-0 flex flex-col justify-center px-4 gap-5">
-            <NowCarousel />
-            <LightningLaneTracker visible={showLL} tier="manager" />
+            <NowCarousel onSkip={(title) => setSwapFor(title)} />
+            <LightningLaneTracker visible={llTrackerVisible} tier={tier} />
           </section>
 
           {/* ── Bottom third: experiences side by side ── */}
@@ -92,6 +93,11 @@ const InPark = () => {
       <AnimatePresence>
         {showRecalibrate && <RecalibrateSheet onClose={() => setShowRecalibrate(false)} />}
       </AnimatePresence>
+      <SwapSuggestionsSheet
+        open={swapFor !== null}
+        onClose={() => setSwapFor(null)}
+        skipped={swapFor ?? undefined}
+      />
     </div>
   );
 };
