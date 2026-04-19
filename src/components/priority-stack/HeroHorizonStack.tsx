@@ -157,6 +157,7 @@ const HeroHorizonStack = ({
                 party={it.party}
                 questPrompt={it.questPrompt}
                 onCaptureMemory={() => onCaptureMemory?.(it.id)}
+                onFindAndSeek={() => onFindAndSeek?.(it.id)}
               />
               {/* Walking prompt between Next and Later */}
               {idx === 0 && walkingAfter(2).length > 0 && (
