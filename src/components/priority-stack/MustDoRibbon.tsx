@@ -98,16 +98,16 @@ const MustDoRibbon = ({ items }: MustDoRibbonProps) => {
               {desired > 1 && (
                 <span
                   aria-hidden
-                  className="absolute -top-1 -right-1 flex items-center justify-center rounded-full font-sans font-bold tabular-nums"
+                  className="absolute -top-1.5 -right-1.5 flex items-center justify-center rounded-full font-sans font-bold tabular-nums shadow-sm"
                   style={{
-                    minWidth: '13px',
+                    minWidth: '15px',
                     height: '13px',
                     padding: '0 3px',
                     fontSize: '8px',
                     lineHeight: 1,
-                    background: 'hsl(var(--obsidian))',
-                    color: 'hsl(var(--gold))',
-                    border: '1px solid hsl(var(--gold) / 0.6)',
+                    background: 'hsl(var(--card))',
+                    color: 'hsl(var(--obsidian))',
+                    border: '1px solid hsl(var(--gold))',
                   }}
                 >
                   {done}/{desired}
