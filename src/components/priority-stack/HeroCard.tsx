@@ -11,18 +11,17 @@ interface HeroCardProps {
 }
 
 /**
- * The Hero Card — Priority 1 in the Depth Stack.
+ * The Focus Card — Priority 1.
  *
- * 20% larger than horizon cards. 16px radius, deep obsidian shadow @ 8% opacity.
- * Publico Headline (24px) for the attraction name, Inter Italic (14px) for logic.
- * Primary CTA in deep obsidian.
+ * 100% width, elevated boutique shadow. The ONLY card with an active CTA.
+ * Anchored inside the top 40% of the screen.
  */
 const HeroCard = ({
   attraction,
   location,
   logic,
   wait,
-  ctaLabel = 'Secure Path',
+  ctaLabel = 'On Our Way',
   onCommit,
 }: HeroCardProps) => {
   return (
@@ -30,8 +29,11 @@ const HeroCard = ({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: 'easeOut' }}
-      className="relative bg-card rounded-2xl p-6"
-      style={{ boxShadow: '0 20px 50px hsl(var(--obsidian) / 0.08)' }}
+      className="relative bg-card rounded-2xl p-6 w-full"
+      style={{
+        boxShadow:
+          '0 0 0 1px hsl(var(--obsidian) / 0.04), 0 24px 60px hsl(var(--obsidian) / 0.12)',
+      }}
     >
       {/* Eyebrow + live wait pill */}
       <div className="flex items-start justify-between mb-4">
@@ -41,7 +43,7 @@ const HeroCard = ({
             animate={{ scale: [1, 1.4, 1], opacity: [1, 0.5, 1] }}
             transition={{ repeat: Infinity, duration: 2 }}
           />
-          Priority Now
+          The Focus
         </span>
         {wait && (
           <div className="flex items-center gap-1.5 bg-accent/15 px-3 py-1.5 rounded-full">
@@ -53,23 +55,23 @@ const HeroCard = ({
         )}
       </div>
 
-      {/* Attraction name — Publico/Playfair 24px */}
+      {/* Attraction name — Playfair 24px */}
       <h2 className="font-display text-[24px] leading-[1.15] text-foreground mb-2">
         {attraction}
       </h2>
 
-      {/* Strategic logic — Inter Italic 14px */}
+      {/* Logic Whisper — Inter italic 14px */}
       <p className="font-sans italic text-[14px] text-foreground/75 leading-snug mb-4">
         {logic}
       </p>
 
       {/* Location row */}
-      <div className="flex items-center gap-1.5 mb-6">
+      <div className="flex items-center gap-1.5 mb-5">
         <MapPin size={11} className="text-muted-foreground" />
         <span className="font-sans text-[11px] text-muted-foreground">{location}</span>
       </div>
 
-      {/* Primary CTA — Deep Obsidian, full width, thumb-zone */}
+      {/* Primary CTA — Deep Obsidian, 16px corners, thumb-zone */}
       <motion.button
         whileTap={{ scale: 0.98 }}
         onClick={onCommit}
