@@ -29,7 +29,7 @@ interface FullLedgerSheetProps {
  * Hidden by default. Opened from the "View full plan" link
  * beneath the Horizon stack.
  */
-const FullLedgerSheet = ({ open, onClose, items }: FullLedgerSheetProps) => {
+const FullLedgerSheet = ({ open, onClose, items, onSecureLL, onOpenVault }: FullLedgerSheetProps) => {
   return (
     <AnimatePresence>
       {open && (
