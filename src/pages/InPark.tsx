@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import LoomingHorizon from '@/components/LoomingHorizon';
 import HeroHorizonStack, { type PlanItem, type WalkingPrompt } from '@/components/priority-stack/HeroHorizonStack';
 import PivotShimmer from '@/components/priority-stack/PivotShimmer';
-import PriorityFootnote from '@/components/priority-stack/PriorityFootnote';
+import MustDoRibbon, { type MustDoIcon } from '@/components/priority-stack/MustDoRibbon';
 
 import AssistedDrawer from '@/components/priority-stack/AssistedDrawer';
 import AudibleMenu from '@/components/priority-stack/AudibleMenu';
@@ -33,6 +33,7 @@ const PLAN: PlanItem[] = [
     party: { yes: 4, total: 5 },
     questPrompt: 'Find the hidden Mickey on the weather vane above the bridge.',
     questType: 'photo',
+    mustDo: true,
   },
   {
     id: '2',
@@ -46,6 +47,7 @@ const PLAN: PlanItem[] = [
     party: { yes: 5, total: 5 },
     questPrompt: 'Look up in the queue — the chandelier tells a story. Catch the third pendant.',
     questType: 'photo',
+    mustDo: true,
   },
   {
     id: '3',
@@ -59,39 +61,21 @@ const PLAN: PlanItem[] = [
     questPrompt: 'Whisper the punchline of the skipper\'s best joke into the Vault.',
     questType: 'voice',
   },
-  {
-    id: '4',
-    rank: 'later',
-    time: '2:30',
-    attraction: 'Big Thunder Mountain',
-    location: 'Frontierland',
-    logic: 'Window aligns with your LL drop — fast in, fast out.',
-    wait: '20 min',
-    llSecured: true,
-    party: { yes: 4, total: 5 },
-  },
-  {
-    id: '5',
-    rank: 'later',
-    time: '4:00',
-    attraction: 'Space Mountain',
-    location: 'Tomorrowland',
-    logic: 'Late afternoon dip in standby — strategic pivot from the parade exodus.',
-    wait: '35 min',
-    party: { yes: 3, total: 5 },
-  },
 ];
 
-// GPS-triggered Walking Cards interleaved between attraction cards.
-const WALKING_PROMPTS: WalkingPrompt[] = [
-  {
-    id: 'w1',
-    afterIndex: 1,
-    whimsy: 'Pause at the railing — there\'s a perfect castle reflection in the water this morning.',
-    type: 'photo',
-    nearby: 'Liberty Square bridge',
-  },
+// The user's day-of Must-Do list — drives the Sovereign Progress Bar at the top
+// and the gold border on any matching card in the stack.
+const MUST_DOS: { id: string; attraction: string }[] = [
+  { id: 'm1', attraction: 'Pirates of the Caribbean' },
+  { id: 'm2', attraction: 'Haunted Mansion' },
+  { id: 'm3', attraction: 'Big Thunder Mountain' },
+  { id: 'm4', attraction: 'Space Mountain' },
+  { id: 'm5', attraction: 'Peter Pan\u2019s Flight' },
 ];
+
+// Walking prompts are intentionally retained as data but NOT rendered as cards
+// — the page must never show more than 3 cards. Whimsy surfaces via WhisperStrip.
+const WALKING_PROMPTS: WalkingPrompt[] = [];
 
 
 const InPark = () => {
@@ -128,6 +112,15 @@ const InPark = () => {
 
   // Type A = manager tier with LL tracking on. They get the Strategic Dashboard.
   const isTypeA = tier === 'manager' && llTrackerVisible;
+
+  // Mark Must-Dos as in-stack if their attraction matches one of the 3 visible cards.
+  const stackAttractions = new Set(PLAN.slice(0, 3).map((p) => p.attraction));
+  const mustDoIcons: MustDoIcon[] = MUST_DOS.map((m) => ({
+    id: m.id,
+    label: m.attraction,
+    inStack: stackAttractions.has(m.attraction),
+    done: false,
+  }));
 
   // The Assisted Drawer is the canonical LL surface — surfaces only when a window is found.
   useEffect(() => {
@@ -192,12 +185,18 @@ const InPark = () => {
               </h1>
             </header>
 
+            {/* Sovereign Progress Bar — only the Must-Dos. Items currently in
+                the stack glow gold to mirror the card border. */}
+            <div className="mb-3">
+              <MustDoRibbon items={mustDoIcons} />
+            </div>
+
             {/* Whisper ticker */}
             <div className="mb-4 -mx-5">
               <WhisperStrip />
             </div>
 
-            {/* ── Depth-Based Stack OR Pivot Shimmer ── */}
+            {/* ── The Sovereign Stack (max 3 cards) OR Pivot Shimmer ── */}
             <section aria-label="Today's plan" className="shrink-0">
               <AnimatePresence mode="wait">
                 {pivotLabel ? (
@@ -216,7 +215,6 @@ const InPark = () => {
                       walkingPrompts={WALKING_PROMPTS}
                       onCommitHero={commitHero}
                       onCaptureMemory={(id) => celebrate('Memory tucked into the Vault.', `Captured · ${id}`)}
-                      onCaptureWalking={(id) => celebrate('A small wonder, recorded.', `Walking · ${id}`)}
                       onFindAndSeek={() => setFindAndSeekOpen(true)}
                       pivotSuggested={pivotSuggested && !pivotLabel}
                       pivotHeadline="A New Path is Available"
@@ -225,14 +223,6 @@ const InPark = () => {
                 )}
               </AnimatePresence>
             </section>
-
-            {/* Footnote — most-wanted as one tappable line */}
-            <div className="mt-6">
-              <PriorityFootnote />
-            </div>
-
-            {/* Memory Capture & Initiate Seek now live as the Engagement Ribbon
-                at the base of the Hero card — no separate chip row. */}
           </main>
 
           {/* Contextual Booking Drawer — the ONLY place Lightning Lanes are managed. */}

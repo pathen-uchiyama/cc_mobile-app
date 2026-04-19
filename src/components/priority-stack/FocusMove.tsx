@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { Clock, MapPin, ArrowRight, Users, Camera, Compass, Search } from 'lucide-react';
+import { Clock, MapPin, ArrowRight, Users } from 'lucide-react';
+import EngagementRibbon from './EngagementRibbon';
 
 interface FocusMoveProps {
   attraction: string;
@@ -10,8 +11,6 @@ interface FocusMoveProps {
   party?: { yes: number; total: number };
   ctaLabel?: string;
   onCommit?: () => void;
-  /** Tactical: secures the next Lightning Lane window for this walk. */
-  onSecureLL?: () => void;
   /** Keepsake prompt — shown in the Memory Ribbon (bottom). */
   questPrompt?: string;
   /** Quest type drives the icon + verb on the capture button. */
@@ -23,6 +22,8 @@ interface FocusMoveProps {
   pivotSuggested?: boolean;
   /** Headline for the pivot suggestion (Publico Headline). */
   pivotHeadline?: string;
+  /** When true, the card is one of the user's Must-Do attractions — gold border. */
+  mustDo?: boolean;
 }
 
 /**
@@ -47,27 +48,29 @@ const FocusMove = ({
   party,
   ctaLabel = 'On Our Way',
   onCommit,
-  onSecureLL,
   questPrompt,
-  questType = 'photo',
+  questType: _questType = 'photo',
   onCaptureMemory,
   onFindAndSeek,
   pivotSuggested = false,
   pivotHeadline = 'A New Path is Available',
+  mustDo = false,
 }: FocusMoveProps) => {
-  const QuestIcon = questType === 'photo' ? Camera : Compass;
+  // Boutique Shadow — heavy Deep Obsidian at 10% opacity per spec.
+  // Must-Do cards add a Burnished Gold border ring.
+  const ring = mustDo
+    ? '0 0 0 2px hsl(var(--gold) / 0.85), '
+    : '0 0 0 1px hsl(var(--gold) / 0.08), ';
+  const boxShadow =
+    `${ring}0 4px 8px hsl(var(--obsidian) / 0.04), 0 24px 48px -8px hsl(var(--obsidian) / 0.10), 0 48px 96px -16px hsl(var(--obsidian) / 0.10)`;
 
   return (
     <motion.article
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: 'easeOut' }}
-      className="relative bg-card w-full overflow-hidden"
-      style={{
-        borderRadius: '16px',
-        boxShadow:
-          '0 0 0 1px hsl(var(--gold) / 0.08), 0 2px 4px hsl(var(--obsidian) / 0.04), 0 18px 12px -8px hsl(220 20% 10% / 0.18), 0 32px 64px -12px hsl(220 20% 10% / 0.22)',
-      }}
+      className="relative bg-card w-full overflow-hidden flex flex-col h-full"
+      style={{ borderRadius: '16px', boxShadow }}
     >
       {/* Burnished Gold pulse — surfaces when the system detects a strategic pivot */}
       {pivotSuggested && (
@@ -106,8 +109,9 @@ const FocusMove = ({
         </motion.div>
       )}
 
-      {/* ─── TOP HALF · TACTICAL ─── (24px no-bleed padding) */}
-      <div className="p-6 pb-5" style={{ padding: '24px', paddingBottom: '20px' }}>
+      {/* ─── TOP HALF · TACTICAL ─── (24px no-bleed padding) — flex-1 so the
+          card fills its slot and the Engagement Ribbon hugs the bottom. */}
+      <div className="flex-1 p-6 pb-5" style={{ padding: '24px', paddingBottom: '20px' }}>
         <div className="flex items-start justify-between mb-4">
           <span className="font-sans text-[9px] uppercase tracking-sovereign text-accent font-bold flex items-center gap-1.5">
             <motion.span
@@ -203,42 +207,7 @@ const FocusMove = ({
         )}
       </div>
 
-      {/* ─── ENGAGEMENT RIBBON · 50/50 split, full-width, 54px touch targets ─── */}
-      <div
-        className="grid grid-cols-2"
-        style={{
-          borderTop: '1px solid hsl(36 47% 35% / 0.35)',
-          background: 'linear-gradient(180deg, hsl(36 47% 35% / 0.08) 0%, hsl(36 47% 35% / 0.02) 100%)',
-        }}
-      >
-        <motion.button
-          whileTap={{ scale: 0.97 }}
-          onClick={onCaptureMemory}
-          className="flex items-center justify-center gap-2 bg-transparent cursor-pointer font-sans text-[11px] font-semibold uppercase tracking-sovereign"
-          style={{
-            minHeight: '54px',
-            color: 'hsl(36 47% 35%)',
-            borderRight: '1px solid hsl(36 47% 35% / 0.35)',
-          }}
-          aria-label="Record Memory"
-        >
-          <QuestIcon size={14} />
-          Record Memory
-        </motion.button>
-        <motion.button
-          whileTap={{ scale: 0.97 }}
-          onClick={onFindAndSeek}
-          className="flex items-center justify-center gap-2 bg-transparent cursor-pointer font-sans text-[11px] font-semibold uppercase tracking-sovereign"
-          style={{
-            minHeight: '54px',
-            color: 'hsl(36 47% 35%)',
-          }}
-          aria-label="Initiate Seek"
-        >
-          <Search size={14} />
-          Initiate Seek
-        </motion.button>
-      </div>
+      <EngagementRibbon onCaptureMemory={onCaptureMemory} onFindAndSeek={onFindAndSeek} />
     </motion.article>
   );
 };
