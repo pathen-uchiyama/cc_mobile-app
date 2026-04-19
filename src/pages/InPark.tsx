@@ -239,18 +239,21 @@ const InPark = () => {
             </section>
           </main>
 
-          {/* Contextual Booking Drawer — the ONLY place Lightning Lanes are managed. */}
-          <AssistedDrawer
-            open={drawerOpen}
-            attraction="Pirates of the Caribbean"
-            window="1:15 PM"
-            savedMinutes={40}
-            reasoning="aligns with your lunch pivot at Skipper Canteen"
-            onConfirm={confirmDrawer}
-            onDismiss={dismissDrawer}
-          />
         </>
       )}
+
+      {/* Contextual Booking Drawer — globally mounted so Tier 3 (sovereign)
+          users still receive the auto-confirm toast even in the quiet view.
+          Invisible by default; surfaces only when a Strategic Opportunity hits. */}
+      <AssistedDrawer
+        open={drawerOpen}
+        attraction="Pirates of the Caribbean"
+        window="1:15 PM"
+        savedMinutes={40}
+        reasoning="aligns with your lunch pivot at Skipper Canteen"
+        onConfirm={confirmDrawer}
+        onDismiss={dismissDrawer}
+      />
 
       {/* The Hearth: Floating Obsidian dock with the centered Gold Sovereign Key.
           No side slots — the Key is the only OS anchor. Lightning Lanes are
