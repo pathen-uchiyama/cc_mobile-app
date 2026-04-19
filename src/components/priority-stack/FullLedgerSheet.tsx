@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Zap, Clock, Check } from 'lucide-react';
+import { X, Clock, Check } from 'lucide-react';
 
 interface LedgerItem {
   id: string;
@@ -16,20 +16,16 @@ interface FullLedgerSheetProps {
   open: boolean;
   onClose: () => void;
   items: LedgerItem[];
-  /** Inline LL action — fires when the user taps "Secure" on any row. */
-  onSecureLL?: (itemId: string) => void;
-  /** Optional escape hatch to the global LL Vault for ANY ride in the park. */
-  onOpenVault?: () => void;
 }
 
 /**
- * Full Ledger — bottom sheet revealed on demand.
+ * Full Ledger — read-only overview of every plan item.
  *
- * Holds every plan item beyond the Hero + 2 Horizon peeks.
- * Hidden by default. Opened from the "View full plan" link
- * beneath the Horizon stack.
+ * Shows LL status (Secured pill) but NEVER offers a Secure action — Lightning
+ * Lanes are managed exclusively via the Contextual Booking Drawer when the
+ * strategy engine surfaces a Strategic Window.
  */
-const FullLedgerSheet = ({ open, onClose, items, onSecureLL, onOpenVault }: FullLedgerSheetProps) => {
+const FullLedgerSheet = ({ open, onClose, items }: FullLedgerSheetProps) => {
   return (
     <AnimatePresence>
       {open && (
