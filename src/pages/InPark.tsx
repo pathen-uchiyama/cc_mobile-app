@@ -161,7 +161,15 @@ const InPark = () => {
     celebrate(tip, 'On Your Way');
   };
 
-  /** Mark the Hero as completed — removes it from the stack and promotes the next item. */
+  /**
+   * Mark the Hero ride as completed.
+   *
+   * Increments the Must-Do `done` counter (rides can be repeated, so we count
+   * each ride independently rather than flipping a boolean). Removes the card
+   * from the active stack and promotes the next item. If the attraction still
+   * has remaining rides (done < desired), the Must-Do stays on deck so the
+   * user can promote it again later.
+   */
   const completeHero = () => {
     if (!hero) return;
     setPlan((prev) => {
@@ -174,8 +182,30 @@ const InPark = () => {
         ...rest.map((r) => ({ ...r, rank: 'later' as const })),
       ];
     });
-    setMustDos((prev) => prev.map((m) => (m.attraction === hero.attraction ? { ...m, done: true } : m)));
-    celebrate(`${hero.attraction} — tucked into the Vault.`, 'Marked Done');
+    let toastSuffix = '';
+    setMustDos((prev) =>
+      prev.map((m) => {
+        if (m.attraction !== hero.attraction) return m;
+        const nextDone = Math.min(m.desired, m.done + 1);
+        const remaining = m.desired - nextDone;
+        toastSuffix =
+          m.desired > 1
+            ? remaining > 0
+              ? ` · ${remaining} ride${remaining === 1 ? '' : 's'} to go`
+              : ` · all ${m.desired} rides done`
+            : '';
+        return { ...m, done: nextDone };
+      }),
+    );
+    celebrate(`${hero.attraction} — tucked into the Vault.${toastSuffix}`, 'Marked Done');
+  };
+
+  /** Adjust the desired ride count for a Must-Do (e.g. user wants to ride Tron 3x instead of 2x). */
+  const adjustDesired = (mustDoId: string, nextDesired: number) => {
+    const clamped = Math.max(1, Math.min(10, nextDesired));
+    setMustDos((prev) =>
+      prev.map((m) => (m.id === mustDoId ? { ...m, desired: clamped } : m)),
+    );
   };
 
   /** Promote a Horizon card into the Hero slot — shared-layout swap. */
