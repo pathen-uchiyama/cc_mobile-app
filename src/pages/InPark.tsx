@@ -4,6 +4,7 @@ import LoomingHorizon from '@/components/LoomingHorizon';
 import HeroHorizonStack, { type PlanItem, type WalkingPrompt } from '@/components/priority-stack/HeroHorizonStack';
 import PivotShimmer from '@/components/priority-stack/PivotShimmer';
 import MustDoRibbon, { type MustDoIcon } from '@/components/priority-stack/MustDoRibbon';
+import MustDoDropdown, { type MustDoEntry } from '@/components/priority-stack/MustDoDropdown';
 
 import AssistedDrawer from '@/components/priority-stack/AssistedDrawer';
 import AudibleMenu from '@/components/priority-stack/AudibleMenu';
@@ -121,6 +122,12 @@ const InPark = () => {
     inStack: stackAttractions.has(m.attraction),
     done: false,
   }));
+  const mustDoEntries: MustDoEntry[] = MUST_DOS.map((m) => ({
+    id: m.id,
+    attraction: m.attraction,
+    inStack: stackAttractions.has(m.attraction),
+    done: false,
+  }));
 
   // The Assisted Drawer is the canonical LL surface — surfaces only when a window is found.
   useEffect(() => {
@@ -187,8 +194,13 @@ const InPark = () => {
 
             {/* Sovereign Progress Bar — only the Must-Dos. Items currently in
                 the stack glow gold to mirror the card border. */}
-            <div className="mb-3">
+            <div className="mb-2">
               <MustDoRibbon items={mustDoIcons} />
+            </div>
+
+            {/* Dropdown of remaining Must-Dos not yet in the stack */}
+            <div className="mb-3">
+              <MustDoDropdown items={mustDoEntries} />
             </div>
 
             {/* Whisper ticker */}

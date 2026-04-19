@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion';
 import { Zap, Users, MapPin, Clock } from 'lucide-react';
-import EngagementRibbon from './EngagementRibbon';
 
 interface HorizonCardProps {
   rank: 'next' | 'later';
@@ -34,7 +33,7 @@ const HorizonCard = ({
 }: HorizonCardProps) => {
   const ring = mustDo
     ? '0 0 0 2px hsl(var(--gold) / 0.85), '
-    : '0 0 0 1px hsl(var(--obsidian) / 0.04), ';
+    : '0 0 0 1px hsl(var(--obsidian) / 0.06), ';
   const boxShadow = `${ring}0 6px 14px -6px hsl(var(--obsidian) / 0.10), 0 16px 32px -12px hsl(var(--obsidian) / 0.10)`;
 
   return (
@@ -106,8 +105,6 @@ const HorizonCard = ({
         </p>
       </div>
 
-      {/* Engagement Ribbon — same shape as Hero, primary touch zones */}
-      <EngagementRibbon onCaptureMemory={onCaptureMemory} onFindAndSeek={onFindAndSeek} />
     </motion.article>
   );
 };
