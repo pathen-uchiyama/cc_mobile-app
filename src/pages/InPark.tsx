@@ -83,7 +83,7 @@ const InPark = () => {
   // Sovereign Key contextual mode: 'audible' for relaxed users, 'dashboard' for Type A.
   const [audibleOpen, setAudibleOpen] = useState(false);
   const [dashboardOpen, setDashboardOpen] = useState(false);
-  const [needType, setNeedType] = useState<'bathroom' | 'quiet' | null>(null);
+  const [needType, setNeedType] = useState<'bathroom' | 'quiet' | 'food' | null>(null);
   const [showRecalibrate, setShowRecalibrate] = useState(false);
   const [swapFor, setSwapFor] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
