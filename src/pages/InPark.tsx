@@ -310,7 +310,11 @@ const InPark = () => {
 
             {/* Dropdown of remaining Must-Dos not yet in the stack */}
             <div className="mb-3">
-              <MustDoDropdown items={mustDoEntries} onPromote={promoteMustDoToHero} />
+              <MustDoDropdown
+                items={mustDoEntries}
+                onPromote={promoteMustDoToHero}
+                onAdjustDesired={adjustDesired}
+              />
             </div>
 
             {/* Whisper ticker */}
