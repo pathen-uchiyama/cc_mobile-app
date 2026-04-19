@@ -60,13 +60,13 @@ const HearthDock = ({
   };
 
   const left: PivotAction[] = [
-    { id: 'restroom', label: 'Restroom', icon: Bath, onTap: handlePivot(onRestroom) },
-    { id: 'refuel', label: 'Refuel', icon: Utensils, onTap: handlePivot(onRefuel) },
+    { id: 'restroom', label: 'Restroom', icon: Bath, onTap: handlePivot(onRestroom), badge: !!badges.restroom },
+    { id: 'refuel', label: 'Refuel', icon: Utensils, onTap: handlePivot(onRefuel), badge: !!badges.refuel },
   ];
   const right: PivotAction[] = [
-    { id: 'break', label: 'Need a Break', icon: Coffee, onTap: handlePivot(onBreak) },
-    { id: 'rain', label: 'Rain Pivot', icon: CloudRain, onTap: handlePivot(onRain) },
-    { id: 'reset', label: 'Reset Strategy', icon: RefreshCw, onTap: handlePivot(onReset) },
+    { id: 'break', label: 'Need a Break', icon: Coffee, onTap: handlePivot(onBreak), badge: !!badges.break },
+    { id: 'rain', label: 'Rain Pivot', icon: CloudRain, onTap: handlePivot(onRain), badge: !!badges.rain },
+    { id: 'reset', label: 'Reset Strategy', icon: RefreshCw, onTap: handlePivot(onReset), badge: !!badges.reset },
   ];
 
   return (
