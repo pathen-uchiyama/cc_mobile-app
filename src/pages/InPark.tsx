@@ -292,7 +292,14 @@ const InPark = () => {
       {devPanelEnabled && <DevPanel />}
 
       <AnimatePresence>
-        {needType && <NeedOverlay type={needType} onClose={() => setNeedType(null)} />}
+        {needType && (
+          <NeedOverlay
+            type={needType}
+            onClose={() => setNeedType(null)}
+            currentLocation={hero?.location}
+            hasKids={(hero?.party?.total ?? 0) >= 4}
+          />
+        )}
       </AnimatePresence>
       <AnimatePresence>
         {showRecalibrate && <RecalibrateSheet onClose={() => setShowRecalibrate(false)} />}
