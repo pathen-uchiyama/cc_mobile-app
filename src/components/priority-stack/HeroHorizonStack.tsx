@@ -59,6 +59,9 @@ const HeroHorizonStack = ({
   onSecureLL,
   onCaptureMemory,
   onCaptureWalking,
+  onFindAndSeek,
+  pivotSuggested = false,
+  pivotHeadline,
 }: HeroHorizonStackProps) => {
   const [ledgerOpen, setLedgerOpen] = useState(false);
 
