@@ -174,31 +174,18 @@ const FocusMove = ({
           )}
         </div>
 
-        <div className="grid grid-cols-[2fr_1fr] gap-2">
-          <motion.button
-            whileTap={{ scale: 0.98 }}
-            onClick={onCommit}
-            className="bg-primary text-primary-foreground py-4 px-5 flex items-center justify-center gap-2 border-none cursor-pointer min-h-[52px] font-sans text-sm font-semibold tracking-wide"
-            style={{ borderRadius: '16px' }}
-          >
-            {ctaLabel}
-            <ArrowRight size={16} />
-          </motion.button>
-          <motion.button
-            whileTap={{ scale: 0.97 }}
-            onClick={onSecureLL}
-            className="flex items-center justify-center gap-1.5 bg-transparent cursor-pointer min-h-[52px] font-sans text-[11px] font-semibold uppercase tracking-sovereign"
-            style={{
-              borderRadius: '16px',
-              border: '1.5px solid hsl(var(--gold))',
-              color: 'hsl(var(--gold))',
-            }}
-            aria-label="Secure Lightning Lane"
-          >
-            <Zap size={12} />
-            Secure LL
-          </motion.button>
-        </div>
+        {/* Single primary action — Lightning Lanes are NEVER manually grabbed here.
+            They are surfaced exclusively via the Contextual Booking Drawer when the
+            strategy engine finds a path that fits the day. */}
+        <motion.button
+          whileTap={{ scale: 0.98 }}
+          onClick={onCommit}
+          className="w-full bg-primary text-primary-foreground py-4 px-5 flex items-center justify-center gap-2 border-none cursor-pointer min-h-[56px] font-sans text-sm font-semibold tracking-wide"
+          style={{ borderRadius: '16px' }}
+        >
+          {ctaLabel}
+          <ArrowRight size={16} />
+        </motion.button>
 
         {questPrompt && (
           <p
