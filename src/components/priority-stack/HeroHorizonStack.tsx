@@ -15,8 +15,9 @@ export interface PlanItem {
   logic: string;
   wait?: string;
   llSecured?: boolean;
-  votes?: number;
-  /** Grand Quest prompt — surfaces in the Engagement Zone of the card. */
+  /** Party poll result: how many of the traveling party flagged this as a must-do. */
+  party?: { yes: number; total: number };
+  /** Keepsake prompt — surfaces in the Memory Ribbon of the card. */
   questPrompt?: string;
   questType?: 'photo' | 'voice';
 }
@@ -44,7 +45,7 @@ interface HeroHorizonStackProps {
  *
  * Top: Hero (≥25vh, dual-purpose).
  * Beneath: 2 Horizon cards peeking.
- * Interleaved: optional Walking Cards (Grand Quest only).
+ * Interleaved: optional Walking Cards (Keepsakes only).
  * Overflow: Full Ledger sheet.
  */
 const HeroHorizonStack = ({
@@ -104,7 +105,7 @@ const HeroHorizonStack = ({
           location={hero.location}
           logic={hero.logic}
           wait={hero.wait}
-          votes={hero.votes}
+          party={hero.party}
           ctaLabel="On Our Way"
           onCommit={onCommitHero}
           onSecureLL={onSecureLL}
@@ -143,7 +144,7 @@ const HeroHorizonStack = ({
                 wait={it.wait}
                 llSecured={it.llSecured}
                 depth={(idx + 1) as 1 | 2}
-                votes={it.votes}
+                party={it.party}
                 questPrompt={it.questPrompt}
                 onCaptureMemory={() => onCaptureMemory?.(it.id)}
               />
