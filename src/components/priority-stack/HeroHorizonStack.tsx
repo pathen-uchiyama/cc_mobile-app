@@ -103,11 +103,9 @@ const HeroHorizonStack = ({
       {/* Optional walking prompt above the Hero */}
       {walkingAfter(0).length > 0 && <div className="mb-3 space-y-2">{renderWalking(0)}</div>}
 
-      {/* Priority 1 — The Hero. 50% of viewport height. The "Now". */}
-      <div
-        className="relative"
-        style={{ height: '50vh', minHeight: '420px', marginBottom: '12px' }}
-      >
+      {/* Priority 1 — The Hero. The "Now". Card takes its natural height so the
+          Engagement Ribbon never overlaps the next item below. */}
+      <div className="relative" style={{ marginBottom: '12px' }}>
         <FocusMove
           attraction={hero.attraction}
           location={hero.location}
