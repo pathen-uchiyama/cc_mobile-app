@@ -102,7 +102,7 @@ const HorizonCard = ({
         </div>
       </button>
 
-      {/* ENGAGEMENT ZONE — Gold-bordered Grand Quest, revealed on expand */}
+      {/* ENGAGEMENT ZONE — logic + Keepsake whisper, revealed on expand */}
       <AnimatePresence>
         {expanded && (
           <motion.div
@@ -112,56 +112,63 @@ const HorizonCard = ({
             transition={{ duration: 0.22 }}
             className="overflow-hidden"
           >
-            <div style={{ padding: '0 24px 20px 24px' }}>
-              <p className="font-sans italic text-[12px] leading-snug mb-3" style={{ color: 'hsl(var(--slate-plaid))' }}>
+            <div style={{ padding: '0 24px 16px 24px' }}>
+              <p className="font-sans italic text-[12px] leading-snug" style={{ color: 'hsl(var(--slate-plaid))' }}>
                 {logic}
               </p>
-
               {questPrompt && (
-                <div
+                <p
+                  className="font-sans italic text-[12px] leading-snug mt-3 pt-3"
                   style={{
-                    padding: '14px 16px',
-                    borderRadius: '14px',
-                    border: '1px solid hsl(36 47% 35% / 0.55)',
-                    background:
-                      'linear-gradient(180deg, hsl(36 47% 35% / 0.08) 0%, hsl(36 47% 35% / 0.02) 100%)',
+                    color: 'hsl(36 47% 35%)',
+                    borderTop: '1px dashed hsl(36 47% 35% / 0.35)',
                   }}
                 >
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Camera size={10} style={{ color: 'hsl(36 47% 35%)' }} />
-                    <span
-                      className="font-sans text-[8px] uppercase tracking-sovereign font-bold"
-                      style={{ color: 'hsl(36 47% 35%)', letterSpacing: '0.14em' }}
-                    >
-                      A Keepsake
-                    </span>
-                  </div>
-                  <p
-                    className="font-sans italic text-[13px] leading-snug text-foreground/85 mb-2"
-                  >
-                    {questPrompt}
-                  </p>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onCaptureMemory?.();
-                    }}
-                    className="w-full flex items-center justify-center gap-1.5 py-2 bg-transparent cursor-pointer font-sans text-[10px] font-semibold uppercase tracking-sovereign min-h-[36px]"
-                    style={{
-                      borderRadius: '14px',
-                      border: '1px solid hsl(36 47% 35% / 0.45)',
-                      color: 'hsl(36 47% 35%)',
-                    }}
-                  >
-                    <Camera size={11} />
-                    Record Memory
-                  </button>
-                </div>
+                  <span className="font-sans not-italic text-[8px] uppercase tracking-sovereign font-bold block mb-1" style={{ letterSpacing: '0.14em' }}>
+                    A Keepsake
+                  </span>
+                  {questPrompt}
+                </p>
               )}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* ─── ENGAGEMENT RIBBON · 50/50 split, full-width, 56px touch targets ─── */}
+      <div
+        className="grid grid-cols-2"
+        style={{
+          borderTop: '1px solid hsl(36 47% 35% / 0.35)',
+          background: 'linear-gradient(180deg, hsl(36 47% 35% / 0.08) 0%, hsl(36 47% 35% / 0.02) 100%)',
+        }}
+      >
+        <button
+          onClick={(e) => { e.stopPropagation(); onCaptureMemory?.(); }}
+          className="flex items-center justify-center gap-2 bg-transparent cursor-pointer font-sans text-[10px] font-semibold uppercase tracking-sovereign border-none"
+          style={{
+            minHeight: '56px',
+            color: 'hsl(36 47% 35%)',
+            borderRight: '1px solid hsl(36 47% 35% / 0.35)',
+          }}
+          aria-label="Record Memory"
+        >
+          <Camera size={13} />
+          Record Memory
+        </button>
+        <button
+          onClick={(e) => { e.stopPropagation(); onFindAndSeek?.(); }}
+          className="flex items-center justify-center gap-2 bg-transparent cursor-pointer font-sans text-[10px] font-semibold uppercase tracking-sovereign border-none"
+          style={{
+            minHeight: '56px',
+            color: 'hsl(36 47% 35%)',
+          }}
+          aria-label="Find and Seek"
+        >
+          <Search size={13} />
+          Find &amp; Seek
+        </button>
+      </div>
     </motion.article>
   );
 };
