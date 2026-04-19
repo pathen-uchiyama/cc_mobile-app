@@ -49,7 +49,7 @@ const SideQuestsRow = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-end justify-center"
+            className="fixed inset-0 z-50 flex items-end justify-center pb-[108px]"
             style={{ backgroundColor: 'hsl(var(--obsidian) / 0.4)' }}
             onClick={() => setActive(null)}
           >
@@ -59,8 +59,8 @@ const SideQuestsRow = () => {
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 280 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-[480px] bg-background rounded-t-3xl p-5 pb-8"
-              style={{ minHeight: '60vh' }}
+              className="w-full max-w-[480px] bg-background p-5 pb-6 mx-3"
+              style={{ minHeight: '60vh', borderRadius: '16px' }}
             >
               <div className="flex items-center justify-between mb-4">
                 <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold">
