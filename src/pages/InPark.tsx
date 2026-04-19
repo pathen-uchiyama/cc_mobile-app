@@ -246,6 +246,8 @@ const InPark = () => {
                       walkingPrompts={WALKING_PROMPTS}
                       onCommitHero={commitHero}
                       onSecureLL={() => setDrawerOpen(true)}
+                      onSecureLLForItem={secureLLForPlanItem}
+                      onOpenLLVault={() => setLLVaultOpen(true)}
                       onCaptureMemory={(id) => celebrate('Memory tucked into the Vault.', `Captured · ${id}`)}
                       onCaptureWalking={(id) => celebrate('A small wonder, recorded.', `Walking · ${id}`)}
                       onFindAndSeek={() => setFindAndSeekOpen(true)}
