@@ -188,7 +188,6 @@ const HeroHorizonStack = ({
       )}
 
       <FullLedgerSheet
-      <FullLedgerSheet
         open={ledgerOpen}
         onClose={() => setLedgerOpen(false)}
         items={items}
