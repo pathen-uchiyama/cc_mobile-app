@@ -91,11 +91,9 @@ const HeroHorizonStack = ({
         </span>
       </div>
 
-      {/* Priority 1 — The Hero. Top 50% of viewport. */}
-      <div
-        className="relative"
-        style={{ height: '50vh', minHeight: '420px', marginBottom: '12px' }}
-      >
+      {/* Priority 1 — The Hero. Natural height so the Engagement Ribbon
+          always hugs the bottom edge without being clipped. */}
+      <div className="relative" style={{ marginBottom: '14px' }}>
         <FocusMove
           attraction={hero.attraction}
           location={hero.location}
@@ -114,11 +112,12 @@ const HeroHorizonStack = ({
         />
       </div>
 
-      {/* Priority 2 & 3 — The Horizon. 20% smaller, slightly offset inward
-          to telegraph "near future" depth without scaling (which would shrink
-          touch targets and break the Engagement Ribbon's 54px contract). */}
+      {/* Priority 2 & 3 — The Horizon. The third card sits BEHIND the second
+          (overlap via negative margin + lower z-index) to telegraph "deeper
+          future" depth. Both keep their own border + Burnished Gold ring
+          when applicable. */}
       {horizon.length > 0 && (
-        <div className="relative space-y-2.5">
+        <div className="relative">
           {horizon.map((it, idx) => (
             <motion.div
               key={it.id}
@@ -126,9 +125,11 @@ const HeroHorizonStack = ({
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.3, delay: 0.08 + idx * 0.08 }}
               style={{
-                // Slightly offset inward — second further than first.
-                width: idx === 0 ? '94%' : '88%',
+                width: idx === 0 ? '94%' : '86%',
                 margin: '0 auto',
+                position: 'relative',
+                zIndex: idx === 0 ? 2 : 1,
+                marginTop: idx === 0 ? 0 : '-28px',
               }}
             >
               <HorizonCard
