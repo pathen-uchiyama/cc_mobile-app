@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, ChevronDown, Users, Camera } from 'lucide-react';
+import { Zap, ChevronDown, Users, Camera, Search } from 'lucide-react';
 
 interface HorizonCardProps {
   rank: 'next' | 'later';
@@ -16,6 +16,8 @@ interface HorizonCardProps {
   /** Keepsake prompt for the Memory Ribbon. */
   questPrompt?: string;
   onCaptureMemory?: () => void;
+  /** Find & Seek action — right side of the Engagement Ribbon. */
+  onFindAndSeek?: () => void;
 }
 
 /**
