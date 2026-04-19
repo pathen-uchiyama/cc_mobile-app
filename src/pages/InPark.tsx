@@ -214,6 +214,9 @@ const InPark = () => {
                       onSecureLL={() => setDrawerOpen(true)}
                       onCaptureMemory={(id) => celebrate('Memory tucked into the Vault.', `Captured · ${id}`)}
                       onCaptureWalking={(id) => celebrate('A small wonder, recorded.', `Walking · ${id}`)}
+                      onFindAndSeek={() => setFindAndSeekOpen(true)}
+                      pivotSuggested={pivotSuggested && !pivotLabel}
+                      pivotHeadline="A New Path is Available"
                     />
                   </motion.div>
                 )}
