@@ -122,6 +122,12 @@ const InPark = () => {
     inStack: stackAttractions.has(m.attraction),
     done: false,
   }));
+  const mustDoEntries: MustDoEntry[] = MUST_DOS.map((m) => ({
+    id: m.id,
+    attraction: m.attraction,
+    inStack: stackAttractions.has(m.attraction),
+    done: false,
+  }));
 
   // The Assisted Drawer is the canonical LL surface — surfaces only when a window is found.
   useEffect(() => {
