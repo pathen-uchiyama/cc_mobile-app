@@ -57,6 +57,7 @@ const FocusMove = ({
   pivotSuggested = false,
   pivotHeadline = 'A New Path is Available',
   mustDo = false,
+  onComplete,
 }: FocusMoveProps) => {
   // Boutique Shadow — heavy Deep Obsidian at 10% opacity per spec.
   // Must-Do cards add a Burnished Gold border ring.
