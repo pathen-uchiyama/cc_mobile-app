@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import LoomingHorizon from '@/components/LoomingHorizon';
-import FocusMove from '@/components/priority-stack/FocusMove';
-import QuietHorizon from '@/components/priority-stack/QuietHorizon';
+import HeroHorizonStack from '@/components/priority-stack/HeroHorizonStack';
 import PriorityFootnote from '@/components/priority-stack/PriorityFootnote';
 import SideQuestsRow from '@/components/priority-stack/SideQuestsRow';
 import AssistedDrawer from '@/components/priority-stack/AssistedDrawer';
 import AudibleMenu from '@/components/priority-stack/AudibleMenu';
+import StrategicDashboard from '@/components/priority-stack/StrategicDashboard';
 import SovereignAnchor from '@/components/priority-stack/SovereignAnchor';
 import MinimalistView from '@/components/MinimalistView';
 import SovereignView from '@/components/SovereignView';
@@ -37,7 +37,7 @@ const PLAN: PlanItem[] = [
     time: '10:15',
     attraction: 'Pirates of the Caribbean',
     location: 'Adventureland',
-    logic: 'Optimized to beat the 2 PM parade crowd — wait is 15m below average right now.',
+    logic: 'Standby is at a 10-minute low — head now to beat the parade crowd.',
     wait: '12 min',
     votes: 1_708,
   },
@@ -62,39 +62,49 @@ const PLAN: PlanItem[] = [
     wait: '30 min',
     votes: 1_944,
   },
+  {
+    id: '4',
+    rank: 'later',
+    time: '2:30',
+    attraction: 'Big Thunder Mountain',
+    location: 'Frontierland',
+    logic: 'Window aligns with your LL drop — fast in, fast out.',
+    wait: '20 min',
+    llSecured: true,
+    votes: 2_215,
+  },
+  {
+    id: '5',
+    rank: 'later',
+    time: '4:00',
+    attraction: 'Space Mountain',
+    location: 'Tomorrowland',
+    logic: 'Late afternoon dip in standby — strategic pivot from the parade exodus.',
+    wait: '35 min',
+    votes: 2_984,
+  },
 ];
 
 const InPark = () => {
+  // Sovereign Key contextual mode: 'audible' for relaxed users, 'dashboard' for Type A.
   const [audibleOpen, setAudibleOpen] = useState(false);
+  const [dashboardOpen, setDashboardOpen] = useState(false);
   const [needType, setNeedType] = useState<'bathroom' | 'quiet' | null>(null);
   const [showRecalibrate, setShowRecalibrate] = useState(false);
   const [swapFor, setSwapFor] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerHandled, setDrawerHandled] = useState(false);
-  const [llDismissed, setLlDismissed] = useState(false);
 
   const { minimalist, tier, devPanelEnabled, llTrackerVisible } = useCompanion();
   const { celebrate } = useCelebrate();
 
   const useQuietView = minimalist || tier === 'sovereign';
   const hero = PLAN.find((p) => p.rank === 'now');
-  const horizonItems = PLAN
-    .filter((p): p is PlanItem & { rank: 'next' | 'later' } => p.rank !== 'now')
-    .map((p) => ({
-      id: p.id,
-      rank: p.rank,
-      time: p.time,
-      attraction: p.attraction,
-      wait: p.wait,
-      llSecured: p.llSecured,
-    }));
 
-  // Inline LL recommendation — folded INTO the Focus card, not a separate section.
-  const showInlineLL = llTrackerVisible && tier === 'manager' && !llDismissed;
-  const inlineLL = showInlineLL
-    ? { ride: 'Space Mountain', window: '12:30 – 1:30', savedMin: 55 }
-    : null;
+  // Type A = manager tier with LL tracking on. They get the Strategic Dashboard.
+  const isTypeA = tier === 'manager' && llTrackerVisible;
 
+  // The Assisted Drawer is the canonical LL surface — surfaces only when a window is found.
   useEffect(() => {
     if (useQuietView || tier !== 'manager' || drawerHandled) return;
     const t = setTimeout(() => setDrawerOpen(true), 4000);
@@ -104,12 +114,6 @@ const InPark = () => {
   const commitHero = () => {
     const tip = WHISPERS.arrival[Math.floor(Math.random() * WHISPERS.arrival.length)];
     celebrate(tip, 'On Your Way');
-  };
-
-  const secureInlineLL = () => {
-    const tip = WHISPERS.llSnipe[Math.floor(Math.random() * WHISPERS.llSnipe.length)];
-    celebrate(tip, 'LL Secured');
-    setLlDismissed(true);
   };
 
   const confirmDrawer = () => {
@@ -122,6 +126,11 @@ const InPark = () => {
   const dismissDrawer = () => {
     setDrawerOpen(false);
     setDrawerHandled(true);
+  };
+
+  const handleSovereignTap = () => {
+    if (isTypeA) setDashboardOpen(true);
+    else setAudibleOpen(true);
   };
 
   return (
@@ -145,55 +154,32 @@ const InPark = () => {
               </h1>
             </header>
 
-            {/* Whisper ticker — single quiet line of context */}
-            <div className="mb-5 -mx-5">
+            {/* Whisper ticker */}
+            <div className="mb-4 -mx-5">
               <WhisperStrip />
             </div>
 
-            {/* ── ZONE 1: NOW ── the only decision on screen ── */}
-            <section aria-label="Right now" className="shrink-0">
-              {hero && (
-                <FocusMove
-                  attraction={hero.attraction}
-                  location={hero.location}
-                  logic={hero.logic}
-                  wait={hero.wait}
-                  votes={hero.votes}
-                  ctaLabel="On Our Way"
-                  onCommit={commitHero}
-                  llSuggestion={inlineLL}
-                  onSecureLL={secureInlineLL}
-                />
-              )}
-            </section>
-
-            {/* Soft divider — typographic, no rule */}
-            <div className="mt-8 mb-4 px-1">
-              <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold">
-                Later today
-              </span>
-            </div>
-
-            {/* ── ZONE 2: LATER ── the rest of the day, quiet ── */}
-            <section aria-label="Later today" className="shrink-0">
-              <QuietHorizon items={horizonItems} />
+            {/* ── Depth-Based Stack: Hero (top 40%) + 2 peeks + Full Ledger fade ── */}
+            <section aria-label="Today's plan" className="shrink-0">
+              <HeroHorizonStack items={PLAN} onCommitHero={commitHero} />
             </section>
 
             {/* Footnote — most-wanted as one tappable line */}
-            <div className="mt-5">
+            <div className="mt-6">
               <PriorityFootnote />
             </div>
 
-            {/* Side Quests — discoverable chip row, visually subordinate */}
-            <div className="mt-6">
+            {/* Side Quests — discoverable chip row */}
+            <div className="mt-5">
               <SideQuestsRow />
             </div>
           </main>
 
+          {/* Directive 2 — Assisted Booking Drawer (bottom 30%, single-tap decision) */}
           <AssistedDrawer
             open={drawerOpen}
-            attraction="Pirates of the Caribbean"
-            window="1:20 PM"
+            attraction="Haunted Mansion"
+            window="1:15 PM"
             savedMinutes={45}
             onConfirm={confirmDrawer}
             onDismiss={dismissDrawer}
@@ -201,7 +187,8 @@ const InPark = () => {
         </>
       )}
 
-      <SovereignAnchor onTap={() => setAudibleOpen(true)} active={audibleOpen} />
+      {/* Directive 3 — Sovereign Key (contextual: Dashboard for Type A, Audible for relaxed) */}
+      <SovereignAnchor onTap={handleSovereignTap} active={audibleOpen || dashboardOpen} />
 
       <AudibleMenu
         open={audibleOpen}
@@ -210,6 +197,11 @@ const InPark = () => {
         onRefuel={() => setNeedType('bathroom')}
         onClosure={() => setSwapFor(hero?.attraction ?? 'current ride')}
         onReset={() => setShowRecalibrate(true)}
+      />
+
+      <StrategicDashboard
+        open={dashboardOpen}
+        onClose={() => setDashboardOpen(false)}
       />
 
       {devPanelEnabled && <DevPanel />}
