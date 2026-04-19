@@ -60,10 +60,15 @@ const FocusMove = ({
         )}
       </div>
 
-      <h2 className="font-display text-[26px] leading-[1.1] text-foreground mb-2">
+      {/* Attraction — Publico Headline (Playfair fallback) */}
+      <h2
+        className="font-display text-[28px] leading-[1.05] text-foreground mb-2"
+        style={{ fontFamily: '"Publico Headline", "Playfair Display", serif' }}
+      >
         {attraction}
       </h2>
 
+      {/* Logic Whisper — Inter Italic */}
       <p className="font-sans italic text-[14px] text-foreground/75 leading-snug mb-4">
         {logic}
       </p>
