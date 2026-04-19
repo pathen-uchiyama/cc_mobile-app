@@ -120,7 +120,7 @@ const MemoryMakerWidget = () => {
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   onClick={handleCapture}
-                  className="flex-1 py-2 bg-primary text-primary-foreground font-sans text-[9px] uppercase tracking-sovereign border-none cursor-pointer flex items-center justify-center gap-1.5"
+                  className="flex-1 py-2 rounded-lg bg-primary text-primary-foreground font-sans text-[9px] uppercase tracking-sovereign border-none cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   <Icon size={10} />
                   {current.type === 'photo' ? 'Capture' : 'Record'}
@@ -128,7 +128,7 @@ const MemoryMakerWidget = () => {
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   onClick={handleSkip}
-                  className="py-2 px-3 bg-transparent text-muted-foreground font-sans text-[9px] uppercase tracking-sovereign border border-border cursor-pointer"
+                  className="py-2 px-3 rounded-lg bg-transparent text-muted-foreground font-sans text-[9px] uppercase tracking-sovereign border border-border cursor-pointer"
                 >
                   Skip
                 </motion.button>
