@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion';
 import { Zap, Users, MapPin, Clock } from 'lucide-react';
-import EngagementRibbon from './EngagementRibbon';
 
 interface HorizonCardProps {
   rank: 'next' | 'later';
