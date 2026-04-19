@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, ChevronDown, Users, Camera, Search } from 'lucide-react';
+import { Zap, ChevronDown, Users } from 'lucide-react';
 
 interface HorizonCardProps {
   rank: 'next' | 'later';
@@ -135,40 +135,8 @@ const HorizonCard = ({
         )}
       </AnimatePresence>
 
-      {/* ─── ENGAGEMENT RIBBON · 50/50 split, full-width, 56px touch targets ─── */}
-      <div
-        className="grid grid-cols-2"
-        style={{
-          borderTop: '1px solid hsl(36 47% 35% / 0.35)',
-          background: 'linear-gradient(180deg, hsl(36 47% 35% / 0.08) 0%, hsl(36 47% 35% / 0.02) 100%)',
-        }}
-      >
-        <button
-          onClick={(e) => { e.stopPropagation(); onCaptureMemory?.(); }}
-          className="flex items-center justify-center gap-2 bg-transparent cursor-pointer font-sans text-[10px] font-semibold uppercase tracking-sovereign border-none"
-          style={{
-            minHeight: '56px',
-            color: 'hsl(36 47% 35%)',
-            borderRight: '1px solid hsl(36 47% 35% / 0.35)',
-          }}
-          aria-label="Record Memory"
-        >
-          <Camera size={13} />
-          Record Memory
-        </button>
-        <button
-          onClick={(e) => { e.stopPropagation(); onFindAndSeek?.(); }}
-          className="flex items-center justify-center gap-2 bg-transparent cursor-pointer font-sans text-[10px] font-semibold uppercase tracking-sovereign border-none"
-          style={{
-            minHeight: '56px',
-            color: 'hsl(36 47% 35%)',
-          }}
-          aria-label="Find and Seek"
-        >
-          <Search size={13} />
-          Find &amp; Seek
-        </button>
-      </div>
+      {/* No engagement ribbon on Horizon cards — they are scannable previews.
+          Memory + Find & Seek surface only on the Hero card to avoid repetition. */}
     </motion.article>
   );
 };
