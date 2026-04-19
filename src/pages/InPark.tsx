@@ -6,6 +6,7 @@ import HorizonCard from '@/components/priority-stack/HorizonCard';
 import AssistedDrawer from '@/components/priority-stack/AssistedDrawer';
 import AudibleMenu from '@/components/priority-stack/AudibleMenu';
 import SovereignAnchor from '@/components/priority-stack/SovereignAnchor';
+import PriorityRides from '@/components/priority-stack/PriorityRides';
 import MinimalistView from '@/components/MinimalistView';
 import SovereignView from '@/components/SovereignView';
 import NeedOverlay from '@/components/NeedOverlay';
@@ -167,6 +168,11 @@ const InPark = () => {
                   llSecured={later.llSecured}
                 />
               )}
+            </section>
+
+            {/* Crowd-voted priority rides */}
+            <section className="mt-7">
+              <PriorityRides />
             </section>
           </main>
 
