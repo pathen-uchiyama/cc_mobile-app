@@ -176,12 +176,18 @@ const InPark = () => {
               </h1>
             </header>
 
+            {/* Sovereign Progress Bar — only the Must-Dos. Items currently in
+                the stack glow gold to mirror the card border. */}
+            <div className="mb-3">
+              <MustDoRibbon items={mustDoIcons} />
+            </div>
+
             {/* Whisper ticker */}
             <div className="mb-4 -mx-5">
               <WhisperStrip />
             </div>
 
-            {/* ── Depth-Based Stack OR Pivot Shimmer ── */}
+            {/* ── The Sovereign Stack (max 3 cards) OR Pivot Shimmer ── */}
             <section aria-label="Today's plan" className="shrink-0">
               <AnimatePresence mode="wait">
                 {pivotLabel ? (
@@ -200,7 +206,6 @@ const InPark = () => {
                       walkingPrompts={WALKING_PROMPTS}
                       onCommitHero={commitHero}
                       onCaptureMemory={(id) => celebrate('Memory tucked into the Vault.', `Captured · ${id}`)}
-                      onCaptureWalking={(id) => celebrate('A small wonder, recorded.', `Walking · ${id}`)}
                       onFindAndSeek={() => setFindAndSeekOpen(true)}
                       pivotSuggested={pivotSuggested && !pivotLabel}
                       pivotHeadline="A New Path is Available"
@@ -209,14 +214,6 @@ const InPark = () => {
                 )}
               </AnimatePresence>
             </section>
-
-            {/* Footnote — most-wanted as one tappable line */}
-            <div className="mt-6">
-              <PriorityFootnote />
-            </div>
-
-            {/* Memory Capture & Initiate Seek now live as the Engagement Ribbon
-                at the base of the Hero card — no separate chip row. */}
           </main>
 
           {/* Contextual Booking Drawer — the ONLY place Lightning Lanes are managed. */}
