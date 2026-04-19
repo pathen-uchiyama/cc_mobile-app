@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import LoomingHorizon from '@/components/LoomingHorizon';
-import HeroCard from '@/components/priority-stack/HeroCard';
-import HorizonCard from '@/components/priority-stack/HorizonCard';
+import FocusMove from '@/components/priority-stack/FocusMove';
+import QuietHorizon from '@/components/priority-stack/QuietHorizon';
+import PriorityFootnote from '@/components/priority-stack/PriorityFootnote';
+import SideQuestsRow from '@/components/priority-stack/SideQuestsRow';
 import AssistedDrawer from '@/components/priority-stack/AssistedDrawer';
 import AudibleMenu from '@/components/priority-stack/AudibleMenu';
 import SovereignAnchor from '@/components/priority-stack/SovereignAnchor';
-import PriorityRides from '@/components/priority-stack/PriorityRides';
 import MinimalistView from '@/components/MinimalistView';
 import SovereignView from '@/components/SovereignView';
 import NeedOverlay from '@/components/NeedOverlay';
@@ -14,9 +15,6 @@ import RecalibrateSheet from '@/components/RecalibrateSheet';
 import SwapSuggestionsSheet from '@/components/SwapSuggestionsSheet';
 import DevPanel from '@/components/DevPanel';
 import WhisperStrip from '@/components/WhisperStrip';
-import NextLLMove from '@/components/priority-stack/NextLLMove';
-import MemoryMakerWidget from '@/components/MemoryMakerWidget';
-import FindAndSeekWidget from '@/components/FindAndSeekWidget';
 import { useCompanion } from '@/contexts/CompanionContext';
 import { useCelebrate, WHISPERS } from '@/contexts/CelebrationContext';
 
@@ -29,7 +27,6 @@ interface PlanItem {
   logic: string;
   wait?: string;
   llSecured?: boolean;
-  /** Crowd-vote count — explains why this attraction is on the plan. */
   votes?: number;
 }
 
@@ -74,16 +71,21 @@ const InPark = () => {
   const [swapFor, setSwapFor] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerHandled, setDrawerHandled] = useState(false);
+  const [llDismissed, setLlDismissed] = useState(false);
 
   const { minimalist, tier, devPanelEnabled, llTrackerVisible } = useCompanion();
   const { celebrate } = useCelebrate();
 
   const useQuietView = minimalist || tier === 'sovereign';
   const hero = PLAN.find((p) => p.rank === 'now');
-  const next = PLAN.find((p) => p.rank === 'next');
-  const later = PLAN.find((p) => p.rank === 'later');
+  const horizonItems = PLAN.filter((p) => p.rank !== 'now');
 
-  // Backend "found a window" — simulate a 4s discovery for Manager tier
+  // Inline LL recommendation — folded INTO the Focus card, not a separate section.
+  const showInlineLL = llTrackerVisible && tier === 'manager' && !llDismissed;
+  const inlineLL = showInlineLL
+    ? { ride: 'Space Mountain', window: '12:30 – 1:30', savedMin: 55 }
+    : null;
+
   useEffect(() => {
     if (useQuietView || tier !== 'manager' || drawerHandled) return;
     const t = setTimeout(() => setDrawerOpen(true), 4000);
@@ -93,6 +95,12 @@ const InPark = () => {
   const commitHero = () => {
     const tip = WHISPERS.arrival[Math.floor(Math.random() * WHISPERS.arrival.length)];
     celebrate(tip, 'On Your Way');
+  };
+
+  const secureInlineLL = () => {
+    const tip = WHISPERS.llSnipe[Math.floor(Math.random() * WHISPERS.llSnipe.length)];
+    celebrate(tip, 'LL Secured');
+    setLlDismissed(true);
   };
 
   const confirmDrawer = () => {
@@ -117,10 +125,9 @@ const InPark = () => {
         <>
           <LoomingHorizon parkName="Magic Kingdom" pulseStatus="Strategy is Active" />
 
-          {/* ── The Strategic Stack ── */}
           <main className="flex-1 pt-[72px] pb-[140px] px-5 flex flex-col">
             {/* Editorial title */}
-            <header className="mb-4 shrink-0">
+            <header className="mb-3 shrink-0">
               <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold">
                 Today
               </span>
@@ -129,19 +136,15 @@ const InPark = () => {
               </h1>
             </header>
 
-            {/* Contextual nudges — single-line whisper ticker */}
-            <div className="mb-4 -mx-5">
+            {/* Whisper ticker — single quiet line of context */}
+            <div className="mb-5 -mx-5">
               <WhisperStrip />
             </div>
 
-            {/* Visual Anchor — top 40% of viewport reserved for the Focus card */}
-            <section
-              className="shrink-0 flex items-start"
-              style={{ minHeight: '38vh' }}
-              aria-label="Focus priority"
-            >
+            {/* ── ZONE 1: NOW ── the only decision on screen ── */}
+            <section aria-label="Right now" className="shrink-0">
               {hero && (
-                <HeroCard
+                <FocusMove
                   attraction={hero.attraction}
                   location={hero.location}
                   logic={hero.logic}
@@ -149,71 +152,35 @@ const InPark = () => {
                   votes={hero.votes}
                   ctaLabel="On Our Way"
                   onCommit={commitHero}
+                  llSuggestion={inlineLL}
+                  onSecureLL={secureInlineLL}
                 />
               )}
             </section>
 
-            {/* Horizon — Next & Later peek at 90% width */}
-            <section
-              className="mt-5 space-y-2.5"
-              aria-label="Horizon — upcoming priorities"
-            >
-              <p className="font-sans text-[8px] uppercase tracking-sovereign text-muted-foreground font-semibold px-1 mb-1">
-                On the Horizon
-              </p>
-              {next && (
-                <HorizonCard
-                  rank="next"
-                  depth={1}
-                  time={next.time}
-                  attraction={next.attraction}
-                  logic={next.logic}
-                  wait={next.wait}
-                  llSecured={next.llSecured}
-                  votes={next.votes}
-                />
-              )}
-              {later && (
-                <HorizonCard
-                  rank="later"
-                  depth={2}
-                  time={later.time}
-                  attraction={later.attraction}
-                  logic={later.logic}
-                  wait={later.wait}
-                  llSecured={later.llSecured}
-                  votes={later.votes}
-                />
-              )}
+            {/* Soft divider — typographic, no rule */}
+            <div className="mt-8 mb-4 px-1">
+              <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold">
+                Later today
+              </span>
+            </div>
+
+            {/* ── ZONE 2: LATER ── the rest of the day, quiet ── */}
+            <section aria-label="Later today" className="shrink-0">
+              <QuietHorizon items={horizonItems} />
             </section>
 
-            {/* The Next LL Move — one ranked recommendation, not a spreadsheet */}
-            <section className="mt-6" aria-label="Next Lightning Lane recommendation">
-              <NextLLMove visible={llTrackerVisible} tier={tier} />
-            </section>
+            {/* Footnote — most-wanted as one tappable line */}
+            <div className="mt-5">
+              <PriorityFootnote />
+            </div>
 
-            {/* Moments — Memory Maker + Find & Seek paired row */}
-            <section className="mt-7" aria-label="Moments and quests">
-              <p className="font-sans text-[8px] uppercase tracking-sovereign text-muted-foreground font-semibold px-1 mb-2">
-                Moments Worth Catching
-              </p>
-              <div className="grid grid-cols-2 gap-2.5" style={{ minHeight: '180px' }}>
-                <div className="bg-card rounded-2xl p-3" style={{ boxShadow: '0 6px 18px hsl(var(--obsidian) / 0.04)' }}>
-                  <MemoryMakerWidget />
-                </div>
-                <div className="bg-card rounded-2xl p-3" style={{ boxShadow: '0 6px 18px hsl(var(--obsidian) / 0.04)' }}>
-                  <FindAndSeekWidget />
-                </div>
-              </div>
-            </section>
-
-            {/* Crowd-voted priority rides */}
-            <section className="mt-7">
-              <PriorityRides />
-            </section>
+            {/* Side Quests — discoverable chip row, visually subordinate */}
+            <div className="mt-6">
+              <SideQuestsRow />
+            </div>
           </main>
 
-          {/* Assisted Drawer — bottom-up, lower 50% */}
           <AssistedDrawer
             open={drawerOpen}
             attraction="Pirates of the Caribbean"
@@ -225,10 +192,8 @@ const InPark = () => {
         </>
       )}
 
-      {/* The Sovereign Anchor — always present */}
       <SovereignAnchor onTap={() => setAudibleOpen(true)} active={audibleOpen} />
 
-      {/* Audible Menu — gold-outline secondary actions */}
       <AudibleMenu
         open={audibleOpen}
         onClose={() => setAudibleOpen(false)}
