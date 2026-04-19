@@ -261,8 +261,9 @@ const InPark = () => {
       <HearthDock
         onSovereignTap={handleSovereignTap}
         active={audibleOpen || dashboardOpen}
-        onBreak={() => pivotWith('Need a Break', () => setNeedType('quiet'))}
+        onRestroom={() => pivotWith('Restroom', () => setNeedType('bathroom'))}
         onRefuel={() => pivotWith('Refuel', () => setNeedType('food'))}
+        onBreak={() => pivotWith('Need a Break', () => setNeedType('quiet'))}
         onRain={() => pivotWith('Rain Pivot', () => setSwapFor(hero?.attraction ?? 'current ride'))}
         onReset={() => pivotWith('Reset Strategy', () => { setPivotSuggested(false); setShowRecalibrate(true); })}
       />
