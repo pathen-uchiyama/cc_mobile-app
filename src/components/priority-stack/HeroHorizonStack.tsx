@@ -97,8 +97,8 @@ const HeroHorizonStack = ({
       {/* Optional walking prompt above the Hero */}
       {walkingAfter(0).length > 0 && <div className="mb-3 space-y-2">{renderWalking(0)}</div>}
 
-      {/* Priority 1 — Hero (≥25vh, dual-purpose, elevated) */}
-      <div className="relative" style={{ minHeight: '32vh', marginBottom: '4px' }}>
+      {/* Priority 1 — Hero (~25% larger than Horizon, dual-purpose, elevated) */}
+      <div className="relative" style={{ minHeight: '40vh', marginBottom: '8px' }}>
         <FocusMove
           attraction={hero.attraction}
           location={hero.location}
@@ -127,10 +127,12 @@ const HeroHorizonStack = ({
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.3, delay: 0.1 + idx * 0.08 }}
               style={{
-                width: idx === 0 ? '92%' : '84%',
+                width: idx === 0 ? '90%' : '82%',
                 margin: '0 auto',
                 position: 'relative',
                 zIndex: 10 - idx,
+                transform: idx === 0 ? 'scale(0.96)' : 'scale(0.92)',
+                transformOrigin: 'top center',
               }}
             >
               <HorizonCard

@@ -169,7 +169,7 @@ const FocusMove = ({
               className="font-sans text-[8px] uppercase tracking-sovereign font-bold"
               style={{ color: 'hsl(36 47% 35%)', letterSpacing: '0.14em' }}
             >
-              The Grand Quest
+              Sovereign Whisper
             </span>
           </div>
           <p
@@ -188,7 +188,7 @@ const FocusMove = ({
             }}
           >
             <QuestIcon size={12} />
-            Capture Memory
+            Record Memory
           </motion.button>
         </div>
       )}

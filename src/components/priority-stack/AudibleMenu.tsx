@@ -11,10 +11,10 @@ interface AudibleMenuProps {
 }
 
 const items = [
-  { id: 'break',   label: 'Need a Break',   icon: Coffee },
-  { id: 'refuel',  label: 'Refuel (Food)',  icon: Utensils },
-  { id: 'closure', label: 'Ride Closure',   icon: AlertTriangle },
-  { id: 'reset',   label: 'Reset the Pulse',icon: RefreshCw },
+  { id: 'break',   label: 'We Need a Break',         icon: Coffee },
+  { id: 'refuel',  label: 'Our Appetites are Calling', icon: Utensils },
+  { id: 'closure', label: 'A Sudden Change',         icon: AlertTriangle },
+  { id: 'reset',   label: 'The Realm is Quiet',      icon: RefreshCw },
 ] as const;
 
 /**
@@ -57,8 +57,11 @@ const AudibleMenu = ({ open, onClose, onBreak, onRefuel, onClosure, onReset }: A
               border: '1px solid hsl(var(--gold) / 0.18)',
             }}
           >
-            <p className="font-sans text-[8px] uppercase tracking-sovereign font-bold text-center mb-4" style={{ color: 'hsl(var(--gold))' }}>
-              Call an Audible
+            <p className="font-sans text-[8px] uppercase tracking-sovereign font-bold text-center mb-1" style={{ color: 'hsl(var(--gold))' }}>
+              The Sovereign's Choice
+            </p>
+            <p className="font-sans italic text-[11px] text-center mb-4" style={{ color: 'hsl(var(--slate-plaid))' }}>
+              Pivot the strategy with a single tap.
             </p>
             <div className="grid grid-cols-2 gap-3">
               {items.map((it) => {

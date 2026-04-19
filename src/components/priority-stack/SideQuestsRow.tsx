@@ -21,9 +21,9 @@ const SideQuestsRow = () => {
       <div className="flex items-center gap-2 px-1 overflow-x-auto no-scrollbar">
         <span
           className="font-sans text-[9px] uppercase tracking-sovereign font-semibold shrink-0 mr-1"
-          style={{ color: 'hsl(var(--slate-plaid))' }}
+          style={{ color: 'hsl(var(--gold))' }}
         >
-          Side Quests
+          The Grand Quest
         </span>
         <button
           onClick={() => setActive('memory')}
@@ -31,7 +31,7 @@ const SideQuestsRow = () => {
           style={{ boxShadow: '0 2px 8px hsl(var(--obsidian) / 0.04)' }}
         >
           <Camera size={11} className="text-accent" />
-          <span className="font-sans text-[11px] text-foreground/85">Memory Maker</span>
+          <span className="font-sans text-[11px] text-foreground/85">Memory Capture</span>
         </button>
         <button
           onClick={() => setActive('seek')}
@@ -63,8 +63,8 @@ const SideQuestsRow = () => {
               style={{ minHeight: '60vh', borderRadius: '16px' }}
             >
               <div className="flex items-center justify-between mb-4">
-                <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold">
-                  Side Quest
+                <span className="font-sans text-[9px] uppercase tracking-sovereign font-semibold" style={{ color: 'hsl(var(--gold))' }}>
+                  The Grand Quest
                 </span>
                 <button
                   onClick={() => setActive(null)}
