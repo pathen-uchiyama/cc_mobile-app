@@ -337,6 +337,13 @@ const InPark = () => {
       >
         <FindAndSeekWidget />
       </BottomSheet>
+
+      <LLVaultSheet
+        open={llVaultOpen}
+        onClose={() => setLLVaultOpen(false)}
+        rides={llRides}
+        onSecure={secureRideById}
+      />
     </div>
   );
 };
