@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, ChevronDown, Users } from 'lucide-react';
+import { Zap, ChevronDown, Users, Camera } from 'lucide-react';
 
 interface HorizonCardProps {
   rank: 'next' | 'later';
@@ -13,20 +13,23 @@ interface HorizonCardProps {
   depth?: 1 | 2;
   /** Number of guests who voted this a priority. */
   votes?: number;
+  /** Grand Quest prompt for the Engagement Zone. */
+  questPrompt?: string;
+  onCaptureMemory?: () => void;
 }
 
 const formatVotes = (n: number) =>
   n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, '')}k` : n.toString();
 
 /**
- * Horizon Card — Priority 2 & 3.
+ * Dual-Purpose Horizon Card — Priority 2 & 3.
  *
- * Renders at 90% width to "peek" behind the Focus card.
- * Non-interactive by default, but expandable to reveal logic.
- * Slate Plaid logic text reduces visual noise.
+ * Top half = Tactical (rank/time/attraction/wait).
+ * Bottom half = Engagement Zone (Grand Quest), revealed on expand.
  */
 const HorizonCard = ({
   rank, time, attraction, logic, wait, llSecured, depth = 1, votes,
+  questPrompt, onCaptureMemory,
 }: HorizonCardProps) => {
   const [expanded, setExpanded] = useState(false);
 
@@ -35,15 +38,17 @@ const HorizonCard = ({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: depth * 0.08 }}
-      className="bg-card rounded-2xl px-5 py-3.5 mx-auto"
+      className="bg-card mx-auto overflow-hidden"
       style={{
-        width: '90%',
+        width: '100%',
+        borderRadius: '16px',
         boxShadow: '0 6px 18px hsl(var(--obsidian) / 0.04)',
       }}
     >
+      {/* TACTICAL row */}
       <button
         onClick={() => setExpanded((v) => !v)}
-        className="w-full bg-transparent border-none p-0 cursor-pointer text-left"
+        className="w-full bg-transparent border-none p-0 cursor-pointer text-left px-5 py-3.5"
         aria-expanded={expanded}
       >
         <div className="flex items-center justify-between gap-3">
@@ -59,7 +64,10 @@ const HorizonCard = ({
                 </span>
               )}
             </div>
-            <h3 className="font-display text-[17px] leading-tight text-foreground truncate">
+            <h3
+              className="font-display text-[17px] leading-tight text-foreground truncate"
+              style={{ fontFamily: '"Publico Headline", "Playfair Display", serif' }}
+            >
               {attraction}
             </h3>
             {votes !== undefined && (
@@ -90,23 +98,69 @@ const HorizonCard = ({
             />
           </div>
         </div>
+      </button>
 
-        <AnimatePresence>
-          {expanded && (
-            <motion.div
-              initial={{ height: 0, opacity: 0, marginTop: 0 }}
-              animate={{ height: 'auto', opacity: 1, marginTop: 8 }}
-              exit={{ height: 0, opacity: 0, marginTop: 0 }}
-              transition={{ duration: 0.2 }}
-              className="overflow-hidden"
-            >
-              <p className="font-sans italic text-[12px] leading-snug" style={{ color: 'hsl(var(--slate-plaid))' }}>
+      {/* ENGAGEMENT ZONE — Gold-bordered Grand Quest, revealed on expand */}
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.22 }}
+            className="overflow-hidden"
+          >
+            <div className="px-5 pb-4">
+              <p className="font-sans italic text-[12px] leading-snug mb-3" style={{ color: 'hsl(var(--slate-plaid))' }}>
                 {logic}
               </p>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </button>
+
+              {questPrompt && (
+                <div
+                  className="p-3"
+                  style={{
+                    borderRadius: '16px',
+                    border: '1.5px solid hsl(var(--gold) / 0.5)',
+                    background:
+                      'linear-gradient(180deg, hsl(var(--gold) / 0.06) 0%, hsl(var(--gold) / 0.02) 100%)',
+                  }}
+                >
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <Camera size={10} style={{ color: 'hsl(var(--gold))' }} />
+                    <span
+                      className="font-sans text-[7px] uppercase tracking-sovereign font-bold"
+                      style={{ color: 'hsl(var(--gold))' }}
+                    >
+                      Grand Quest
+                    </span>
+                  </div>
+                  <p
+                    className="font-display text-[13px] leading-snug text-foreground mb-2"
+                    style={{ fontFamily: '"Publico Headline", "Playfair Display", serif' }}
+                  >
+                    {questPrompt}
+                  </p>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onCaptureMemory?.();
+                    }}
+                    className="w-full flex items-center justify-center gap-1.5 py-2 bg-transparent cursor-pointer font-sans text-[10px] font-semibold uppercase tracking-sovereign min-h-[36px]"
+                    style={{
+                      borderRadius: '16px',
+                      border: '1px solid hsl(var(--gold) / 0.4)',
+                      color: 'hsl(var(--gold))',
+                    }}
+                  >
+                    <Camera size={11} />
+                    Capture Memory
+                  </button>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.article>
   );
 };

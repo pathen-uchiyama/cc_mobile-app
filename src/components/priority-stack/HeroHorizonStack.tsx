@@ -3,9 +3,10 @@ import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import FocusMove from './FocusMove';
 import HorizonCard from './HorizonCard';
+import WalkingCard from './WalkingCard';
 import FullLedgerSheet from './FullLedgerSheet';
 
-interface PlanItem {
+export interface PlanItem {
   id: string;
   rank: 'now' | 'next' | 'later';
   time: string;
@@ -15,21 +16,45 @@ interface PlanItem {
   wait?: string;
   llSecured?: boolean;
   votes?: number;
+  /** Grand Quest prompt — surfaces in the Engagement Zone of the card. */
+  questPrompt?: string;
+  questType?: 'photo' | 'voice';
+}
+
+export interface WalkingPrompt {
+  id: string;
+  /** Where in the stack this prompt appears. 0 = above Hero, 1 = between Hero and Next, 2 = between Next and Later. */
+  afterIndex: 0 | 1 | 2;
+  whimsy: string;
+  type?: 'photo' | 'voice' | 'observe';
+  nearby?: string;
 }
 
 interface HeroHorizonStackProps {
   items: PlanItem[];
+  walkingPrompts?: WalkingPrompt[];
   onCommitHero: () => void;
+  onSecureLL?: () => void;
+  onCaptureMemory?: (planItemId: string) => void;
+  onCaptureWalking?: (walkingId: string) => void;
 }
 
 /**
  * Hero & Horizon Stack — depth-based plan surface.
  *
- * Top 40% = Hero (the only active CTA).
- * Beneath: 2 Horizon cards peeking at 90% / 84% width.
- * Anything beyond Top 3 lives in the Full Ledger sheet.
+ * Top: Hero (≥25vh, dual-purpose).
+ * Beneath: 2 Horizon cards peeking.
+ * Interleaved: optional Walking Cards (Grand Quest only).
+ * Overflow: Full Ledger sheet.
  */
-const HeroHorizonStack = ({ items, onCommitHero }: HeroHorizonStackProps) => {
+const HeroHorizonStack = ({
+  items,
+  walkingPrompts = [],
+  onCommitHero,
+  onSecureLL,
+  onCaptureMemory,
+  onCaptureWalking,
+}: HeroHorizonStackProps) => {
   const [ledgerOpen, setLedgerOpen] = useState(false);
 
   const hero = items.find((i) => i.rank === 'now') ?? items[0];
@@ -38,9 +63,22 @@ const HeroHorizonStack = ({ items, onCommitHero }: HeroHorizonStackProps) => {
 
   if (!hero) return null;
 
+  const walkingAfter = (idx: 0 | 1 | 2) => walkingPrompts.filter((w) => w.afterIndex === idx);
+
+  const renderWalking = (idx: 0 | 1 | 2) =>
+    walkingAfter(idx).map((w) => (
+      <WalkingCard
+        key={w.id}
+        whimsy={w.whimsy}
+        type={w.type}
+        nearby={w.nearby}
+        onCapture={() => onCaptureWalking?.(w.id)}
+      />
+    ));
+
   return (
     <>
-      {/* Forced-Focus eyebrow — names the constraint out loud */}
+      {/* Forced-Focus eyebrow */}
       <div className="flex items-center justify-between mb-2 px-1">
         <span
           className="font-sans text-[9px] uppercase tracking-sovereign font-bold"
@@ -56,7 +94,10 @@ const HeroHorizonStack = ({ items, onCommitHero }: HeroHorizonStackProps) => {
         </span>
       </div>
 
-      {/* Priority 1 — Hero Mandate: ≥25% of screen height */}
+      {/* Optional walking prompt above the Hero */}
+      {walkingAfter(0).length > 0 && <div className="mb-3 space-y-2">{renderWalking(0)}</div>}
+
+      {/* Priority 1 — Hero (≥25vh, dual-purpose) */}
       <div className="relative" style={{ minHeight: '25vh' }}>
         <FocusMove
           attraction={hero.attraction}
@@ -66,12 +107,19 @@ const HeroHorizonStack = ({ items, onCommitHero }: HeroHorizonStackProps) => {
           votes={hero.votes}
           ctaLabel="On Our Way"
           onCommit={onCommitHero}
+          onSecureLL={onSecureLL}
+          questPrompt={hero.questPrompt}
+          questType={hero.questType}
+          onCaptureMemory={() => onCaptureMemory?.(hero.id)}
         />
       </div>
 
-      {/* Priority 2 & 3 — Horizon peeks (depth stack) */}
+      {/* Walking prompt between Hero and Next */}
+      {walkingAfter(1).length > 0 && <div className="mt-3 space-y-2">{renderWalking(1)}</div>}
+
+      {/* Priority 2 & 3 — Horizon peeks */}
       {horizon.length > 0 && (
-        <div className="relative -mt-3 space-y-2">
+        <div className="relative mt-3 space-y-2">
           {horizon.map((it, idx) => (
             <motion.div
               key={it.id}
@@ -94,13 +142,19 @@ const HeroHorizonStack = ({ items, onCommitHero }: HeroHorizonStackProps) => {
                 llSecured={it.llSecured}
                 depth={(idx + 1) as 1 | 2}
                 votes={it.votes}
+                questPrompt={it.questPrompt}
+                onCaptureMemory={() => onCaptureMemory?.(it.id)}
               />
+              {/* Walking prompt between Next and Later */}
+              {idx === 0 && walkingAfter(2).length > 0 && (
+                <div className="mt-3 space-y-2">{renderWalking(2)}</div>
+              )}
             </motion.div>
           ))}
         </div>
       )}
 
-      {/* The Fade — Full Ledger trigger (everything beyond Top 3) */}
+      {/* The Fade — Full Ledger trigger */}
       {overflow.length > 0 && (
         <button
           onClick={() => setLedgerOpen(true)}

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import LoomingHorizon from '@/components/LoomingHorizon';
-import HeroHorizonStack from '@/components/priority-stack/HeroHorizonStack';
+import HeroHorizonStack, { type PlanItem, type WalkingPrompt } from '@/components/priority-stack/HeroHorizonStack';
+import PivotShimmer from '@/components/priority-stack/PivotShimmer';
 import PriorityFootnote from '@/components/priority-stack/PriorityFootnote';
 import SideQuestsRow from '@/components/priority-stack/SideQuestsRow';
 import AssistedDrawer from '@/components/priority-stack/AssistedDrawer';
@@ -18,18 +19,6 @@ import WhisperStrip from '@/components/WhisperStrip';
 import { useCompanion } from '@/contexts/CompanionContext';
 import { useCelebrate, WHISPERS } from '@/contexts/CelebrationContext';
 
-interface PlanItem {
-  id: string;
-  rank: 'now' | 'next' | 'later';
-  time: string;
-  attraction: string;
-  location: string;
-  logic: string;
-  wait?: string;
-  llSecured?: boolean;
-  votes?: number;
-}
-
 const PLAN: PlanItem[] = [
   {
     id: '1',
@@ -40,6 +29,8 @@ const PLAN: PlanItem[] = [
     logic: 'Standby is at a 10-minute low — head now to beat the parade crowd.',
     wait: '12 min',
     votes: 1_708,
+    questPrompt: 'Find the hidden Mickey on the weather vane above the bridge.',
+    questType: 'photo',
   },
   {
     id: '2',
@@ -51,6 +42,8 @@ const PLAN: PlanItem[] = [
     wait: '25 min',
     llSecured: true,
     votes: 2_410,
+    questPrompt: 'Look up in the queue — the chandelier tells a story. Catch the third pendant.',
+    questType: 'photo',
   },
   {
     id: '3',
@@ -61,6 +54,8 @@ const PLAN: PlanItem[] = [
     logic: 'Paired with lunch nearby to avoid backtracking after the parade.',
     wait: '30 min',
     votes: 1_944,
+    questPrompt: 'Whisper the punchline of the skipper\'s best joke into the Vault.',
+    questType: 'voice',
   },
   {
     id: '4',
@@ -85,6 +80,18 @@ const PLAN: PlanItem[] = [
   },
 ];
 
+// GPS-triggered Walking Cards interleaved between attraction cards.
+const WALKING_PROMPTS: WalkingPrompt[] = [
+  {
+    id: 'w1',
+    afterIndex: 1,
+    whimsy: 'Pause at the railing — there\'s a perfect castle reflection in the water this morning.',
+    type: 'photo',
+    nearby: 'Liberty Square bridge',
+  },
+];
+
+
 const InPark = () => {
   // Sovereign Key contextual mode: 'audible' for relaxed users, 'dashboard' for Type A.
   const [audibleOpen, setAudibleOpen] = useState(false);
@@ -94,6 +101,9 @@ const InPark = () => {
   const [swapFor, setSwapFor] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerHandled, setDrawerHandled] = useState(false);
+
+  // Pivot state — shows the Pivot Shimmer while the strategy recalculates after an Audible.
+  const [pivotLabel, setPivotLabel] = useState<string | null>(null);
 
   const { minimalist, tier, devPanelEnabled, llTrackerVisible } = useCompanion();
   const { celebrate } = useCelebrate();
@@ -133,6 +143,19 @@ const InPark = () => {
     else setAudibleOpen(true);
   };
 
+  /**
+   * Pivot the strategy after an Audible is selected.
+   * Shows the parchment shimmer while the new Top 3 "computes," then runs the side-effect.
+   */
+  const pivotWith = (label: string, after: () => void) => {
+    setAudibleOpen(false);
+    setPivotLabel(label);
+    window.setTimeout(() => {
+      setPivotLabel(null);
+      after();
+    }, 1400);
+  };
+
   return (
     <div className="min-h-screen bg-background max-w-[480px] mx-auto relative flex flex-col">
       {useQuietView ? (
@@ -159,9 +182,31 @@ const InPark = () => {
               <WhisperStrip />
             </div>
 
-            {/* ── Depth-Based Stack: Hero (top 40%) + 2 peeks + Full Ledger fade ── */}
+            {/* ── Depth-Based Stack OR Pivot Shimmer ── */}
             <section aria-label="Today's plan" className="shrink-0">
-              <HeroHorizonStack items={PLAN} onCommitHero={commitHero} />
+              <AnimatePresence mode="wait">
+                {pivotLabel ? (
+                  <motion.div key="shimmer">
+                    <PivotShimmer audibleLabel={pivotLabel} />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="stack"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <HeroHorizonStack
+                      items={PLAN}
+                      walkingPrompts={WALKING_PROMPTS}
+                      onCommitHero={commitHero}
+                      onSecureLL={() => setDrawerOpen(true)}
+                      onCaptureMemory={(id) => celebrate('Memory tucked into the Vault.', `Captured · ${id}`)}
+                      onCaptureWalking={(id) => celebrate('A small wonder, recorded.', `Walking · ${id}`)}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </section>
 
             {/* Footnote — most-wanted as one tappable line */}
@@ -193,10 +238,10 @@ const InPark = () => {
       <AudibleMenu
         open={audibleOpen}
         onClose={() => setAudibleOpen(false)}
-        onBreak={() => setNeedType('quiet')}
-        onRefuel={() => setNeedType('bathroom')}
-        onClosure={() => setSwapFor(hero?.attraction ?? 'current ride')}
-        onReset={() => setShowRecalibrate(true)}
+        onBreak={() => pivotWith('Need a break', () => setNeedType('quiet'))}
+        onRefuel={() => pivotWith('Refuel', () => setNeedType('bathroom'))}
+        onClosure={() => pivotWith('Ride closure', () => setSwapFor(hero?.attraction ?? 'current ride'))}
+        onReset={() => pivotWith('Reset the pulse', () => setShowRecalibrate(true))}
       />
 
       <StrategicDashboard
