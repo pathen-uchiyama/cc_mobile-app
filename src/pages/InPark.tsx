@@ -78,7 +78,16 @@ const InPark = () => {
 
   const useQuietView = minimalist || tier === 'sovereign';
   const hero = PLAN.find((p) => p.rank === 'now');
-  const horizonItems = PLAN.filter((p) => p.rank !== 'now');
+  const horizonItems = PLAN
+    .filter((p): p is PlanItem & { rank: 'next' | 'later' } => p.rank !== 'now')
+    .map((p) => ({
+      id: p.id,
+      rank: p.rank,
+      time: p.time,
+      attraction: p.attraction,
+      wait: p.wait,
+      llSecured: p.llSecured,
+    }));
 
   // Inline LL recommendation — folded INTO the Focus card, not a separate section.
   const showInlineLL = llTrackerVisible && tier === 'manager' && !llDismissed;
