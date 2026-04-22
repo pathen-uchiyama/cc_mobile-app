@@ -14,7 +14,7 @@ interface SwapOption {
   wait: string;
   reason: string;
   kind: SwapKind;
-  /** Optional weather-aware subtitle, only used when the rain pivot is active. */
+  /** Weather-pivot-specific rationale, shown only when reason='rain'. */
   rainWhy?: string;
 }
 
@@ -25,11 +25,16 @@ const DEFAULT_OPTIONS: SwapOption[] = [
 ];
 
 const RAIN_OPTIONS: SwapOption[] = [
-  { id: 'r-pirates', ride: 'Pirates of the Caribbean', area: 'Adventureland',  wait: '12 min', reason: 'Fully indoor \u00b7 queue is covered',         kind: 'indoor', rainWhy: 'Stay dry the entire wait \u2014 queue and ride are under roof.' },
-  { id: 'r-mansion', ride: 'Haunted Mansion',          area: 'Liberty Square', wait: '20 min', reason: 'Indoor ride \u00b7 stretching room is dry',    kind: 'indoor', rainWhy: 'Duck inside before the band hits \u2014 covered queue from the gate.' },
-  { id: 'r-tiki',    ride: 'Enchanted Tiki Room',      area: 'Adventureland',  wait: '2 min',  reason: 'Covered show \u00b7 12 min sit-down',          kind: 'show',   rainWhy: '12 minutes seated and dry \u2014 perfect length to ride out the squall.' },
-  { id: 'r-cafe',    ride: 'Sleepy Hollow Snacks',     area: 'Liberty Square', wait: '5 min',  reason: 'Covered patio \u00b7 wait it out with a treat', kind: 'break',  rainWhy: 'Covered seating \u2014 grab a snack while the band passes.' },
-  { id: 'r-now',     ride: 'Big Thunder Mountain',     area: 'Frontierland',   wait: '8 min',  reason: 'Ride NOW \u2014 outdoor queue empties when rain hits', kind: 'now',    rainWhy: 'Last call before the rain \u2014 outdoor queue empties the moment it starts.' },
+  { id: 'r-pirates', ride: 'Pirates of the Caribbean', area: 'Adventureland',  wait: '12 min', reason: 'Fully indoor \u00b7 queue is covered',         kind: 'indoor',
+    rainWhy: 'Stays dry start to finish \u2014 queue and ride are fully enclosed.' },
+  { id: 'r-mansion', ride: 'Haunted Mansion',          area: 'Liberty Square', wait: '20 min', reason: 'Indoor ride \u00b7 stretching room is dry',    kind: 'indoor',
+    rainWhy: 'Covered queue \u2014 you\u2019ll be inside before the band hits.' },
+  { id: 'r-tiki',    ride: 'Enchanted Tiki Room',      area: 'Adventureland',  wait: '2 min',  reason: 'Covered show \u00b7 12 min sit-down',          kind: 'show',
+    rainWhy: 'Sit-down show timed to ride out the heaviest 12 minutes.' },
+  { id: 'r-cafe',    ride: 'Sleepy Hollow Snacks',     area: 'Liberty Square', wait: '5 min',  reason: 'Covered patio \u00b7 wait it out with a treat', kind: 'break',
+    rainWhy: 'Covered patio \u2014 reset with a snack while the band passes.' },
+  { id: 'r-now',     ride: 'Big Thunder Mountain',     area: 'Frontierland',   wait: '8 min',  reason: 'Ride NOW \u2014 outdoor queue empties when rain hits', kind: 'now',
+    rainWhy: 'Last call before rain \u2014 outdoor queue empties the moment it starts.' },
 ];
 
 const KIND_ORDER: Record<SwapKind, number> = { now: 0, indoor: 1, show: 2, break: 3, outdoor: 4 };
@@ -165,6 +170,11 @@ const SwapSuggestionsSheet = ({ open, onClose, skipped, reason }: SwapSuggestion
         {options.map((opt, i) => {
           const badge = KIND_BADGE[opt.kind];
           const BadgeIcon = badge.Icon;
+          const showRainWhy = isRain && !!opt.rainWhy;
+          // When a rain-specific rationale exists, it supersedes the generic
+          // reason — hide the generic line from screen readers to avoid
+          // announcing two overlapping justifications for the same option.
+          const ariaLabel = `${opt.ride}, ${opt.wait} wait, in ${opt.area}`;
           return (
           <motion.button
             key={opt.id}
@@ -173,6 +183,7 @@ const SwapSuggestionsSheet = ({ open, onClose, skipped, reason }: SwapSuggestion
             transition={{ delay: i * 0.06 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => pick(opt)}
+            aria-label={ariaLabel}
             className="w-full text-left bg-card hover:bg-accent/5 border border-border hover:border-accent/40 rounded-xl p-4 cursor-pointer transition-colors"
           >
             <div className="flex items-start justify-between gap-3 mb-2">
@@ -194,14 +205,32 @@ const SwapSuggestionsSheet = ({ open, onClose, skipped, reason }: SwapSuggestion
                 <span className="font-sans text-xs text-accent font-bold tabular-nums">{opt.wait}</span>
               </div>
             </div>
-            <p className="font-sans text-[10px] text-muted-foreground italic flex items-center gap-1.5">
-              <Sparkles size={9} className="text-accent shrink-0" />
+            <p
+              className="font-sans text-[10px] text-muted-foreground italic flex items-center gap-1.5"
+              aria-hidden={showRainWhy || undefined}
+            >
+              <Sparkles size={9} className="text-accent shrink-0" aria-hidden />
               {opt.reason}
             </p>
-            {isRain && opt.rainWhy && (
-              <p className="mt-1.5 font-sans text-[10px] text-primary/90 leading-snug flex items-start gap-1.5">
+            {showRainWhy && (
+              <p
+                className="mt-1.5 font-sans text-[10px] text-primary/90 leading-snug flex items-start gap-1.5"
+                role="note"
+              >
                 <CloudRain size={10} className="text-primary shrink-0 mt-[1px]" aria-hidden />
-                <span><span className="font-semibold uppercase tracking-wider text-[8px] text-primary mr-1">Why now</span>{opt.rainWhy}</span>
+                <span>
+                  {/* Visible decorative eyebrow */}
+                  <span
+                    aria-hidden
+                    className="font-semibold uppercase tracking-wider text-[8px] text-primary mr-1"
+                  >
+                    Why now
+                  </span>
+                  {/* SR-only semantic prefix so the announcement reads naturally
+                      ("Why now: ...") without duplicating the visual eyebrow. */}
+                  <span className="sr-only">Why now: </span>
+                  {opt.rainWhy}
+                </span>
               </p>
             )}
           </motion.button>
