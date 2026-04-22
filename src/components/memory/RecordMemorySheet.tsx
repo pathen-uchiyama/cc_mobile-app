@@ -176,10 +176,20 @@ const RecordMemorySheet = ({ open, onClose, contextHint }: RecordMemorySheetProp
       open={open}
       onClose={onClose}
       snap="full"
-      eyebrow={step === 'pick' ? 'The Vault' : step === 'review' || step === 'caption' ? 'Tell us about it' : 'Recording'}
+      eyebrow={
+        step === 'pick' ? 'The Vault' :
+        step === 'permission' ? 'One quick ask' :
+        step === 'review' || step === 'caption' ? 'Tell us about it' :
+        'Recording'
+      }
       title={
         step === 'pick' ? 'Record a Memory' :
         step === 'note' ? 'A typed thought' :
+        step === 'permission' ? (
+          capture.permission === 'denied' ? 'Access blocked' :
+          capture.permission === 'unsupported' ? 'Capture unavailable' :
+          mode === 'voice' ? 'Microphone access' : 'Camera access'
+        ) :
         step === 'capture' ? `Capture ${mode === 'voice' ? 'voice' : mode}` :
         'Caption & context'
       }
