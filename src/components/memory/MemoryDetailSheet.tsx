@@ -219,6 +219,48 @@ const MemoryDetailSheet = ({ open, onClose, memory, onEdit }: MemoryDetailSheetP
             onClick={onClose}
           />
 
+          {/* Gesture hints — floating, non-interactive overlay. Auto-fades after
+              the user completes their first successful swipe. The visible cue
+              swaps based on the current state so it's always pointing at the
+              next available action (reveal vs collapse). */}
+          <AnimatePresence>
+            {hintsVisible && (
+              <motion.div
+                key="gesture-hints"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1, transition: { delay: 0.45, duration: 0.35 } }}
+                exit={{ opacity: 0, transition: { duration: 0.4 } }}
+                className="pointer-events-none absolute inset-0 max-w-[480px] mx-auto"
+                style={{ zIndex: 1 }}
+                aria-hidden="true"
+              >
+                {/* Up/down hint — anchored to right edge, vertically centered */}
+                <motion.div
+                  className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col items-center gap-1.5 bg-foreground/85 text-background rounded-full px-2.5 py-3 shadow-boutique"
+                  animate={{ y: detailsExpanded ? [0, 8, 0] : [0, -8, 0] }}
+                  transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  {detailsExpanded ? <ArrowDown size={14} /> : <ArrowUp size={14} />}
+                  <span className="font-sans text-[8px] uppercase tracking-sovereign font-bold writing-mode-vertical">
+                    {detailsExpanded ? 'Hide' : 'Details'}
+                  </span>
+                </motion.div>
+
+                {/* Swipe-left-to-close hint — anchored to left edge */}
+                <motion.div
+                  className="absolute left-3 top-1/2 -translate-y-1/2 flex flex-col items-center gap-1.5 bg-foreground/85 text-background rounded-full px-2.5 py-3 shadow-boutique"
+                  animate={{ x: [0, -8, 0] }}
+                  transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }}
+                >
+                  <ArrowLeft size={14} />
+                  <span className="font-sans text-[8px] uppercase tracking-sovereign font-bold">
+                    Close
+                  </span>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* Sheet — drag-anywhere, routes gesture by dominant axis */}
           <motion.div
             key={memory.id}
