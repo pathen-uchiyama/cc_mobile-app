@@ -18,6 +18,12 @@ interface BottomGlassNavProps {
    * a reservation entering its check-in window, etc.
    */
   attentionTabs?: Partial<Record<TabId, boolean>>;
+  /**
+   * Tabs to hide from the nav entirely. Use this for context-conditional tabs
+   * like Lightning Lane, which should only appear when the guest holds at
+   * least one LL booking.
+   */
+  hiddenTabs?: Partial<Record<TabId, boolean>>;
 }
 
 const tabs: { id: TabId; label: string; icon: typeof Eye }[] = [
@@ -38,14 +44,16 @@ const BottomGlassNav = ({
   onTabChange,
   mustDoProgress,
   attentionTabs,
+  hiddenTabs,
 }: BottomGlassNavProps) => {
+  const visibleTabs = tabs.filter((t) => !hiddenTabs?.[t.id]);
   return (
     <nav
       className="fixed bottom-4 left-4 right-4 z-[9998] glass-nav mx-auto max-w-[448px] rounded-2xl"
       aria-label="Park navigation"
     >
       <div className="flex items-center justify-around py-2 px-2 gap-1">
-        {tabs.map((tab) => {
+        {visibleTabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
           const showProgress =
