@@ -150,41 +150,33 @@ const StrategicDashboard = ({ open, onClose }: StrategicDashboardProps) => {
                 })}
               </div>
 
-              {/* LL inventory */}
-              <section>
-                <p className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold mb-2 px-1">
-                  Lightning Lane inventory
-                </p>
-                <ul className="list-none p-0 m-0 space-y-1.5">
-                  {[
-                    { ride: 'Haunted Mansion', window: '11:00 – 12:00', status: 'secured' as const },
-                    { ride: 'Space Mountain', window: '12:30 – 1:30', status: 'available' as const },
-                    { ride: 'Big Thunder', window: '2:45 – 3:45', status: 'queued' as const },
-                  ].map((ll) => (
-                    <li
-                      key={ll.ride}
-                      className="flex items-center justify-between px-4 py-3 rounded-xl bg-background/60"
-                      style={{ border: '1px solid hsl(var(--obsidian) / 0.04)' }}
-                    >
-                      <div className="min-w-0">
-                        <p className="font-display text-[14px] text-foreground truncate">{ll.ride}</p>
-                        <p className="font-sans text-[10px] tabular-nums" style={{ color: 'hsl(var(--slate-plaid))' }}>
-                          {ll.window}
-                        </p>
-                      </div>
-                      <span
-                        className="shrink-0 font-sans text-[8px] uppercase tracking-sovereign font-bold px-2 py-1 rounded-full"
-                        style={{
-                          backgroundColor: ll.status === 'secured' ? 'hsl(var(--accent) / 0.15)' : 'hsl(var(--gold) / 0.12)',
-                          color: ll.status === 'secured' ? 'hsl(var(--accent))' : 'hsl(var(--gold))',
-                        }}
-                      >
-                        {ll.status}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </section>
+              {/* Standing Reservations — dining + experiences (table holds, character meals, tours) */}
+              {standing.length > 0 && (
+                <section>
+                  <p className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold mb-2 px-1">
+                    The Standing Reservations
+                  </p>
+                  <ul className="list-none p-0 m-0 space-y-1.5">
+                    {standing.map((r) => (
+                      <ReservationRow key={r.id} r={r} />
+                    ))}
+                  </ul>
+                </section>
+              )}
+
+              {/* Lightning Lane inventory — LL + ILL holds */}
+              {lightning.length > 0 && (
+                <section>
+                  <p className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold mb-2 px-1">
+                    Lightning Lane inventory
+                  </p>
+                  <ul className="list-none p-0 m-0 space-y-1.5">
+                    {lightning.map((r) => (
+                      <ReservationRow key={r.id} r={r} />
+                    ))}
+                  </ul>
+                </section>
+              )}
 
               {/* Crowd pulse */}
               <section>
