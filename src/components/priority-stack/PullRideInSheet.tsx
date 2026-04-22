@@ -404,10 +404,24 @@ interface RowProps {
   metaIcon?: React.ReactNode;
   metaTrail?: React.ReactNode;
   disabled?: boolean;
+  /** When true, the row gets a subtle "Recommended" pip beside the kind chip. */
+  recommended?: boolean;
   onTap: () => void;
 }
 
-const Row = ({ rank, accent, title, sub, kind, meta, metaIcon, metaTrail, disabled, onTap }: RowProps) => {
+const Row = ({
+  rank,
+  accent,
+  title,
+  sub,
+  kind,
+  meta,
+  metaIcon,
+  metaTrail,
+  disabled,
+  recommended,
+  onTap,
+}: RowProps) => {
   const color = accentColor(accent);
   const KindIcon = kind ? KIND_META[kind].Icon : null;
   const kindLabel = kind ? KIND_META[kind].label : null;
