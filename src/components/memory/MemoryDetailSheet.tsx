@@ -59,6 +59,20 @@ const MIN_CONFIRM_VELOCITY = 120; // must be moving, not a settle
 // or vertical — prevents diagonal scrolls from being misclassified.
 const AXIS_DOMINANCE = 1.4;
 
+// Once the user has successfully completed any swipe gesture on this sheet,
+// we stop showing the on-screen hints. Persisted so it's a true "first run"
+// affordance, not a per-open one.
+const HINTS_SEEN_KEY = 'memory-detail-hints-seen-v1';
+
+const readHintsSeen = () => {
+  if (typeof window === 'undefined') return false;
+  try {
+    return window.localStorage.getItem(HINTS_SEEN_KEY) === '1';
+  } catch {
+    return false;
+  }
+};
+
 /**
  * MemoryDetailSheet — gesture-driven playback view for a saved Vault entry.
  *
