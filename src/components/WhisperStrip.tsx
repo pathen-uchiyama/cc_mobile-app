@@ -116,9 +116,16 @@ const WhisperStrip = ({ bare = false, paused: externalPaused = false }: WhisperS
         onMouseEnter={() => setHoverPaused(true)}
         onMouseLeave={() => setHoverPaused(false)}
       >
-        {/* Single-line ticker */}
+        {/* Single-line ticker — magenta dot marks live concierge voice
+            ("magical accent" per the editorial guide §6: a single tertiary
+            dot is more effective than a tertiary header). */}
         <div className="flex items-center px-4 py-2.5 gap-3 min-h-[40px]">
-          <div className="w-1.5 h-1.5 rounded-full bg-accent shrink-0" />
+          <motion.div
+            className="w-1.5 h-1.5 rounded-full bg-tertiary shrink-0"
+            animate={{ opacity: [1, 0.5, 1] }}
+            transition={{ repeat: Infinity, duration: 2.4 }}
+            aria-hidden
+          />
           <div className="flex-1 min-w-0 overflow-hidden">
             <AnimatePresence mode="wait">
               <motion.p
