@@ -60,23 +60,38 @@ const BookLightningLane = () => {
   const heldIds = useMemo(() => new Set(holds.map((h) => h.attractionId)), [holds]);
 
   // Tier-aware sorting for the LL section.
+  //
+  // Primary signal is now "earliest typical sell-out time" — the most urgent
+  // grabs surface first. Must-Dos still pin to the top of their bucket so the
+  // guest never has to scroll past noise to find their priorities; held and
+  // ridden rows sink. Within each bucket, earlier sellout wins.
   const llOrdered = useMemo(() => {
     const ll = LL_INVENTORY.filter((a) => a.type === 'll');
-    const score = (a: LLAttraction) => {
+    const bucket = (a: LLAttraction) => {
       const held = heldIds.has(a.id);
       const ridden = isRidden(a.name, MOCK_MUST_DOS);
       const must = isMustDo(a.name, MOCK_MUST_DOS);
-      // Lower = higher in the list.
-      if (must && !held && !ridden) return 0 - a.standbyMin / 1000; // pinned, tie-break by wait
-      if (held) return 100;
-      if (ridden) return 200;
-      return 50 - a.standbyMin / 1000; // shorter wait wins inside the bucket
+      if (must && !held && !ridden) return 0; // pinned Must-Do
+      if (held) return 2;
+      if (ridden) return 3;
+      return 1; // standard inventory
     };
-    return ll.slice().sort((a, b) => score(a) - score(b));
+    return ll
+      .slice()
+      .sort((a, b) => {
+        const ba = bucket(a);
+        const bb = bucket(b);
+        if (ba !== bb) return ba - bb;
+        return a.typicalSelloutMin - b.typicalSelloutMin;
+      });
   }, [heldIds]);
 
+  // ILLs always sort by earliest sellout — these go fastest.
   const illOrdered = useMemo(
-    () => LL_INVENTORY.filter((a) => a.type === 'ill').sort((a, b) => b.standbyMin - a.standbyMin),
+    () =>
+      LL_INVENTORY.filter((a) => a.type === 'ill').sort(
+        (a, b) => a.typicalSelloutMin - b.typicalSelloutMin,
+      ),
     [],
   );
 
