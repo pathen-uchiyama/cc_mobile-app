@@ -63,7 +63,7 @@ const WhisperStrip = ({ bare = false, paused: externalPaused = false }: WhisperS
     } else if (delta > 40) {
       // Swipe down — expand history
       setExpanded(true);
-      setPaused(true);
+      setHoverPaused(true);
     }
     startY.current = null;
   };
