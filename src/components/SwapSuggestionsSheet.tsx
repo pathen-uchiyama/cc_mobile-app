@@ -25,11 +25,16 @@ const DEFAULT_OPTIONS: SwapOption[] = [
 ];
 
 const RAIN_OPTIONS: SwapOption[] = [
-  { id: 'r-pirates', ride: 'Pirates of the Caribbean', area: 'Adventureland',  wait: '12 min', reason: 'Fully indoor \u00b7 queue is covered',         kind: 'indoor' },
-  { id: 'r-mansion', ride: 'Haunted Mansion',          area: 'Liberty Square', wait: '20 min', reason: 'Indoor ride \u00b7 stretching room is dry',    kind: 'indoor' },
-  { id: 'r-tiki',    ride: 'Enchanted Tiki Room',      area: 'Adventureland',  wait: '2 min',  reason: 'Covered show \u00b7 12 min sit-down',          kind: 'show' },
-  { id: 'r-cafe',    ride: 'Sleepy Hollow Snacks',     area: 'Liberty Square', wait: '5 min',  reason: 'Covered patio \u00b7 wait it out with a treat', kind: 'break' },
-  { id: 'r-now',     ride: 'Big Thunder Mountain',     area: 'Frontierland',   wait: '8 min',  reason: 'Ride NOW \u2014 outdoor queue empties when rain hits', kind: 'now' },
+  { id: 'r-pirates', ride: 'Pirates of the Caribbean', area: 'Adventureland',  wait: '12 min', reason: 'Fully indoor \u00b7 queue is covered',         kind: 'indoor',
+    rainWhy: 'Stays dry start to finish \u2014 queue and ride are fully enclosed.' },
+  { id: 'r-mansion', ride: 'Haunted Mansion',          area: 'Liberty Square', wait: '20 min', reason: 'Indoor ride \u00b7 stretching room is dry',    kind: 'indoor',
+    rainWhy: 'Covered queue \u2014 you\u2019ll be inside before the band hits.' },
+  { id: 'r-tiki',    ride: 'Enchanted Tiki Room',      area: 'Adventureland',  wait: '2 min',  reason: 'Covered show \u00b7 12 min sit-down',          kind: 'show',
+    rainWhy: 'Sit-down show timed to ride out the heaviest 12 minutes.' },
+  { id: 'r-cafe',    ride: 'Sleepy Hollow Snacks',     area: 'Liberty Square', wait: '5 min',  reason: 'Covered patio \u00b7 wait it out with a treat', kind: 'break',
+    rainWhy: 'Covered patio \u2014 reset with a snack while the band passes.' },
+  { id: 'r-now',     ride: 'Big Thunder Mountain',     area: 'Frontierland',   wait: '8 min',  reason: 'Ride NOW \u2014 outdoor queue empties when rain hits', kind: 'now',
+    rainWhy: 'Last call before rain \u2014 outdoor queue empties the moment it starts.' },
 ];
 
 const KIND_ORDER: Record<SwapKind, number> = { now: 0, indoor: 1, show: 2, break: 3, outdoor: 4 };
