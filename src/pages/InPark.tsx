@@ -16,6 +16,7 @@ import RecalibrateSheet from '@/components/RecalibrateSheet';
 import SwapSuggestionsSheet, { type SwapReason } from '@/components/SwapSuggestionsSheet';
 import BottomSheet from '@/components/BottomSheet';
 import FindAndSeekWidget from '@/components/FindAndSeekWidget';
+import PriorityRides from '@/components/priority-stack/PriorityRides';
 import DevPanel from '@/components/DevPanel';
 import { useCompanion } from '@/contexts/CompanionContext';
 import { useCelebrate, WHISPERS } from '@/contexts/CelebrationContext';
@@ -132,6 +133,7 @@ const InPark = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerHandled, setDrawerHandled] = useState(false);
   const [findAndSeekOpen, setFindAndSeekOpen] = useState(false);
+  const [mustDoOpen, setMustDoOpen] = useState(false);
   const [memoryOpen, setMemoryOpen] = useState(false);
   const [memoryContext, setMemoryContext] = useState<{ attraction?: string; location?: string } | undefined>(undefined);
   const [preInterviewOpen, setPreInterviewOpen] = useState(false);
@@ -200,8 +202,10 @@ const InPark = () => {
   };
 
   const handleSovereignTap = () => {
-    if (isTypeA) setDashboardOpen(true);
-    else setAudibleOpen(true);
+    // The golden anchor always opens the Strategic Dashboard —
+    // Lightning Lane inventory + standing reservations in one place.
+    // The "Pivot" tab is the dedicated entry for audibles.
+    setDashboardOpen(true);
   };
 
   const runPivot = (label: string, after: () => void) => {
@@ -356,12 +360,11 @@ const InPark = () => {
       {/* Single bottom nav — 4 tabs. The pivot/audible actions all live one
           tap deep, inside the floating Sovereign Key. */}
       <BottomGlassNav
-        activeTab="horizon"
+        activeTab="today"
         onTabChange={(tab) => {
-          if (tab === 'horizon') return;
-          if (tab === 'canvas') navigate('/edit-itinerary');
-          if (tab === 'guide') navigate('/upgrades');
-          if (tab === 'vault') navigate('/joy-report');
+          if (tab === 'today') return;
+          if (tab === 'mustdo') setMustDoOpen(true);
+          if (tab === 'pivot') setAudibleOpen(true);
         }}
       />
 
@@ -417,6 +420,17 @@ const InPark = () => {
         subtitle="Hidden details, ranked by proximity."
       >
         <FindAndSeekWidget />
+      </BottomSheet>
+
+      <BottomSheet
+        open={mustDoOpen}
+        onClose={() => setMustDoOpen(false)}
+        snap="full"
+        eyebrow="The Crowd's Voice"
+        title="Must-Do Rides"
+        subtitle="Voted by guests in the park today."
+      >
+        <PriorityRides />
       </BottomSheet>
 
       <RecordMemorySheet
