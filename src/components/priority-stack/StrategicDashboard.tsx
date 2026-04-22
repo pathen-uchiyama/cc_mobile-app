@@ -1,6 +1,13 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Zap, TrendingDown, Clock, Users, Utensils, Sparkles } from 'lucide-react';
+import { X, Zap, TrendingDown, Clock, Users, Utensils, Sparkles, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { RESERVATIONS, formatTime, type Reservation } from '@/data/reservations';
+import {
+  INITIAL_HOLDS,
+  DEFAULT_CAPACITY,
+  summarizeCapacity,
+} from '@/data/lightningLanes';
+import CapacityMeter from '@/components/lightning-lane/CapacityMeter';
 
 interface StrategicDashboardProps {
   open: boolean;
@@ -56,6 +63,10 @@ const ReservationRow = ({ r }: { r: Reservation }) => {
  * The control room without leaving the park view.
  */
 const StrategicDashboard = ({ open, onClose }: StrategicDashboardProps) => {
+  const navigate = useNavigate();
+  // Mirror /park: same NOW anchor + holds means the meter never disagrees.
+  const NOW_MINUTES = 11 * 60 + 5;
+  const llSummary = summarizeCapacity(INITIAL_HOLDS, NOW_MINUTES, DEFAULT_CAPACITY);
   const standing = RESERVATIONS
     .filter((r) => r.kind === 'dining' || r.kind === 'experience')
     .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
@@ -160,14 +171,35 @@ const StrategicDashboard = ({ open, onClose }: StrategicDashboardProps) => {
               {/* Lightning Lane inventory — LL + ILL holds */}
               {lightning.length > 0 && (
                 <section>
-                  <p className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold mb-2 px-1">
-                    Lightning Lane inventory
-                  </p>
+                  <div className="flex items-center justify-between mb-2 px-1">
+                    <p className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold m-0">
+                      Lightning Lane inventory
+                    </p>
+                  </div>
+                  <div className="mb-2.5">
+                    <CapacityMeter summary={llSummary} compact />
+                  </div>
                   <ul className="list-none p-0 m-0 space-y-1.5">
                     {lightning.map((r) => (
                       <ReservationRow key={r.id} r={r} />
                     ))}
                   </ul>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      navigate('/book-ll');
+                    }}
+                    className="w-full mt-3 rounded-2xl py-3 px-5 flex items-center justify-center gap-2 border-none cursor-pointer min-h-[44px] font-sans text-[12px] font-semibold"
+                    style={{
+                      backgroundColor: 'hsl(var(--gold) / 0.12)',
+                      color: 'hsl(var(--gold))',
+                      border: '1px solid hsl(var(--gold) / 0.3)',
+                    }}
+                  >
+                    Browse & book a Lightning Lane
+                    <ArrowRight size={14} />
+                  </button>
                 </section>
               )}
 

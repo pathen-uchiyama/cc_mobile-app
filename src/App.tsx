@@ -13,6 +13,7 @@ import JoyReport from "./pages/JoyReport";
 import PlanWizard from "./pages/PlanWizard";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import BookLightningLane from "./pages/BookLightningLane";
 import { CompanionProvider } from "./contexts/CompanionContext";
 import { JoyEventsProvider } from "./contexts/JoyEventsContext";
 import { CelebrationProvider } from "./contexts/CelebrationContext";
@@ -38,6 +39,7 @@ const App = () => (
                 <Route path="/joy-report" element={<JoyReport />} />
                 <Route path="/plan-wizard" element={<PlanWizard />} />
                 <Route path="/settings" element={<Settings />} />
+                <Route path="/book-ll" element={<BookLightningLane />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
