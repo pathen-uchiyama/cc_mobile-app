@@ -115,6 +115,35 @@ const SwapSuggestionsSheet = ({ open, onClose, skipped, reason }: SwapSuggestion
     setLiveRainWhy(focused?.rainWhy ? `Updated rationale: ${focused.rainWhy}` : '');
   }, [open, isRain, options]);
 
+  // ── Deterministic aria-label / describedby toggle ────────────────────
+  // Track which option ids currently have a rain rationale shown. When
+  // the set changes between renders, we know exactly which options
+  // toggled rainWhy ON and which toggled OFF, and we push a single,
+  // bounded announcement into the shared live region. This guarantees:
+  //   • aria-label stays stable (option-only) on every render
+  //   • aria-describedby always points at a mounted node (never dangles)
+  //   • the on→off / off→on transition produces exactly one polite
+  //     announcement per change, with deterministic wording
+  const prevWhyIdsRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!open || !isRain) {
+      prevWhyIdsRef.current = new Set();
+      return;
+    }
+    const nextIds = new Set(options.filter((o) => !!o.rainWhy).map((o) => o.id));
+    const prev = prevWhyIdsRef.current;
+    const added: string[] = [];
+    const removed: string[] = [];
+    nextIds.forEach((id) => { if (!prev.has(id)) added.push(id); });
+    prev.forEach((id) => { if (!nextIds.has(id)) removed.push(id); });
+    prevWhyIdsRef.current = nextIds;
+    if (added.length === 0 && removed.length === 0) return;
+    const parts: string[] = [];
+    if (added.length) parts.push(`${added.length} rationale${added.length > 1 ? 's' : ''} added`);
+    if (removed.length) parts.push(`${removed.length} rationale${removed.length > 1 ? 's' : ''} removed`);
+    setLiveRainWhy(parts.join(', '));
+  }, [open, isRain, options]);
+
   const pick = (opt: SwapOption) => {
     onClose();
     const tip = WHISPERS.swap[Math.floor(Math.random() * WHISPERS.swap.length)];
@@ -195,13 +224,15 @@ const SwapSuggestionsSheet = ({ open, onClose, skipped, reason }: SwapSuggestion
           const badge = KIND_BADGE[opt.kind];
           const BadgeIcon = badge.Icon;
           const showRainWhy = isRain && !!opt.rainWhy;
-          // STABLE accessible name — never includes the rain rationale, so
-          // changes to opt.rainWhy cannot trigger re-announcement of the
-          // option text. The rationale is exposed via aria-describedby
-          // (per-option) and announced through the shared polite live
-          // region above when (and only when) it actually changes.
+          // Deterministic accessible name: ALWAYS option-only, computed
+          // from a fixed template. Independent of rainWhy — toggling
+          // rainWhy on/off cannot mutate the button's accessible name.
           const ariaLabel = `${opt.ride}, ${opt.wait} wait, in ${opt.area}`;
-          const whyId = showRainWhy ? `swap-why-${opt.id}` : undefined;
+          // Always reserve a stable describedby id and ALWAYS render the
+          // target span (empty when no rationale). This keeps
+          // aria-describedby resolvable across rainWhy on→off transitions
+          // — no dangling references, no flicker between defined/undefined.
+          const whyId = `swap-why-${opt.id}`;
           return (
           <motion.button
             key={opt.id}
@@ -276,14 +307,14 @@ const SwapSuggestionsSheet = ({ open, onClose, skipped, reason }: SwapSuggestion
                 </span>
               </div>
             )}
-            {/* Hidden, per-option description target for aria-describedby.
-                Used by AT on focus only — not a live region, so updating
-                its text does NOT trigger an announcement on its own. */}
-            {showRainWhy && (
-              <span id={whyId} className="sr-only">
-                Why now: {opt.rainWhy}
-              </span>
-            )}
+            {/* Always-mounted description target for aria-describedby.
+                Stays in the DOM whether or not rainWhy is currently set,
+                so the button's aria-describedby never dangles when
+                rationale toggles off. Empty content == no description,
+                which is exactly what AT should report in that state. */}
+            <span id={whyId} className="sr-only">
+              {showRainWhy ? `Why now: ${opt.rainWhy}` : ''}
+            </span>
           </motion.button>
           );
         })}
