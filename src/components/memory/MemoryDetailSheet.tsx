@@ -59,6 +59,24 @@ const MIN_CONFIRM_VELOCITY = 120; // must be moving, not a settle
 // or vertical — prevents diagonal scrolls from being misclassified.
 const AXIS_DOMINANCE = 1.4;
 
+// Shared spring used across the reveal so children feel like one organism.
+const REVEAL_SPRING = { type: 'spring' as const, damping: 26, stiffness: 240, mass: 0.8 };
+
+// Each section drifts up from the pill's baseline with a soft scale, giving
+// the impression that the panel "blooms" from the toggle rather than just
+// expanding. On exit we mirror the motion so it folds back toward the pill.
+const sectionVariants = {
+  hidden: { opacity: 0, y: -14, scale: 0.97, transition: REVEAL_SPRING },
+  shown: { opacity: 1, y: 0, scale: 1, transition: REVEAL_SPRING },
+};
+
+// Chips ride a slightly tighter spring so they pop in after their parent
+// section settles — readable hierarchy without feeling chaotic.
+const chipVariants = {
+  hidden: { opacity: 0, y: -8, scale: 0.9, transition: REVEAL_SPRING },
+  shown: { opacity: 1, y: 0, scale: 1, transition: REVEAL_SPRING },
+};
+
 /**
  * MemoryDetailSheet — gesture-driven playback view for a saved Vault entry.
  *
@@ -301,101 +319,137 @@ const MemoryDetailSheet = ({ open, onClose, memory, onEdit }: MemoryDetailSheetP
                 </span>
               </button>
 
-              {/* Collapsible details panel */}
+              {/* Collapsible details panel — shared-element style reveal.
+                  Sections stagger in from the pill's origin (slight lift + scale)
+                  while the container animates its layout height. On collapse
+                  they fall back toward the pill before the wrapper closes. */}
               <AnimatePresence initial={false}>
                 {detailsExpanded && (
                   <motion.div
                     key="details"
+                    layout
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    transition={{ type: 'spring', damping: 26, stiffness: 200 }}
-                    className="overflow-hidden"
+                    transition={{ type: 'spring', damping: 28, stiffness: 220, mass: 0.9 }}
+                    style={{ overflow: 'hidden', transformOrigin: 'top center' }}
                   >
-                    {/* Full caption */}
-                    <section className="mb-5">
-                      <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold block mb-1.5">
-                        Caption
-                      </span>
-                      <p className="font-display italic text-[16px] text-foreground leading-relaxed">
-                        "{memory.caption}"
-                      </p>
-                    </section>
-
-                    {/* Place context */}
-                    {placeTag && (
-                      <section className="mb-5">
-                        <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold block mb-2">
-                          Where
+                    <motion.div
+                      variants={{
+                        hidden: { transition: { staggerChildren: 0.025, staggerDirection: -1 } },
+                        shown: { transition: { staggerChildren: 0.06, delayChildren: 0.05 } },
+                      }}
+                      initial="hidden"
+                      animate="shown"
+                      exit="hidden"
+                    >
+                      {/* Full caption */}
+                      <motion.section variants={sectionVariants} className="mb-5">
+                        <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold block mb-1.5">
+                          Caption
                         </span>
-                        <div className="inline-flex items-center gap-2 bg-muted/60 rounded-full px-3.5 py-2">
-                          <MapPin size={13} className="text-accent" />
-                          <span className="font-sans text-[12px] text-foreground font-semibold">{placeTag.label}</span>
-                        </div>
-                      </section>
-                    )}
+                        <p className="font-display italic text-[16px] text-foreground leading-relaxed">
+                          "{memory.caption}"
+                        </p>
+                      </motion.section>
 
-                    {/* Feelings */}
-                    {feelingTags.length > 0 && (
-                      <section className="mb-5">
-                        <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold block mb-2">
-                          The feeling
-                        </span>
-                        <div className="flex flex-wrap gap-2">
-                          {feelingTags.map((t) => (
-                            <span
-                              key={t.label}
-                              className="inline-flex items-center gap-1.5 bg-accent/15 border border-accent/40 rounded-full px-3 py-1.5"
-                            >
-                              <Heart size={11} className="text-accent" />
-                              <span className="font-sans text-[11px] text-accent font-semibold">{t.label}</span>
-                            </span>
-                          ))}
-                        </div>
-                      </section>
-                    )}
+                      {/* Place context */}
+                      {placeTag && (
+                        <motion.section variants={sectionVariants} className="mb-5">
+                          <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold block mb-2">
+                            Where
+                          </span>
+                          <motion.div
+                            layoutId="memory-detail-place"
+                            className="inline-flex items-center gap-2 bg-muted/60 rounded-full px-3.5 py-2"
+                          >
+                            <MapPin size={13} className="text-accent" />
+                            <span className="font-sans text-[12px] text-foreground font-semibold">{placeTag.label}</span>
+                          </motion.div>
+                        </motion.section>
+                      )}
 
-                    {/* Who */}
-                    {whoTags.length > 0 && (
-                      <section className="mb-5">
-                        <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold block mb-2">
-                          Who was there
-                        </span>
-                        <div className="flex flex-wrap gap-2">
-                          {whoTags.map((t) => {
-                            const TagIcon = TAG_ICON[t.kind];
-                            return (
-                              <span
+                      {/* Feelings */}
+                      {feelingTags.length > 0 && (
+                        <motion.section variants={sectionVariants} className="mb-5">
+                          <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold block mb-2">
+                            The feeling
+                          </span>
+                          <motion.div
+                            className="flex flex-wrap gap-2"
+                            variants={{
+                              hidden: { transition: { staggerChildren: 0.02, staggerDirection: -1 } },
+                              shown: { transition: { staggerChildren: 0.04 } },
+                            }}
+                          >
+                            {feelingTags.map((t) => (
+                              <motion.span
                                 key={t.label}
-                                className="inline-flex items-center gap-1.5 bg-card border border-border rounded-full px-3 py-1.5"
+                                layoutId={`memory-detail-feeling-${t.label}`}
+                                variants={chipVariants}
+                                className="inline-flex items-center gap-1.5 bg-accent/15 border border-accent/40 rounded-full px-3 py-1.5"
                               >
-                                <TagIcon size={11} className="text-muted-foreground" />
-                                <span className="font-sans text-[11px] text-foreground">{t.label}</span>
-                              </span>
-                            );
-                          })}
-                        </div>
-                      </section>
-                    )}
+                                <Heart size={11} className="text-accent" />
+                                <span className="font-sans text-[11px] text-accent font-semibold">{t.label}</span>
+                              </motion.span>
+                            ))}
+                          </motion.div>
+                        </motion.section>
+                      )}
 
-                    {/* Metadata strip */}
-                    <section className="bg-card rounded-2xl p-4 shadow-boutique flex items-center gap-5 mb-4">
-                      <div className="flex items-center gap-2">
-                        <Calendar size={13} className="text-muted-foreground" />
-                        <div>
-                          <span className="font-sans text-[8px] uppercase tracking-sovereign text-muted-foreground block">Date</span>
-                          <span className="font-sans text-[12px] text-foreground">{formatFullDate(memory.at)}</span>
+                      {/* Who */}
+                      {whoTags.length > 0 && (
+                        <motion.section variants={sectionVariants} className="mb-5">
+                          <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold block mb-2">
+                            Who was there
+                          </span>
+                          <motion.div
+                            className="flex flex-wrap gap-2"
+                            variants={{
+                              hidden: { transition: { staggerChildren: 0.02, staggerDirection: -1 } },
+                              shown: { transition: { staggerChildren: 0.04 } },
+                            }}
+                          >
+                            {whoTags.map((t) => {
+                              const TagIcon = TAG_ICON[t.kind];
+                              return (
+                                <motion.span
+                                  key={t.label}
+                                  layoutId={`memory-detail-who-${t.label}`}
+                                  variants={chipVariants}
+                                  className="inline-flex items-center gap-1.5 bg-card border border-border rounded-full px-3 py-1.5"
+                                >
+                                  <TagIcon size={11} className="text-muted-foreground" />
+                                  <span className="font-sans text-[11px] text-foreground">{t.label}</span>
+                                </motion.span>
+                              );
+                            })}
+                          </motion.div>
+                        </motion.section>
+                      )}
+
+                      {/* Metadata strip */}
+                      <motion.section
+                        variants={sectionVariants}
+                        className="bg-card rounded-2xl p-4 shadow-boutique flex items-center gap-5 mb-4"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Calendar size={13} className="text-muted-foreground" />
+                          <div>
+                            <span className="font-sans text-[8px] uppercase tracking-sovereign text-muted-foreground block">Date</span>
+                            <span className="font-sans text-[12px] text-foreground">{formatFullDate(memory.at)}</span>
+                          </div>
                         </div>
-                      </div>
-                      <div className="w-px h-8 bg-border" />
-                      <div className="flex items-center gap-2">
-                        <Clock size={13} className="text-muted-foreground" />
-                        <div>
-                          <span className="font-sans text-[8px] uppercase tracking-sovereign text-muted-foreground block">Time</span>
-                          <span className="font-sans text-[12px] text-foreground tabular-nums">{formatMemoryTime(memory.at)}</span>
+                        <div className="w-px h-8 bg-border" />
+                        <div className="flex items-center gap-2">
+                          <Clock size={13} className="text-muted-foreground" />
+                          <div>
+                            <span className="font-sans text-[8px] uppercase tracking-sovereign text-muted-foreground block">Time</span>
+                            <span className="font-sans text-[12px] text-foreground tabular-nums">{formatMemoryTime(memory.at)}</span>
+                          </div>
                         </div>
-                      </div>
-                    </section>
+                      </motion.section>
+                    </motion.div>
                   </motion.div>
                 )}
               </AnimatePresence>
