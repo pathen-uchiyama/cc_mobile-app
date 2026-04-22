@@ -252,6 +252,13 @@ const InPark = () => {
       ) : (
         <>
           <main className="flex-1 pt-12 pb-[140px] px-6 flex flex-col">
+            {/* Lock-screen-style notification — pinned at the very top so the
+                same surface reads correctly when the OS pushes it to a real
+                lock screen. Mirrors the active whisper. */}
+            <div className="mb-6 shrink-0">
+              <LockScreenNotice />
+            </div>
+
             {/* Editorial title — generous whitespace, no chrome above. */}
             <header className="mb-10 shrink-0">
               <div className="inline-flex items-center gap-2 mb-4 px-3 py-1.5 rounded-full bg-tertiary-fixed/40">
