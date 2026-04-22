@@ -25,8 +25,8 @@ const Home = () => {
         <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold">
           Castle Companion
         </span>
-        <h1 className="font-display text-[28px] leading-tight text-foreground mt-1">
-          Your day, composed.
+        <h1 className="text-masthead text-primary mt-2">
+          Your day,<br /><span className="text-secondary">composed.</span>
         </h1>
       </motion.header>
 
@@ -44,7 +44,7 @@ const Home = () => {
           The Horizon
         </span>
         <div className="flex items-end justify-between">
-          <h2 className="font-display text-[34px] leading-[1.05] text-primary-foreground">
+          <h2 className="text-masthead text-primary-foreground">
             Follow<br />my plan
           </h2>
           <ArrowRight size={22} className="text-primary-foreground/50 group-hover:text-primary-foreground transition-colors mb-1" />
