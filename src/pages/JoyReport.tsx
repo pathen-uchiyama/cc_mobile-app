@@ -119,7 +119,7 @@ const JoyReport = () => {
       {/* Highlights */}
       <div className="px-5 mt-8">
         <div className="flex items-center gap-3 mb-3 px-1">
-          <div className="w-1.5 h-1.5 bg-accent rounded-full" />
+          <div className="w-1.5 h-1.5 bg-secondary-container rounded-full" />
           <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold">
             Highlights
           </span>
@@ -153,7 +153,7 @@ const JoyReport = () => {
       {/* Timeline — live events */}
       <div className="px-5 mt-10">
         <div className="flex items-center gap-3 mb-4 px-1">
-          <div className="w-1.5 h-1.5 bg-accent rounded-full" />
+          <div className="w-1.5 h-1.5 bg-secondary-container rounded-full" />
           <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold">
             Your Day in Whispers
           </span>
@@ -217,7 +217,7 @@ const JoyReport = () => {
       {/* The Vault — captured memories gallery */}
       <section className="px-5 mt-12">
         <div className="flex items-center gap-3 mb-3 px-1">
-          <div className="w-1.5 h-1.5 bg-accent rounded-full" />
+          <div className="w-1.5 h-1.5 bg-secondary-container rounded-full" />
           <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold">
             The Vault
           </span>
