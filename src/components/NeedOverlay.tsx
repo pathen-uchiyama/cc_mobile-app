@@ -88,9 +88,10 @@ const NeedOverlay = ({ type, onClose, currentLocation, hasKids }: NeedOverlayPro
         <div className="space-y-3">
           {sorted.map((item) => (
             <div key={item.name} className="bg-card p-4 shadow-boutique rounded-xl">
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <div className="flex items-center gap-2 flex-wrap min-w-0">
-                  <h3 className="font-sans text-sm font-semibold text-foreground">{item.name}</h3>
+              {/* Row 1 — name + stars (left), service tag (right) */}
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <h3 className="font-sans text-sm font-semibold text-foreground truncate">{item.name}</h3>
                   <span
                     className="inline-flex items-center gap-0.5 shrink-0 px-1.5 py-0.5 rounded-full"
                     style={{ background: 'hsl(var(--gold) / 0.10)' }}
@@ -113,31 +114,33 @@ const NeedOverlay = ({ type, onClose, currentLocation, hasKids }: NeedOverlayPro
                   {item.service === 'sit-down' ? 'Sit-Down' : item.service === 'quick-service' ? 'Quick' : 'Snack'}
                 </span>
               </div>
-              <div className="flex items-center gap-4 flex-wrap">
-                <div className="flex items-center gap-1.5">
-                  <MapPin size={11} className="text-muted-foreground" />
-                  <span className="font-sans text-[10px] text-muted-foreground">
-                    {item.land} · {item.walkMinutes} min walk
-                  </span>
+              {/* Row 2 — meta (left), Yelp link (right) */}
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0 flex-wrap">
+                  <div className="flex items-center gap-1.5">
+                    <MapPin size={11} className="text-muted-foreground" />
+                    <span className="font-sans text-[10px] text-muted-foreground">
+                      {item.land} · {item.walkMinutes}m
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Utensils size={11} className="text-muted-foreground" />
+                    <span className="font-sans text-[10px] text-muted-foreground">
+                      Wait <span className="text-foreground font-semibold">{item.waitMinutes}m</span>
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <Utensils size={11} className="text-muted-foreground" />
-                  <span className="font-sans text-[10px] text-muted-foreground">
-                    Wait: <span className="text-foreground font-semibold">{item.waitMinutes} min</span>
-                  </span>
-                </div>
-                <span className="font-sans text-[10px] text-muted-foreground italic">{item.note}</span>
+                <a
+                  href={item.yelpUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 font-sans text-[10px] uppercase tracking-sovereign font-bold shrink-0 transition-opacity hover:opacity-70"
+                  style={{ color: 'hsl(var(--gold))', letterSpacing: '0.14em' }}
+                >
+                  Yelp
+                  <ExternalLink size={10} />
+                </a>
               </div>
-              <a
-                href={item.yelpUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-3 inline-flex items-center gap-1.5 font-sans text-[10px] uppercase tracking-sovereign font-bold transition-opacity hover:opacity-70"
-                style={{ color: 'hsl(var(--gold))', letterSpacing: '0.14em' }}
-              >
-                View on Yelp
-                <ExternalLink size={10} />
-              </a>
             </div>
           ))}
         </div>
