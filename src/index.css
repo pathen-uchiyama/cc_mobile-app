@@ -181,6 +181,18 @@
     background: var(--gradient-primary);
   }
 
+  /* ── Digital Plaid grid ─────────────────────────────────────────────
+   * A whisper-faint 40px grid using outline-variant at 5% opacity.
+   * Apply to page roots that should feel like a planner page. Never use
+   * as a card surface — it competes with content.
+   */
+  .digital-plaid-bg {
+    background-image:
+      linear-gradient(90deg, hsl(var(--outline-variant) / 0.05) 1px, transparent 1px),
+      linear-gradient(hsl(var(--outline-variant) / 0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
   .vellum-filter {
     backdrop-filter: blur(8px) contrast(1.1) brightness(0.9);
     -webkit-backdrop-filter: blur(8px) contrast(1.1) brightness(0.9);
