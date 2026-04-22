@@ -64,7 +64,18 @@ const TICK_MIN_PER_SEC = 0.5; // ~30 park-minutes per real minute
 const BookLightningLane = () => {
   const navigate = useNavigate();
   const { fire } = useHaptics();
+  const { tier } = useCompanion();
   const [holds, setHolds] = useState<HeldLL[]>(INITIAL_HOLDS);
+  // Stateful park-time clock — drives countdowns, sell-out chips, and the
+  // watchlist alert engine. See INITIAL_NOW_MINUTES / TICK_MIN_PER_SEC for
+  // the prototype's accelerated tick.
+  const [nowMinutes, setNowMinutes] = useState<number>(INITIAL_NOW_MINUTES);
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setNowMinutes((n) => n + TICK_MIN_PER_SEC);
+    }, 1000);
+    return () => window.clearInterval(interval);
+  }, []);
   // Track holds added in this session so we can offer a "see it on your stack"
   // ribbon — keeps the user oriented after a booking instead of stranding them.
   const [sessionAdds, setSessionAdds] = useState(0);
@@ -74,8 +85,8 @@ const BookLightningLane = () => {
   const [urgency, setUrgency] = useState<'all' | '1h' | '2h' | 'later'>('all');
 
   const summary = useMemo(
-    () => summarizeCapacity(holds, NOW_MINUTES, DEFAULT_CAPACITY),
-    [holds],
+    () => summarizeCapacity(holds, nowMinutes, DEFAULT_CAPACITY),
+    [holds, nowMinutes],
   );
 
   const heldIds = useMemo(() => new Set(holds.map((h) => h.attractionId)), [holds]);
@@ -92,7 +103,7 @@ const BookLightningLane = () => {
     // is actually seeing.
     const filtered = ll.filter((a) => {
       if (urgency === 'all') return true;
-      const minsUntil = a.typicalSelloutMin - NOW_MINUTES;
+      const minsUntil = a.typicalSelloutMin - nowMinutes;
       if (urgency === '1h') return minsUntil <= 60;          // includes already-past
       if (urgency === '2h') return minsUntil > 60 && minsUntil <= 120;
       return minsUntil > 120;                                // 'later'
@@ -114,7 +125,7 @@ const BookLightningLane = () => {
         if (ba !== bb) return ba - bb;
         return a.typicalSelloutMin - b.typicalSelloutMin;
       });
-  }, [heldIds, urgency]);
+  }, [heldIds, urgency, nowMinutes]);
 
   // ILLs always sort by earliest sellout — these go fastest.
   const illOrdered = useMemo(
