@@ -191,4 +191,65 @@ describe('SwapSuggestionsSheet — rain rationale announcement', () => {
     expect(targetAfter!.getAttribute('aria-label')).toBe(labelBeforeFocus);
     expect(getLiveRegion().textContent ?? '').toBe(liveBeforeFocus);
   });
+
+  it('mutates the live region exactly once per rain pivot toggle', async () => {
+    // Mount in 'manual' so the live region starts empty and we can count
+    // every subsequent mutation produced by toggles.
+    const { rerender } = renderSheet('manual');
+    const live = getLiveRegion();
+
+    // Record every text-content change to the live region. Each entry
+    // corresponds to one potential screen-reader announcement.
+    const updates: string[] = [];
+    const observer = new MutationObserver(() => {
+      updates.push(live.textContent ?? '');
+    });
+    observer.observe(live, {
+      childList: true,
+      characterData: true,
+      subtree: true,
+    });
+
+    try {
+      // Toggle 1: manual → rain. Expect exactly one mutation that
+      // contains the "added" rationale phrase.
+      await act(async () => {
+        rerender(
+          <Wrapper>
+            <SwapSuggestionsSheet open onClose={() => {}} reason="rain" />
+          </Wrapper>
+        );
+      });
+      expect(updates.length).toBe(1);
+      expect(updates[0]).toMatch(/rationale/i);
+      expect(updates[0]).toMatch(/added/i);
+
+      // Toggle 2: rain → manual. Expect exactly one MORE mutation
+      // (total = 2) describing the removal.
+      await act(async () => {
+        rerender(
+          <Wrapper>
+            <SwapSuggestionsSheet open onClose={() => {}} reason="manual" />
+          </Wrapper>
+        );
+      });
+      expect(updates.length).toBe(2);
+      expect(updates[1]).toMatch(/rationale/i);
+      expect(updates[1]).toMatch(/removed/i);
+
+      // Toggle 3 (idempotency check): re-render with the SAME reason.
+      // The rationale set didn't change, so the live region must NOT
+      // mutate again — count stays at 2.
+      await act(async () => {
+        rerender(
+          <Wrapper>
+            <SwapSuggestionsSheet open onClose={() => {}} reason="manual" />
+          </Wrapper>
+        );
+      });
+      expect(updates.length).toBe(2);
+    } finally {
+      observer.disconnect();
+    }
+  });
 });
