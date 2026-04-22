@@ -9,6 +9,12 @@ interface AudibleMenuProps {
   onClosure: () => void;
   onReset: () => void;
   onRestroom?: () => void;
+  /**
+   * Per-action attention flags. When true, the matching row gets a magenta
+   * dot to mirror the nav-level "needs attention" treatment.
+   * Keys match item ids: 'restroom' | 'refuel' | 'break' | 'closure' | 'reset'.
+   */
+  attention?: Partial<Record<'restroom' | 'refuel' | 'break' | 'closure' | 'reset', boolean>>;
 }
 
 const items = [
@@ -35,6 +41,7 @@ const AudibleMenu = ({
   onClosure,
   onReset,
   onRestroom,
+  attention,
 }: AudibleMenuProps) => {
   const handlers: Record<string, (() => void) | undefined> = {
     break: onBreak,
