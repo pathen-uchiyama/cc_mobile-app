@@ -143,24 +143,19 @@ const AssistedDrawer = ({
                 {reasoning ? <> and {reasoning}.</> : <> of standby time.</>}
               </p>
 
-              {/* Logic Whisper — required Inter Italic rationale */}
-              <div
-                className="mt-auto px-3 py-2.5 rounded-xl flex items-start gap-2"
-                style={{
-                  background: 'hsl(var(--gold) / 0.08)',
-                  border: '1px solid hsl(var(--gold) / 0.2)',
-                }}
-              >
+              {/* Logic Whisper — Inter Italic rationale.
+                  Switched to the editorial magenta info-ribbon: tertiary
+                  surface (#ffd8ec @ 30%) + magenta ink, mirroring the
+                  "Delayed" alert in the Digital Plaid reference. This
+                  visually separates *rationale* from gold *strategy*. */}
+              <div className="mt-auto px-3 py-2.5 rounded-xl flex items-start gap-2 bg-tertiary-fixed/30 border border-tertiary/10">
                 <span
-                  className="font-sans not-italic text-[8px] uppercase tracking-sovereign font-bold shrink-0 mt-[2px]"
-                  style={{ color: 'hsl(var(--gold))', letterSpacing: '0.16em' }}
+                  className="font-sans not-italic text-[8px] uppercase font-bold shrink-0 mt-[2px] text-tertiary-on-fixed-variant"
+                  style={{ letterSpacing: '0.2em' }}
                 >
                   Why now
                 </span>
-                <span
-                  className="font-sans italic text-[11px] leading-snug"
-                  style={{ color: 'hsl(var(--slate-plaid))' }}
-                >
+                <span className="font-sans italic text-[11px] leading-snug text-tertiary-on-fixed-variant">
                   Securing this now ensures you can stack the afternoon for your Must-Dos.
                 </span>
               </div>
