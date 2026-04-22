@@ -6,6 +6,7 @@ import { useMemoryVault, formatMemoryTime, type Memory } from '@/contexts/Memory
 import InterviewSheet from '@/components/memory/InterviewSheet';
 import MemoryEditorSheet from '@/components/memory/MemoryEditorSheet';
 import MemoryDetailSheet from '@/components/memory/MemoryDetailSheet';
+import TrimmedVideo from '@/components/memory/TrimmedVideo';
 import PageHeader from '@/components/layout/PageHeader';
 import EmptyState from '@/components/layout/EmptyState';
 
@@ -326,7 +327,7 @@ const MemoryCard = ({ m, onOpen }: { m: Memory; onOpen: () => void }) => {
       <div className="relative aspect-square bg-muted flex items-center justify-center overflow-hidden">
         {m.kind === 'photo' && <img src={m.payload} alt={m.caption} className="w-full h-full object-cover" />}
         {m.kind === 'video' && (
-          <video src={m.payload} muted playsInline className="w-full h-full object-cover" />
+          <TrimmedVideo memory={m} controls={false} className="w-full h-full object-cover" />
         )}
         {m.kind === 'voice' && (
           <div className="flex flex-col items-center gap-2">
