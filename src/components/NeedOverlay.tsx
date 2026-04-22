@@ -102,6 +102,16 @@ const NeedOverlay = ({ type, onClose, currentLocation, hasKids }: NeedOverlayPro
                       {item.rating.toFixed(1)}
                     </span>
                   </span>
+                  <a
+                    href={item.yelpUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 font-sans text-[10px] uppercase tracking-sovereign font-bold shrink-0 transition-opacity hover:opacity-70"
+                    style={{ color: 'hsl(var(--gold))', letterSpacing: '0.14em' }}
+                  >
+                    Yelp
+                    <ExternalLink size={10} />
+                  </a>
                 </div>
                 <span
                   className="font-sans text-[9px] uppercase tracking-sovereign font-bold shrink-0 px-1.5 py-0.5 rounded-full"
@@ -114,32 +124,20 @@ const NeedOverlay = ({ type, onClose, currentLocation, hasKids }: NeedOverlayPro
                   {item.service === 'sit-down' ? 'Sit-Down' : item.service === 'quick-service' ? 'Quick' : 'Snack'}
                 </span>
               </div>
-              {/* Row 2 — meta (left), Yelp link (right) */}
+              {/* Row 2 — land/walk (left), wait time (right) */}
               <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3 min-w-0 flex-wrap">
-                  <div className="flex items-center gap-1.5">
-                    <MapPin size={11} className="text-muted-foreground" />
-                    <span className="font-sans text-[10px] text-muted-foreground">
-                      {item.land} · {item.walkMinutes}m
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <Utensils size={11} className="text-muted-foreground" />
-                    <span className="font-sans text-[10px] text-muted-foreground">
-                      Wait <span className="text-foreground font-semibold">{item.waitMinutes}m</span>
-                    </span>
-                  </div>
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <MapPin size={11} className="text-muted-foreground" />
+                  <span className="font-sans text-[10px] text-muted-foreground truncate">
+                    {item.land} · {item.walkMinutes}m
+                  </span>
                 </div>
-                <a
-                  href={item.yelpUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 font-sans text-[10px] uppercase tracking-sovereign font-bold shrink-0 transition-opacity hover:opacity-70"
-                  style={{ color: 'hsl(var(--gold))', letterSpacing: '0.14em' }}
-                >
-                  Yelp
-                  <ExternalLink size={10} />
-                </a>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <Utensils size={11} className="text-muted-foreground" />
+                  <span className="font-sans text-[10px] text-muted-foreground">
+                    Wait <span className="text-foreground font-semibold">{item.waitMinutes}m</span>
+                  </span>
+                </div>
               </div>
             </div>
           ))}
