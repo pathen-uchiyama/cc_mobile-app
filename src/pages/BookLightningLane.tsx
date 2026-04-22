@@ -172,12 +172,39 @@ const BookLightningLane = () => {
     onAutoBook: (attraction) => handleBook(attraction),
     onAlert: (attraction, mode) => {
       if (mode === 'auto-book') {
-        toast.success(`Auto-booked ${attraction.name}`, {
-          description: 'Your held stack just grew. Tap to view it.',
+        // Long pulse — the booking landed cleanly.
+        fire('bookingSuccess');
+        toast.success(`Auto-booked · ${attraction.name}`, {
+          description: 'Your held stack just grew. Window opens in 60 min.',
+          duration: 6000,
+          action: {
+            label: 'View stack',
+            onClick: () => navigate('/park'),
+          },
+        });
+      } else if (mode === 'auto-book-failed') {
+        // Double pulse + error toast — auto-book tried and missed; the guest
+        // needs to step in.
+        fire('recommendation');
+        toast.error(`Couldn't auto-book ${attraction.name}`, {
+          description: 'Capacity slipped. Tap to try booking it now.',
+          duration: 8000,
+          action: {
+            label: 'Book now',
+            onClick: () => handleWatchlistBookNow(attraction),
+          },
         });
       } else {
+        // Watching → alerted for explorers. Double pulse signals "new
+        // opportunity surfaced", matching the recommendation language.
+        fire('recommendation');
         toast(`${attraction.name} is open!`, {
-          description: 'Tap Book in your watchlist to grab it.',
+          description: 'Your watched window just opened. Tap to grab it.',
+          duration: 8000,
+          action: {
+            label: 'Book now',
+            onClick: () => handleWatchlistBookNow(attraction),
+          },
         });
       }
     },

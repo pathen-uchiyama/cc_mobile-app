@@ -97,7 +97,10 @@ export interface UseLLWatchlistArgs {
   /** Called once per state transition into 'alerted' so the page can fire
    *  a toast, haptic, etc. The hook itself never imports sonner so it stays
    *  free of UI dependencies. */
-  onAlert: (attraction: LLAttraction, mode: 'auto-book' | 'tap-to-book') => void;
+  onAlert: (
+    attraction: LLAttraction,
+    mode: 'auto-book' | 'tap-to-book' | 'auto-book-failed',
+  ) => void;
 }
 
 export interface UseLLWatchlistReturn {
@@ -169,7 +172,7 @@ export const useLLWatchlist = ({
         // Auto-book failed (capacity gone, etc). Drop into the alerted state
         // so the guest can retry. Treat this exactly like an explorer alert.
         mutated = true;
-        onAlert(attraction, 'tap-to-book');
+        onAlert(attraction, 'auto-book-failed');
         return { ...e, status: 'alerted' as const };
       }
 
