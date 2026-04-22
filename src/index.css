@@ -55,6 +55,17 @@
     --tertiary-foreground: 0 0% 100%;
     --tertiary-container: 316 60% 92%;
     --on-tertiary-container: var(--magenta);
+    /* Magenta soft accents — used for "Delayed" / info ribbons. */
+    --tertiary-fixed: 322 100% 92%;        /* #ffd8ec */
+    --on-tertiary-fixed-variant: 313 100% 27%; /* #88006a */
+
+    /* Gold soft accents — chip ink. */
+    --on-secondary-container: 48 100% 23%; /* #745c00 — same family as gold */
+
+    /* Error container — soft red surface for "Action Needed" callouts. */
+    --error: 0 75% 42%;                    /* #ba1a1a */
+    --error-container: 7 100% 92%;         /* #ffdad6 */
+    --on-error-container: 4 100% 29%;      /* #93000a */
 
     --muted: var(--surface-container-low);
     --muted-foreground: var(--slate-plaid);
