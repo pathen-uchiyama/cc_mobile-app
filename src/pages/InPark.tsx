@@ -15,7 +15,7 @@ import RecalibrateSheet from '@/components/RecalibrateSheet';
 import SwapSuggestionsSheet, { type SwapReason } from '@/components/SwapSuggestionsSheet';
 import BottomSheet from '@/components/BottomSheet';
 import FindAndSeekWidget from '@/components/FindAndSeekWidget';
-import MustDoFan from '@/components/priority-stack/MustDoFan';
+import PullRideInSheet from '@/components/priority-stack/PullRideInSheet';
 import LockScreenNotice from '@/components/LockScreenNotice';
 import DevPanel from '@/components/DevPanel';
 import { useCompanion } from '@/contexts/CompanionContext';
@@ -25,6 +25,7 @@ import RecordMemorySheet from '@/components/memory/RecordMemorySheet';
 import InterviewSheet from '@/components/memory/InterviewSheet';
 import { RESERVATIONS, nextHospitalityReservation, minutesUntil } from '@/data/reservations';
 import { INITIAL_HOLDS, DEFAULT_CAPACITY, summarizeCapacity } from '@/data/lightningLanes';
+import { PARTY_WANTS, COMMUNITY_PICKS } from '@/data/wantToDos';
 import { usePlanStack, type MustDo } from '@/hooks/park/usePlanStack';
 import { useStrategyEngine } from '@/hooks/park/useStrategyEngine';
 
@@ -445,10 +446,13 @@ const InPark = () => {
         <FindAndSeekWidget />
       </BottomSheet>
 
-      <MustDoFan
+      <PullRideInSheet
         open={mustDoOpen}
         onClose={() => setMustDoOpen(false)}
         mustDos={mustDos}
+        partyWants={PARTY_WANTS}
+        communityPicks={COMMUNITY_PICKS}
+        excludedAttractions={plan.map((p) => p.attraction)}
         onPromote={promoteMustDoToHero}
       />
 
