@@ -26,7 +26,7 @@ const Welcome = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-8 max-w-[480px] mx-auto">
+    <div className="min-h-screen bg-background digital-plaid-bg flex flex-col items-center justify-center px-8 max-w-[480px] mx-auto">
       {/* Brand Mark — placeholder for future animation */}
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}

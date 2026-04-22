@@ -22,7 +22,7 @@ const NotFound = () => {
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen bg-background max-w-[480px] mx-auto px-6 py-16 flex flex-col">
+    <div className="min-h-screen bg-background digital-plaid-bg max-w-[480px] mx-auto px-6 py-16 flex flex-col">
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
