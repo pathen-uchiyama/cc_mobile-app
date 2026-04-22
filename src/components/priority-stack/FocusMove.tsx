@@ -249,14 +249,14 @@ const FocusMove = ({
 
         {questPrompt && (
           <p
-            className="font-sans italic text-[13px] leading-snug mt-4 pt-4"
-            style={{
-              color: 'hsl(36 47% 35%)',
-              borderTop: '1px dashed hsl(36 47% 35% / 0.35)',
-            }}
+            className="font-sans italic text-[12px] leading-snug mt-3 text-center"
+            style={{ color: 'hsl(36 47% 35% / 0.85)' }}
           >
-            <span className="font-sans not-italic text-[8px] uppercase tracking-sovereign font-bold block mb-1" style={{ letterSpacing: '0.14em' }}>
-              A Keepsake
+            <span
+              className="font-sans not-italic text-[8px] uppercase tracking-sovereign font-bold mr-1.5"
+              style={{ letterSpacing: '0.14em' }}
+            >
+              Keepsake ·
             </span>
             {questPrompt}
           </p>
