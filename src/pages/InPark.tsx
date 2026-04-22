@@ -1,15 +1,13 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import LoomingHorizon from '@/components/LoomingHorizon';
+import BottomGlassNav from '@/components/BottomGlassNav';
+import SovereignAnchor from '@/components/priority-stack/SovereignAnchor';
 import HeroHorizonStack, { type PlanItem, type WalkingPrompt } from '@/components/priority-stack/HeroHorizonStack';
 import PivotShimmer from '@/components/priority-stack/PivotShimmer';
-import MustDoRibbon, { type MustDoIcon } from '@/components/priority-stack/MustDoRibbon';
-import MustDoDropdown, { type MustDoEntry } from '@/components/priority-stack/MustDoDropdown';
 import AssistedDrawer from '@/components/priority-stack/AssistedDrawer';
 import AudibleMenu from '@/components/priority-stack/AudibleMenu';
 import StrategicDashboard from '@/components/priority-stack/StrategicDashboard';
-import HearthDock from '@/components/HearthDock';
 import MinimalistView from '@/components/MinimalistView';
 import SovereignView from '@/components/SovereignView';
 import NeedOverlay from '@/components/NeedOverlay';
@@ -18,7 +16,6 @@ import SwapSuggestionsSheet, { type SwapReason } from '@/components/SwapSuggesti
 import BottomSheet from '@/components/BottomSheet';
 import FindAndSeekWidget from '@/components/FindAndSeekWidget';
 import DevPanel from '@/components/DevPanel';
-import WhisperStrip from '@/components/WhisperStrip';
 import { useCompanion } from '@/contexts/CompanionContext';
 import { useCelebrate, WHISPERS } from '@/contexts/CelebrationContext';
 import { useMemoryVault } from '@/contexts/MemoryContext';
