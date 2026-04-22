@@ -170,6 +170,11 @@ const SwapSuggestionsSheet = ({ open, onClose, skipped, reason }: SwapSuggestion
         {options.map((opt, i) => {
           const badge = KIND_BADGE[opt.kind];
           const BadgeIcon = badge.Icon;
+          const showRainWhy = isRain && !!opt.rainWhy;
+          // When a rain-specific rationale exists, it supersedes the generic
+          // reason — hide the generic line from screen readers to avoid
+          // announcing two overlapping justifications for the same option.
+          const ariaLabel = `${opt.ride}, ${opt.wait} wait, in ${opt.area}`;
           return (
           <motion.button
             key={opt.id}
@@ -178,6 +183,7 @@ const SwapSuggestionsSheet = ({ open, onClose, skipped, reason }: SwapSuggestion
             transition={{ delay: i * 0.06 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => pick(opt)}
+            aria-label={ariaLabel}
             className="w-full text-left bg-card hover:bg-accent/5 border border-border hover:border-accent/40 rounded-xl p-4 cursor-pointer transition-colors"
           >
             <div className="flex items-start justify-between gap-3 mb-2">
@@ -199,10 +205,34 @@ const SwapSuggestionsSheet = ({ open, onClose, skipped, reason }: SwapSuggestion
                 <span className="font-sans text-xs text-accent font-bold tabular-nums">{opt.wait}</span>
               </div>
             </div>
-            <p className="font-sans text-[10px] text-muted-foreground italic flex items-center gap-1.5">
-              <Sparkles size={9} className="text-accent shrink-0" />
+            <p
+              className="font-sans text-[10px] text-muted-foreground italic flex items-center gap-1.5"
+              aria-hidden={showRainWhy || undefined}
+            >
+              <Sparkles size={9} className="text-accent shrink-0" aria-hidden />
               {opt.reason}
             </p>
+            {showRainWhy && (
+              <p
+                className="mt-1.5 font-sans text-[10px] text-primary/90 leading-snug flex items-start gap-1.5"
+                role="note"
+              >
+                <CloudRain size={10} className="text-primary shrink-0 mt-[1px]" aria-hidden />
+                <span>
+                  {/* Visible decorative eyebrow */}
+                  <span
+                    aria-hidden
+                    className="font-semibold uppercase tracking-wider text-[8px] text-primary mr-1"
+                  >
+                    Why now
+                  </span>
+                  {/* SR-only semantic prefix so the announcement reads naturally
+                      ("Why now: ...") without duplicating the visual eyebrow. */}
+                  <span className="sr-only">Why now: </span>
+                  {opt.rainWhy}
+                </span>
+              </p>
+            )}
           </motion.button>
           );
         })}
