@@ -1,8 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Zap, MapPin, Clock, Check, Star, Lock, ArrowRight, Sparkles } from 'lucide-react';
-import { Hourglass } from 'lucide-react';
+import { Zap, MapPin, Clock, Check, Star, Lock, ArrowRight, Sparkles, Hourglass } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   LL_INVENTORY,
