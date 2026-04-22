@@ -89,22 +89,6 @@ const HeroHorizonStack = ({
 
   return (
     <div className="flex flex-col">
-      {/* Forced-Focus eyebrow */}
-      <div className="flex items-center justify-between mb-2 px-1">
-        <span
-          className="font-sans text-[9px] uppercase tracking-sovereign font-bold"
-          style={{ color: 'hsl(var(--gold))' }}
-        >
-          The Sovereign Stack
-        </span>
-        <span
-          className="font-sans text-[9px] uppercase tracking-sovereign"
-          style={{ color: 'hsl(var(--slate-plaid))' }}
-        >
-          Three. No more.
-        </span>
-      </div>
-
       <LayoutGroup id="sovereign-stack">
         {/* Hero slot — keyed by id so framer-motion morphs it on swap */}
         <div className="relative" style={{ marginBottom: '14px' }}>
