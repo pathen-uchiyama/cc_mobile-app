@@ -52,6 +52,10 @@ const BookLightningLane = () => {
   // Track holds added in this session so we can offer a "see it on your stack"
   // ribbon — keeps the user oriented after a booking instead of stranding them.
   const [sessionAdds, setSessionAdds] = useState(0);
+  // Urgency filter — narrows the LL list by typical sell-out window so a guest
+  // racing the clock can focus on what's actually slipping away. `all` is the
+  // default so nothing is hidden until the guest opts in.
+  const [urgency, setUrgency] = useState<'all' | '1h' | '2h' | 'later'>('all');
 
   const summary = useMemo(
     () => summarizeCapacity(holds, NOW_MINUTES, DEFAULT_CAPACITY),
@@ -68,6 +72,15 @@ const BookLightningLane = () => {
   // ridden rows sink. Within each bucket, earlier sellout wins.
   const llOrdered = useMemo(() => {
     const ll = LL_INVENTORY.filter((a) => a.type === 'll');
+    // Apply the urgency filter first so bucket counts reflect what the guest
+    // is actually seeing.
+    const filtered = ll.filter((a) => {
+      if (urgency === 'all') return true;
+      const minsUntil = a.typicalSelloutMin - NOW_MINUTES;
+      if (urgency === '1h') return minsUntil <= 60;          // includes already-past
+      if (urgency === '2h') return minsUntil > 60 && minsUntil <= 120;
+      return minsUntil > 120;                                // 'later'
+    });
     const bucket = (a: LLAttraction) => {
       const held = heldIds.has(a.id);
       const ridden = isRidden(a.name, MOCK_MUST_DOS);
@@ -77,7 +90,7 @@ const BookLightningLane = () => {
       if (ridden) return 3;
       return 1; // standard inventory
     };
-    return ll
+    return filtered
       .slice()
       .sort((a, b) => {
         const ba = bucket(a);
@@ -85,7 +98,7 @@ const BookLightningLane = () => {
         if (ba !== bb) return ba - bb;
         return a.typicalSelloutMin - b.typicalSelloutMin;
       });
-  }, [heldIds]);
+  }, [heldIds, urgency]);
 
   // ILLs always sort by earliest sellout — these go fastest.
   const illOrdered = useMemo(
@@ -147,11 +160,15 @@ const BookLightningLane = () => {
               guests learn the urgency mapping without needing to hover each
               chip. Mirrors the exact thresholds used inside SelloutChip. */}
           <SelloutLegend />
+          {/* Urgency filter — chip row that narrows the list by typical
+              sell-out window. Sits between the legend (which teaches the
+              color scale) and the list (which uses it). */}
+          <UrgencyFilter value={urgency} onChange={setUrgency} />
           {llOrdered.length === 0 ? (
             <EmptyState
               eyebrow="All caught up"
-              title="No standard lanes left to grab."
-              hint="Tap Refresh on your day to recheck the inventory."
+              title={urgency === 'all' ? 'No standard lanes left to grab.' : 'Nothing in this window.'}
+              hint={urgency === 'all' ? 'Tap Refresh on your day to recheck the inventory.' : 'Try a different urgency filter above.'}
             />
           ) : (
           <ul className="list-none p-0 m-0 space-y-2">
