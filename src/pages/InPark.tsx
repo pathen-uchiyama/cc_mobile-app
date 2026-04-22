@@ -360,12 +360,11 @@ const InPark = () => {
       {/* Single bottom nav — 4 tabs. The pivot/audible actions all live one
           tap deep, inside the floating Sovereign Key. */}
       <BottomGlassNav
-        activeTab="horizon"
+        activeTab="today"
         onTabChange={(tab) => {
-          if (tab === 'horizon') return;
-          if (tab === 'canvas') navigate('/edit-itinerary');
-          if (tab === 'guide') navigate('/upgrades');
-          if (tab === 'vault') navigate('/joy-report');
+          if (tab === 'today') return;
+          if (tab === 'mustdo') setMustDoOpen(true);
+          if (tab === 'pivot') setAudibleOpen(true);
         }}
       />
 
