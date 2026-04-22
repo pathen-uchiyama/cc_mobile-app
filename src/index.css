@@ -117,29 +117,31 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', sans-serif;
-    letter-spacing: -0.02em;
+    /* Editorial body: Plus Jakarta Sans, optimized for legibility. */
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    letter-spacing: -0.005em;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Playfair Display', serif;
-    letter-spacing: -0.01em;
+    /* Editorial display: Epilogue, magazine-masthead presence. */
+    font-family: 'Epilogue', 'Plus Jakarta Sans', sans-serif;
+    letter-spacing: -0.015em;
     line-height: 1.1;
   }
 }
 
 @layer utilities {
   .font-display {
-    font-family: 'Playfair Display', serif;
-    letter-spacing: -0.01em;
+    font-family: 'Epilogue', 'Plus Jakarta Sans', sans-serif;
+    letter-spacing: -0.015em;
     line-height: 1.1;
   }
 
   .font-sans {
-    font-family: 'Inter', sans-serif;
-    letter-spacing: -0.02em;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    letter-spacing: -0.005em;
   }
 
   .tabular-nums {
