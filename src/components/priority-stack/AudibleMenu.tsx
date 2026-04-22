@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Coffee, Utensils, CloudRain, RefreshCw } from 'lucide-react';
+import { Coffee, Utensils, CloudRain, RefreshCw, Bath } from 'lucide-react';
 
 interface AudibleMenuProps {
   open: boolean;
@@ -8,14 +8,27 @@ interface AudibleMenuProps {
   onRefuel: () => void;
   onClosure: () => void;
   onReset: () => void;
+  onRestroom?: () => void;
 }
 
+/**
+ * Fan menu items. Order matters — they radiate counter-clockwise from the
+ * Pivot tab in the bottom nav (rightmost tab). First item sits closest to
+ * straight-up, last item closest to horizontal-left.
+ */
 const items = [
-  { id: 'break',   label: 'Need a Break',          icon: Coffee },
-  { id: 'refuel',  label: 'Refuel',                icon: Utensils },
-  { id: 'closure', label: 'Rain Pivot',            icon: CloudRain },
-  { id: 'reset',   label: 'Reset Strategy',        icon: RefreshCw },
+  { id: 'restroom', label: 'Restroom',    icon: Bath },
+  { id: 'refuel',   label: 'Meals',       icon: Utensils },
+  { id: 'break',    label: 'Break',       icon: Coffee },
+  { id: 'closure',  label: 'Rain',        icon: CloudRain },
+  { id: 'reset',    label: 'Reset',       icon: RefreshCw },
 ] as const;
+
+/** Radius of the fan in pixels — distance from the Pivot tab anchor. */
+const FAN_RADIUS = 110;
+/** Angular sweep of the fan in degrees, opening up-and-to-the-left from the Pivot tab. */
+const FAN_START_DEG = 180; // straight left
+const FAN_END_DEG = 270;   // straight up
 
 /**
  * Audible Menu — opened from the Sovereign Anchor.
