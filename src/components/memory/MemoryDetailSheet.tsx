@@ -86,6 +86,19 @@ const readHintsSeen = () => {
  */
 const MemoryDetailSheet = ({ open, onClose, memory, onEdit }: MemoryDetailSheetProps) => {
   const [detailsExpanded, setDetailsExpanded] = useState(false);
+  // Hints stay until the user successfully completes a real swipe gesture.
+  // Tap-only users (who use the pill / X / Close buttons) keep seeing them
+  // because the hints aren't in their way — they sit out near the edges.
+  const [hintsVisible, setHintsVisible] = useState<boolean>(() => !readHintsSeen());
+
+  const dismissHints = () => {
+    setHintsVisible(false);
+    try {
+      window.localStorage.setItem(HINTS_SEEN_KEY, '1');
+    } catch {
+      /* storage may be unavailable (private mode); UI just won't persist */
+    }
+  };
 
   // Lock body scroll while open + reset panel state on each open.
   useEffect(() => {
@@ -153,6 +166,7 @@ const MemoryDetailSheet = ({ open, onClose, memory, onEdit }: MemoryDetailSheetP
     if (horizontalDominant) {
       // Swipe left to dismiss — needs a firm, deliberate drag.
       if (passes(offset.x, velocity.x, DISMISS_DISTANCE, -1)) {
+        dismissHints();
         onClose();
       }
       return;
@@ -165,6 +179,7 @@ const MemoryDetailSheet = ({ open, onClose, memory, onEdit }: MemoryDetailSheetP
 
     // Vertical: up reveals (cheap), down collapses or dismisses (expensive).
     if (passes(offset.y, velocity.y, REVEAL_DISTANCE, -1)) {
+      dismissHints();
       setDetailsExpanded(true);
       return;
     }
@@ -172,11 +187,13 @@ const MemoryDetailSheet = ({ open, onClose, memory, onEdit }: MemoryDetailSheetP
     if (detailsExpanded) {
       // Collapse: medium threshold so accidental jitter doesn't hide details.
       if (passes(offset.y, velocity.y, COLLAPSE_DISTANCE, 1)) {
+        dismissHints();
         setDetailsExpanded(false);
       }
     } else {
       // Dismiss-by-swipe-down: hardest threshold to clear.
       if (passes(offset.y, velocity.y, DISMISS_DISTANCE, 1)) {
+        dismissHints();
         onClose();
       }
     }
