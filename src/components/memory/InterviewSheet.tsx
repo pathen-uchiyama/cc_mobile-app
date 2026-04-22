@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic, FileText, Square, ArrowRight, Check, SkipForward, Loader2 } from 'lucide-react';
+import { Mic, FileText, Square, ArrowRight, Check, SkipForward, Loader2, Sparkles, AlertCircle } from 'lucide-react';
 import BottomSheet from '@/components/BottomSheet';
 import { useMediaCapture } from '@/hooks/memory/useMediaCapture';
 import { useMemoryVault, type InterviewPhase } from '@/contexts/MemoryContext';
 import { useCelebrate } from '@/contexts/CelebrationContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface InterviewSheetProps {
   open: boolean;
@@ -63,6 +64,12 @@ const InterviewSheet = ({ open, onClose, phase }: InterviewSheetProps) => {
   const [body, setBody] = useState('');
   const [voiceCapture, setVoiceCapture] = useState<{ payload: string; durationMs: number } | null>(null);
   const [busy, setBusy] = useState(false);
+  // Transcription is opt-in: a separate state machine so users can keep the
+  // raw voice memo even if they never tap Transcribe.
+  const [transcribing, setTranscribing] = useState(false);
+  const [transcriptError, setTranscriptError] = useState<string | null>(null);
+  /** True once a transcript has been pulled into `body` for the current voice clip. */
+  const [hasTranscript, setHasTranscript] = useState(false);
 
   const capture = useMediaCapture('voice');
 
@@ -73,6 +80,9 @@ const InterviewSheet = ({ open, onClose, phase }: InterviewSheetProps) => {
       setBody('');
       setVoiceCapture(null);
       capture.stop();
+      setTranscribing(false);
+      setTranscriptError(null);
+      setHasTranscript(false);
     }
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -82,6 +92,9 @@ const InterviewSheet = ({ open, onClose, phase }: InterviewSheetProps) => {
   const startVoice = async () => {
     setMode('voice');
     setVoiceCapture(null);
+    setHasTranscript(false);
+    setTranscriptError(null);
+    setBody('');
     const stream = await capture.start();
     if (!stream) return;
     try {
@@ -91,6 +104,33 @@ const InterviewSheet = ({ open, onClose, phase }: InterviewSheetProps) => {
   };
 
   const stopVoice = () => capture.stop();
+
+  const handleTranscribe = async () => {
+    if (!voiceCapture) return;
+    setTranscribing(true);
+    setTranscriptError(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('transcribe-audio', {
+        body: { audio: voiceCapture.payload },
+      });
+      if (error) throw error;
+      const text = (data as { text?: string; error?: string } | null)?.text?.trim();
+      const apiError = (data as { error?: string } | null)?.error;
+      if (apiError) throw new Error(apiError);
+      if (!text) {
+        setTranscriptError('We couldn\u2019t make out the words. Your voice memo is still saved.');
+      } else {
+        setBody(text);
+        setHasTranscript(true);
+      }
+    } catch (err) {
+      console.error('Transcription failed:', err);
+      const msg = err instanceof Error ? err.message : 'Transcription failed.';
+      setTranscriptError(msg);
+    } finally {
+      setTranscribing(false);
+    }
+  };
 
   const advance = () => {
     if (isLast) {
@@ -106,11 +146,17 @@ const InterviewSheet = ({ open, onClose, phase }: InterviewSheetProps) => {
     setBody('');
     setVoiceCapture(null);
     setMode('note');
+    setHasTranscript(false);
+    setTranscriptError(null);
   };
 
   const saveAndAdvance = () => {
     setBusy(true);
-    if (mode === 'note' && body.trim()) {
+    // If we have a transcript, save it as a note so the user gets their
+    // refined text. Otherwise fall back to the raw voice clip.
+    if (mode === 'voice' && voiceCapture && hasTranscript && body.trim()) {
+      saveInterview({ phase, question: q.title, kind: 'note', payload: body.trim() });
+    } else if (mode === 'note' && body.trim()) {
       saveInterview({ phase, question: q.title, kind: 'note', payload: body.trim() });
     } else if (mode === 'voice' && voiceCapture) {
       saveInterview({ phase, question: q.title, kind: 'voice', payload: voiceCapture.payload, durationMs: voiceCapture.durationMs });
@@ -121,7 +167,9 @@ const InterviewSheet = ({ open, onClose, phase }: InterviewSheetProps) => {
 
   const skip = () => advance();
 
-  const canSave = (mode === 'note' && body.trim().length > 0) || (mode === 'voice' && voiceCapture !== null);
+  const canSave =
+    (mode === 'note' && body.trim().length > 0) ||
+    (mode === 'voice' && voiceCapture !== null);
 
   return (
     <BottomSheet
