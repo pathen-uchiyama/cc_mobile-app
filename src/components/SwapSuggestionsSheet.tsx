@@ -126,11 +126,16 @@ const SwapSuggestionsSheet = ({ open, onClose, skipped, reason }: SwapSuggestion
   //     announcement per change, with deterministic wording
   const prevWhyIdsRef = useRef<Set<string>>(new Set());
   useEffect(() => {
-    if (!open || !isRain) {
+    if (!open) {
       prevWhyIdsRef.current = new Set();
       return;
     }
-    const nextIds = new Set(options.filter((o) => !!o.rainWhy).map((o) => o.id));
+    // When not in rain mode, the active rationale set is empty. We still
+    // run the diff so a transition rain → manual produces the matching
+    // "removed" announcement (and reset cleanly).
+    const nextIds = new Set(
+      isRain ? options.filter((o) => !!o.rainWhy).map((o) => o.id) : []
+    );
     const prev = prevWhyIdsRef.current;
     const added: string[] = [];
     const removed: string[] = [];
