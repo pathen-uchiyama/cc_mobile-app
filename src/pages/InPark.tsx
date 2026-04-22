@@ -110,7 +110,7 @@ const InPark = () => {
   // ── Sovereign Key context ─────────────────────────────────────────────
   const [audibleOpen, setAudibleOpen] = useState(false);
   const [dashboardOpen, setDashboardOpen] = useState(false);
-  const [needType, setNeedType] = useState<'bathroom' | 'quiet' | 'food' | null>(null);
+  const [needType, setNeedType] = useState<'bathroom' | 'quiet' | 'food' | 'cooldown' | null>(null);
   const [showRecalibrate, setShowRecalibrate] = useState(false);
   const [swapFor, setSwapFor] = useState<string | null>(null);
   const [swapReason, setSwapReason] = useState<SwapReason>('manual');
@@ -398,6 +398,7 @@ const InPark = () => {
         onClosure={() => runPivot('Rain Pivot', () => openSwap('rain', hero?.attraction ?? 'current ride'))}
         onReset={() => runPivot('Reset Strategy', () => { setPivotSuggested(false); setShowRecalibrate(true); })}
         onRestroom={() => runPivot('Restroom', () => setNeedType('bathroom'))}
+        onCooldown={() => runPivot('Cool Down', () => setNeedType('cooldown'))}
         attention={{
           // Mirror the strategy-engine badges on the matching action row.
           closure: !!pivotBadges.rain,
