@@ -364,11 +364,23 @@ const InPark = () => {
           done: mustDos.reduce((s, m) => s + Math.min(m.done, m.desired), 0),
           total: mustDos.reduce((s, m) => s + m.desired, 0),
         }}
+        attentionTabs={{
+          // The Pivot tab pulses when the strategy engine has a fresh
+          // suggestion or any pivot badge has flipped on (rain, refuel, …).
+          pivot:
+            (pivotSuggested && !pivotLabel) ||
+            !!pivotBadges.rain ||
+            !!pivotBadges.refuel ||
+            !!pivotBadges.break ||
+            !!pivotBadges.restroom,
+          // Details glows when an LL slot has just opened.
+          details: llSummary.canBookLLNow,
+        }}
         onTabChange={(tab) => {
           if (tab === 'today') return;
           if (tab === 'mustdo') setMustDoOpen(true);
           if (tab === 'pivot') setAudibleOpen(true);
-          if (tab === 'dashboard') setDashboardOpen(true);
+          if (tab === 'details') setDashboardOpen(true);
         }}
       />
 
