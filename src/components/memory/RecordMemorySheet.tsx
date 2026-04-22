@@ -457,19 +457,28 @@ const RecordMemorySheet = ({ open, onClose, contextHint }: RecordMemorySheetProp
             exit={{ opacity: 0, y: -8 }}
           >
             {/* Preview */}
-            <div className="rounded-2xl overflow-hidden mb-4 bg-foreground">
-              {captured.kind === 'photo' && (
-                <img src={captured.payload} alt="Captured" className="w-full aspect-[4/5] object-cover" />
-              )}
-              {captured.kind === 'video' && (
-                <video src={captured.payload} controls playsInline className="w-full aspect-[4/5] object-cover bg-foreground" />
-              )}
-              {captured.kind === 'voice' && (
-                <div className="aspect-[4/2] flex items-center justify-center p-6">
-                  <audio src={captured.payload} controls className="w-full" />
-                </div>
-              )}
-            </div>
+            {captured.kind === 'video' ? (
+              <div className="mb-4">
+                <VideoTrimmer
+                  src={captured.payload}
+                  initialDurationSec={(captured.durationMs ?? 0) / 1000}
+                  maxLengthSec={10}
+                  minLengthSec={1}
+                  onChange={(start, end) => setTrim({ start, end })}
+                />
+              </div>
+            ) : (
+              <div className="rounded-2xl overflow-hidden mb-4 bg-foreground">
+                {captured.kind === 'photo' && (
+                  <img src={captured.payload} alt="Captured" className="w-full aspect-[4/5] object-cover" />
+                )}
+                {captured.kind === 'voice' && (
+                  <div className="aspect-[4/2] flex items-center justify-center p-6">
+                    <audio src={captured.payload} controls className="w-full" />
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* The "what is this?" prompt — drives the caption */}
             <span className="font-sans text-[9px] uppercase tracking-sovereign text-accent font-bold block mb-2">
