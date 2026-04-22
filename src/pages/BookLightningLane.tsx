@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Zap, MapPin, Clock, Check, Star, Lock, ArrowRight, Sparkles } from 'lucide-react';
+import { Zap, MapPin, Clock, Check, Star, Lock, ArrowRight, Sparkles, Hourglass } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   LL_INVENTORY,
@@ -9,6 +9,7 @@ import {
   DEFAULT_CAPACITY,
   summarizeCapacity,
   formatCountdown,
+  formatClockTime,
   isMustDo,
   isRidden,
   type LLAttraction,
@@ -59,23 +60,38 @@ const BookLightningLane = () => {
   const heldIds = useMemo(() => new Set(holds.map((h) => h.attractionId)), [holds]);
 
   // Tier-aware sorting for the LL section.
+  //
+  // Primary signal is now "earliest typical sell-out time" — the most urgent
+  // grabs surface first. Must-Dos still pin to the top of their bucket so the
+  // guest never has to scroll past noise to find their priorities; held and
+  // ridden rows sink. Within each bucket, earlier sellout wins.
   const llOrdered = useMemo(() => {
     const ll = LL_INVENTORY.filter((a) => a.type === 'll');
-    const score = (a: LLAttraction) => {
+    const bucket = (a: LLAttraction) => {
       const held = heldIds.has(a.id);
       const ridden = isRidden(a.name, MOCK_MUST_DOS);
       const must = isMustDo(a.name, MOCK_MUST_DOS);
-      // Lower = higher in the list.
-      if (must && !held && !ridden) return 0 - a.standbyMin / 1000; // pinned, tie-break by wait
-      if (held) return 100;
-      if (ridden) return 200;
-      return 50 - a.standbyMin / 1000; // shorter wait wins inside the bucket
+      if (must && !held && !ridden) return 0; // pinned Must-Do
+      if (held) return 2;
+      if (ridden) return 3;
+      return 1; // standard inventory
     };
-    return ll.slice().sort((a, b) => score(a) - score(b));
+    return ll
+      .slice()
+      .sort((a, b) => {
+        const ba = bucket(a);
+        const bb = bucket(b);
+        if (ba !== bb) return ba - bb;
+        return a.typicalSelloutMin - b.typicalSelloutMin;
+      });
   }, [heldIds]);
 
+  // ILLs always sort by earliest sellout — these go fastest.
   const illOrdered = useMemo(
-    () => LL_INVENTORY.filter((a) => a.type === 'ill').sort((a, b) => b.standbyMin - a.standbyMin),
+    () =>
+      LL_INVENTORY.filter((a) => a.type === 'ill').sort(
+        (a, b) => a.typicalSelloutMin - b.typicalSelloutMin,
+      ),
     [],
   );
 
@@ -282,13 +298,14 @@ const RideRow = ({ attraction, held, ridden, mustDo, dim, disabled, lockReason, 
           <h3 className="text-headline text-primary truncate">
             {attraction.name}
           </h3>
-          <div className="flex items-center gap-2 mt-0.5">
+          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
             <span className="font-sans text-[10px] text-muted-foreground flex items-center gap-1">
               <MapPin size={9} /> {attraction.land}
             </span>
             <span className="font-sans text-[10px] text-muted-foreground flex items-center gap-1 tabular-nums">
               <Clock size={9} /> {attraction.standbyMin}m standby
             </span>
+            <SelloutChip selloutMin={attraction.typicalSelloutMin} />
           </div>
         </div>
       </div>
@@ -332,3 +349,38 @@ const RideRow = ({ attraction, held, ridden, mustDo, dim, disabled, lockReason, 
 };
 
 export default BookLightningLane;
+
+/**
+ * "Usually gone by …" chip — colors itself by urgency:
+ *   • Magenta when sellout is within the next 60 minutes (or already past).
+ *   • Gold for the next 2 hours.
+ *   • Slate otherwise.
+ * Uses the same NOW_MINUTES the page is mocked at so the urgency reads true.
+ */
+const SelloutChip = ({ selloutMin }: { selloutMin: number }) => {
+  const minsUntil = selloutMin - NOW_MINUTES;
+  const past = minsUntil <= 0;
+  const urgent = !past && minsUntil <= 60;
+  const soon = !past && !urgent && minsUntil <= 120;
+
+  const color = past || urgent
+    ? 'hsl(316 95% 35%)'
+    : soon
+      ? 'hsl(var(--gold))'
+      : 'hsl(var(--slate-plaid))';
+
+  const label = past
+    ? `Usually gone by ${formatClockTime(selloutMin)} · cutting it close`
+    : `Usually gone by ${formatClockTime(selloutMin)}`;
+
+  return (
+    <span
+      className="font-sans text-[10px] flex items-center gap-1 tabular-nums"
+      style={{ color }}
+      title={label}
+    >
+      <Hourglass size={9} />
+      {label}
+    </span>
+  );
+};

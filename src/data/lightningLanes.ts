@@ -31,6 +31,16 @@ export interface LLAttraction {
   priceUsd?: number;
   /** Brief description of the experience for the guest. */
   blurb: string;
+  /**
+   * Typical sell-out time on a comparable day, expressed as minutes since
+   * midnight (park-time). Drives the "Usually gone by …" data point on the
+   * booking card and the default sort order on /book-ll. Lower number = sells
+   * out earlier in the day = more urgent.
+   *
+   * Headliners (TRON, Seven Dwarfs) typically sell out within an hour of park
+   * open; classics like Pirates routinely last into mid-afternoon.
+   */
+  typicalSelloutMin: number;
 }
 
 /**
@@ -40,20 +50,22 @@ export interface LLAttraction {
  * the booking page re-sorts dynamically (Must-Dos pinned, ridden de-emphasized).
  */
 export const LL_INVENTORY: LLAttraction[] = [
-  { id: 'll-bigthunder', name: 'Big Thunder Mountain', land: 'Frontierland', type: 'll', tier: 'thrill', standbyMin: 55, nextWindow: '2:15 PM', blurb: 'Runaway mine train through the desert.' },
-  { id: 'll-buzz', name: 'Buzz Lightyear Space Ranger Spin', land: 'Tomorrowland', type: 'll', tier: 'family', standbyMin: 25, nextWindow: '11:40 AM', blurb: 'Score-keeping laser dark ride.' },
-  { id: 'll-dumbo', name: 'Dumbo the Flying Elephant', land: 'Fantasyland', type: 'll', tier: 'family', standbyMin: 20, nextWindow: '11:15 AM', blurb: 'Iconic spinner — gentle and beloved.' },
-  { id: 'll-haunted', name: 'Haunted Mansion', land: 'Liberty Square', type: 'll', tier: 'classic', standbyMin: 35, nextWindow: '12:50 PM', blurb: 'Doom buggies through 999 happy haunts.' },
-  { id: 'll-jungle', name: 'Jungle Cruise', land: 'Adventureland', type: 'll', tier: 'classic', standbyMin: 45, nextWindow: '1:25 PM', blurb: 'Skipper-led safari, pun-filled.' },
-  { id: 'll-peterpan', name: "Peter Pan's Flight", land: 'Fantasyland', type: 'll', tier: 'family', standbyMin: 65, nextWindow: '3:10 PM', blurb: 'Sail over Neverland in a pirate galleon.' },
-  { id: 'll-pirates', name: 'Pirates of the Caribbean', land: 'Adventureland', type: 'll', tier: 'classic', standbyMin: 30, nextWindow: '12:05 PM', blurb: 'Boat ride through swashbuckling tableaux.' },
-  { id: 'll-space', name: 'Space Mountain', land: 'Tomorrowland', type: 'll', tier: 'thrill', standbyMin: 70, nextWindow: '12:30 PM', blurb: 'Indoor coaster in pitch-black starscape.' },
-  { id: 'll-splash', name: 'Tiana\u2019s Bayou Adventure', land: 'Frontierland', type: 'll', tier: 'thrill', standbyMin: 60, nextWindow: '3:45 PM', blurb: 'Log flume reimagined with Tiana.' },
-  { id: 'll-winnie', name: 'Many Adventures of Winnie the Pooh', land: 'Fantasyland', type: 'll', tier: 'family', standbyMin: 30, nextWindow: '12:20 PM', blurb: 'Cozy honey-pot dark ride.' },
+  // typicalSelloutMin: minutes since midnight on a comparable day.
+  // 600 = 10:00 AM, 660 = 11:00 AM, 720 = 12:00 PM, 780 = 1:00 PM, 840 = 2:00 PM, 900 = 3:00 PM
+  { id: 'll-peterpan',  name: "Peter Pan's Flight",            land: 'Fantasyland',    type: 'll', tier: 'family',  standbyMin: 65, nextWindow: '3:10 PM', typicalSelloutMin: 615, blurb: 'Sail over Neverland in a pirate galleon.' },
+  { id: 'll-space',     name: 'Space Mountain',                land: 'Tomorrowland',   type: 'll', tier: 'thrill',  standbyMin: 70, nextWindow: '12:30 PM', typicalSelloutMin: 660, blurb: 'Indoor coaster in pitch-black starscape.' },
+  { id: 'll-splash',    name: 'Tiana\u2019s Bayou Adventure',  land: 'Frontierland',   type: 'll', tier: 'thrill',  standbyMin: 60, nextWindow: '3:45 PM', typicalSelloutMin: 690, blurb: 'Log flume reimagined with Tiana.' },
+  { id: 'll-bigthunder',name: 'Big Thunder Mountain',          land: 'Frontierland',   type: 'll', tier: 'thrill',  standbyMin: 55, nextWindow: '2:15 PM', typicalSelloutMin: 750, blurb: 'Runaway mine train through the desert.' },
+  { id: 'll-haunted',   name: 'Haunted Mansion',               land: 'Liberty Square', type: 'll', tier: 'classic', standbyMin: 35, nextWindow: '12:50 PM', typicalSelloutMin: 810, blurb: 'Doom buggies through 999 happy haunts.' },
+  { id: 'll-jungle',    name: 'Jungle Cruise',                 land: 'Adventureland',  type: 'll', tier: 'classic', standbyMin: 45, nextWindow: '1:25 PM', typicalSelloutMin: 840, blurb: 'Skipper-led safari, pun-filled.' },
+  { id: 'll-winnie',    name: 'Many Adventures of Winnie the Pooh', land: 'Fantasyland', type: 'll', tier: 'family', standbyMin: 30, nextWindow: '12:20 PM', typicalSelloutMin: 870, blurb: 'Cozy honey-pot dark ride.' },
+  { id: 'll-pirates',   name: 'Pirates of the Caribbean',      land: 'Adventureland',  type: 'll', tier: 'classic', standbyMin: 30, nextWindow: '12:05 PM', typicalSelloutMin: 900, blurb: 'Boat ride through swashbuckling tableaux.' },
+  { id: 'll-buzz',      name: 'Buzz Lightyear Space Ranger Spin', land: 'Tomorrowland', type: 'll', tier: 'family', standbyMin: 25, nextWindow: '11:40 AM', typicalSelloutMin: 960, blurb: 'Score-keeping laser dark ride.' },
+  { id: 'll-dumbo',     name: 'Dumbo the Flying Elephant',     land: 'Fantasyland',    type: 'll', tier: 'family',  standbyMin: 20, nextWindow: '11:15 AM', typicalSelloutMin: 990, blurb: 'Iconic spinner — gentle and beloved.' },
 
   // Individual Lightning Lane — premium, day-of priced.
-  { id: 'ill-tron', name: 'TRON Lightcycle / Run', land: 'Tomorrowland', type: 'ill', tier: 'headliner', standbyMin: 110, nextWindow: '4:00 PM', priceUsd: 22, blurb: 'Launch coaster through the Grid.' },
-  { id: 'ill-sevendwarfs', name: 'Seven Dwarfs Mine Train', land: 'Fantasyland', type: 'ill', tier: 'headliner', standbyMin: 85, nextWindow: '2:30 PM', priceUsd: 16, blurb: 'Family coaster through the gem mine.' },
+  { id: 'ill-tron',         name: 'TRON Lightcycle / Run',     land: 'Tomorrowland', type: 'ill', tier: 'headliner', standbyMin: 110, nextWindow: '4:00 PM', priceUsd: 22, typicalSelloutMin: 555, blurb: 'Launch coaster through the Grid.' },
+  { id: 'ill-sevendwarfs',  name: 'Seven Dwarfs Mine Train',   land: 'Fantasyland',  type: 'ill', tier: 'headliner', standbyMin: 85,  nextWindow: '2:30 PM', priceUsd: 16, typicalSelloutMin: 585, blurb: 'Family coaster through the gem mine.' },
 ];
 
 /**
@@ -172,6 +184,19 @@ export const formatCountdown = (mins: number): string => {
   if (h === 0) return `${m}m`;
   if (m === 0) return `${h}h`;
   return `${h}h ${m}m`;
+};
+
+/**
+ * Format a "minutes since midnight" value as a wall-clock time, e.g.
+ * 555 → "9:15 AM", 690 → "11:30 AM", 900 → "3:00 PM".
+ */
+export const formatClockTime = (minutesSinceMidnight: number): string => {
+  const totalMin = Math.max(0, Math.min(24 * 60 - 1, Math.round(minutesSinceMidnight)));
+  const h24 = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  const period = h24 >= 12 ? 'PM' : 'AM';
+  const h12 = ((h24 + 11) % 12) + 1;
+  return `${h12}:${m.toString().padStart(2, '0')} ${period}`;
 };
 
 /**
