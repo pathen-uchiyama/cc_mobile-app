@@ -201,6 +201,9 @@ const MemoryDetailSheet = ({ open, onClose, memory, onEdit }: MemoryDetailSheetP
             onDragEnd={handleSheetDragEnd}
             className="absolute bottom-0 inset-x-0 bg-background max-w-[480px] mx-auto rounded-t-2xl shadow-boutique-hover overflow-hidden flex flex-col"
             style={{ height: '90vh', maxHeight: '90vh', touchAction: 'none' }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="memory-detail-title"
           >
             {/* Drag handle + gesture hint */}
             <div className="shrink-0 pt-2 pb-1 flex flex-col items-center gap-1 cursor-grab active:cursor-grabbing">
@@ -208,13 +211,28 @@ const MemoryDetailSheet = ({ open, onClose, memory, onEdit }: MemoryDetailSheetP
             </div>
 
             {/* Header */}
-            <div className="px-6 pt-2 pb-3 shrink-0">
-              <div className="font-sans text-[9px] uppercase tracking-sovereign text-accent font-bold mb-2">
-                {KIND_LABEL[memory.kind]}
+            <div className="px-6 pt-2 pb-3 shrink-0 flex items-start gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="font-sans text-[9px] uppercase tracking-sovereign text-accent font-bold mb-2">
+                  {KIND_LABEL[memory.kind]}
+                </div>
+                <h2
+                  id="memory-detail-title"
+                  className="font-display text-2xl text-foreground leading-tight line-clamp-2"
+                >
+                  {memory.caption}
+                </h2>
               </div>
-              <h2 className="font-display text-2xl text-foreground leading-tight line-clamp-2">
-                {memory.caption}
-              </h2>
+              {/* Accessible dismissal — always visible, keyboard reachable, 44px target */}
+              <button
+                type="button"
+                onClick={onClose}
+                onPointerDown={(e) => e.stopPropagation()}
+                aria-label="Close memory details"
+                className="shrink-0 w-11 h-11 rounded-full bg-muted/60 hover:bg-muted flex items-center justify-center text-muted-foreground border-none cursor-pointer transition-colors"
+              >
+                <X size={18} />
+              </button>
             </div>
 
             {/* Body */}
