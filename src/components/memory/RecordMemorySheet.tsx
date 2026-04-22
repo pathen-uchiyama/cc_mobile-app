@@ -196,6 +196,7 @@ const RecordMemorySheet = ({ open, onClose, contextHint }: RecordMemorySheetProp
     : 'A moment, preserved.';
 
   return (
+    <>
     <BottomSheet
       open={open}
       onClose={onClose}
@@ -552,6 +553,13 @@ const RecordMemorySheet = ({ open, onClose, contextHint }: RecordMemorySheetProp
         )}
       </AnimatePresence>
     </BottomSheet>
+    {/* Guided interview sheet — opens over Record Memory when chosen. */}
+    <InterviewSheet
+      open={interviewPhase !== null}
+      onClose={() => setInterviewPhase(null)}
+      phase={interviewPhase ?? 'pre'}
+    />
+    </>
   );
 };
 
