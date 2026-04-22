@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, Video, Mic, FileText, Square, Check, Upload, X, Loader2 } from 'lucide-react';
+import { Camera, Video, Mic, FileText, Square, Check, Upload, X, Loader2, ShieldCheck, AlertCircle, Settings } from 'lucide-react';
 import BottomSheet from '@/components/BottomSheet';
 import { useMediaCapture, type CaptureMode } from '@/hooks/memory/useMediaCapture';
 import { useMemoryVault, type MemoryKind, type MemoryTag } from '@/contexts/MemoryContext';
@@ -13,7 +13,7 @@ interface RecordMemorySheetProps {
   contextHint?: { attraction?: string; location?: string };
 }
 
-type Step = 'pick' | 'capture' | 'review' | 'caption' | 'note';
+type Step = 'pick' | 'permission' | 'capture' | 'review' | 'caption' | 'note';
 
 const MODES: { id: CaptureMode | 'note'; label: string; icon: typeof Camera; hint: string }[] = [
   { id: 'photo', label: 'Photo', icon: Camera, hint: 'A single still moment.' },
@@ -66,15 +66,25 @@ const RecordMemorySheet = ({ open, onClose, contextHint }: RecordMemorySheetProp
     }
   }, [capture.stream]);
 
-  const choose = async (id: CaptureMode | 'note') => {
+  const choose = (id: CaptureMode | 'note') => {
     if (id === 'note') {
       setStep('note');
       return;
     }
     setMode(id);
-    setStep('capture');
-    await capture.start();
+    // Always prime first — we never call getUserMedia without an explicit user gesture
+    // on the priming screen, so the OS prompt feels expected, not abrupt.
+    setStep('permission');
   };
+
+  const requestAccess = async () => {
+    const stream = await capture.start();
+    if (stream) setStep('capture');
+    // If denied / unsupported, we stay on the 'permission' step and the UI swaps
+    // to a denial state driven by `capture.permission`.
+  };
+
+  const openLibrary = () => fileInputRef.current?.click();
 
   const handlePhotoCapture = async () => {
     if (!videoRef.current) return;
@@ -118,6 +128,8 @@ const RecordMemorySheet = ({ open, onClose, contextHint }: RecordMemorySheetProp
       setStep('review');
     };
     reader.readAsDataURL(file);
+    // Reset so picking the same file twice still triggers onChange
+    e.target.value = '';
   };
 
   const toggleFeeling = (f: string) => {
