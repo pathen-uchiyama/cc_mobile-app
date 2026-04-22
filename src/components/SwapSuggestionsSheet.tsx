@@ -14,6 +14,8 @@ interface SwapOption {
   wait: string;
   reason: string;
   kind: SwapKind;
+  /** Optional weather-aware subtitle, only used when the rain pivot is active. */
+  rainWhy?: string;
 }
 
 const DEFAULT_OPTIONS: SwapOption[] = [
@@ -23,11 +25,11 @@ const DEFAULT_OPTIONS: SwapOption[] = [
 ];
 
 const RAIN_OPTIONS: SwapOption[] = [
-  { id: 'r-pirates', ride: 'Pirates of the Caribbean', area: 'Adventureland',  wait: '12 min', reason: 'Fully indoor \u00b7 queue is covered',         kind: 'indoor' },
-  { id: 'r-mansion', ride: 'Haunted Mansion',          area: 'Liberty Square', wait: '20 min', reason: 'Indoor ride \u00b7 stretching room is dry',    kind: 'indoor' },
-  { id: 'r-tiki',    ride: 'Enchanted Tiki Room',      area: 'Adventureland',  wait: '2 min',  reason: 'Covered show \u00b7 12 min sit-down',          kind: 'show' },
-  { id: 'r-cafe',    ride: 'Sleepy Hollow Snacks',     area: 'Liberty Square', wait: '5 min',  reason: 'Covered patio \u00b7 wait it out with a treat', kind: 'break' },
-  { id: 'r-now',     ride: 'Big Thunder Mountain',     area: 'Frontierland',   wait: '8 min',  reason: 'Ride NOW \u2014 outdoor queue empties when rain hits', kind: 'now' },
+  { id: 'r-pirates', ride: 'Pirates of the Caribbean', area: 'Adventureland',  wait: '12 min', reason: 'Fully indoor \u00b7 queue is covered',         kind: 'indoor', rainWhy: 'Stay dry the entire wait \u2014 queue and ride are under roof.' },
+  { id: 'r-mansion', ride: 'Haunted Mansion',          area: 'Liberty Square', wait: '20 min', reason: 'Indoor ride \u00b7 stretching room is dry',    kind: 'indoor', rainWhy: 'Duck inside before the band hits \u2014 covered queue from the gate.' },
+  { id: 'r-tiki',    ride: 'Enchanted Tiki Room',      area: 'Adventureland',  wait: '2 min',  reason: 'Covered show \u00b7 12 min sit-down',          kind: 'show',   rainWhy: '12 minutes seated and dry \u2014 perfect length to ride out the squall.' },
+  { id: 'r-cafe',    ride: 'Sleepy Hollow Snacks',     area: 'Liberty Square', wait: '5 min',  reason: 'Covered patio \u00b7 wait it out with a treat', kind: 'break',  rainWhy: 'Covered seating \u2014 grab a snack while the band passes.' },
+  { id: 'r-now',     ride: 'Big Thunder Mountain',     area: 'Frontierland',   wait: '8 min',  reason: 'Ride NOW \u2014 outdoor queue empties when rain hits', kind: 'now',    rainWhy: 'Last call before the rain \u2014 outdoor queue empties the moment it starts.' },
 ];
 
 const KIND_ORDER: Record<SwapKind, number> = { now: 0, indoor: 1, show: 2, break: 3, outdoor: 4 };
@@ -196,6 +198,12 @@ const SwapSuggestionsSheet = ({ open, onClose, skipped, reason }: SwapSuggestion
               <Sparkles size={9} className="text-accent shrink-0" />
               {opt.reason}
             </p>
+            {isRain && opt.rainWhy && (
+              <p className="mt-1.5 font-sans text-[10px] text-primary/90 leading-snug flex items-start gap-1.5">
+                <CloudRain size={10} className="text-primary shrink-0 mt-[1px]" aria-hidden />
+                <span><span className="font-semibold uppercase tracking-wider text-[8px] text-primary mr-1">Why now</span>{opt.rainWhy}</span>
+              </p>
+            )}
           </motion.button>
           );
         })}
