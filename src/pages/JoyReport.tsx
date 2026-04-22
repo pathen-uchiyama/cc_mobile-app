@@ -197,8 +197,145 @@ const JoyReport = () => {
           </span>
         </button>
       </div>
+
+      {/* The Vault — captured memories gallery */}
+      <section className="px-5 mt-12">
+        <div className="flex items-center gap-3 mb-3 px-1">
+          <div className="w-1.5 h-1.5 bg-accent rounded-full" />
+          <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold">
+            The Vault
+          </span>
+          <span className="font-sans text-[9px] tabular-nums text-muted-foreground ml-auto">
+            {sortedMemories.length} {sortedMemories.length === 1 ? 'memory' : 'memories'}
+          </span>
+        </div>
+
+        {sortedMemories.length === 0 ? (
+          <EmptyState
+            eyebrow="Empty so far"
+            title="No memories captured yet."
+            hint="Tap Record Memory on any priority card to begin."
+          />
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            {sortedMemories.map((m) => <MemoryCard key={m.id} m={m} />)}
+          </div>
+        )}
+      </section>
+
+      {/* Pre-park interview answers */}
+      {preAnswers.length > 0 && (
+        <section className="px-5 mt-12">
+          <div className="flex items-center gap-3 mb-3 px-1">
+            <BookOpen size={12} className="text-accent" />
+            <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold">
+              Before the gates · Your hopes
+            </span>
+          </div>
+          <div className="space-y-3">
+            {preAnswers.map((a) => <InterviewCard key={a.id} answer={a} />)}
+          </div>
+        </section>
+      )}
+
+      {/* Post-trip interview — CTA or answers */}
+      <section className="px-5 mt-12">
+        {!postCompleted ? (
+          <button
+            onClick={() => setPostOpen(true)}
+            className="w-full bg-primary text-primary-foreground p-5 rounded-2xl shadow-boutique-hover border-none cursor-pointer text-center"
+          >
+            <Sparkles size={16} className="mx-auto mb-2 opacity-70" />
+            <span className="font-display text-base block mb-0.5">Seal the day in your own words</span>
+            <span className="font-sans text-[11px] opacity-70 block">A 3-question interview · about a minute.</span>
+          </button>
+        ) : (
+          <>
+            <div className="flex items-center gap-3 mb-3 px-1">
+              <Check size={12} className="text-accent" />
+              <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold">
+                The Vault is sealed · What you\u2019ll remember
+              </span>
+            </div>
+            <div className="space-y-3">
+              {postAnswers.map((a) => <InterviewCard key={a.id} answer={a} />)}
+            </div>
+          </>
+        )}
+      </section>
+
+      <InterviewSheet open={postOpen} onClose={() => setPostOpen(false)} phase="post" />
     </div>
   );
 };
+
+// ─── Sub-components ─────────────────────────────────────────────────────
+
+const KIND_ICON: Record<Memory['kind'], typeof Camera> = {
+  photo: Camera,
+  video: Video,
+  voice: Mic,
+  note: FileText,
+};
+
+const MemoryCard = ({ m }: { m: Memory }) => {
+  const Icon = KIND_ICON[m.kind];
+  return (
+    <motion.article
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-card rounded-xl shadow-boutique overflow-hidden flex flex-col"
+    >
+      <div className="relative aspect-square bg-muted flex items-center justify-center overflow-hidden">
+        {m.kind === 'photo' && <img src={m.payload} alt={m.caption} className="w-full h-full object-cover" />}
+        {m.kind === 'video' && (
+          <video src={m.payload} muted playsInline className="w-full h-full object-cover" />
+        )}
+        {m.kind === 'voice' && (
+          <div className="flex flex-col items-center gap-2">
+            <Mic size={28} className="text-muted-foreground" />
+            {m.durationMs && (
+              <span className="font-sans text-[10px] tabular-nums text-muted-foreground">
+                {Math.ceil(m.durationMs / 1000)}s
+              </span>
+            )}
+          </div>
+        )}
+        {m.kind === 'note' && (
+          <p className="font-display italic text-[12px] text-foreground p-3 leading-snug line-clamp-6 text-center">
+            "{m.payload.slice(0, 120)}{m.payload.length > 120 ? '\u2026' : ''}"
+          </p>
+        )}
+        <div className="absolute top-2 left-2 bg-background/80 backdrop-blur-sm rounded-full p-1.5">
+          <Icon size={11} className="text-accent" />
+        </div>
+      </div>
+      <div className="p-3">
+        <p className="font-display text-[13px] text-foreground leading-tight line-clamp-2">{m.caption}</p>
+        <div className="flex items-center justify-between mt-1.5">
+          <span className="font-sans text-[9px] tabular-nums text-muted-foreground">{formatMemoryTime(m.at)}</span>
+          {m.tags.length > 0 && (
+            <span className="font-sans text-[9px] text-accent font-semibold truncate ml-2">
+              {m.tags.slice(0, 2).map((t) => t.label).join(' · ')}
+            </span>
+          )}
+        </div>
+      </div>
+    </motion.article>
+  );
+};
+
+const InterviewCard = ({ answer }: { answer: import('@/contexts/MemoryContext').InterviewAnswer }) => (
+  <article className="bg-card rounded-xl p-4 shadow-boutique">
+    <p className="font-sans text-[10px] uppercase tracking-sovereign text-muted-foreground mb-2 font-semibold">
+      {answer.question}
+    </p>
+    {answer.kind === 'note' ? (
+      <p className="font-display italic text-[14px] text-foreground leading-relaxed">"{answer.payload}"</p>
+    ) : (
+      <audio src={answer.payload} controls className="w-full" />
+    )}
+  </article>
+);
 
 export default JoyReport;
