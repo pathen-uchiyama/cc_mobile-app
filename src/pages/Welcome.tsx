@@ -34,9 +34,12 @@ const Welcome = () => {
         transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
         className="flex flex-col items-center"
       >
-        <div className="w-16 h-16 bg-primary mb-8" />
-        <h1 className="font-display text-5xl text-foreground text-center mb-3">
-          Castle<br />Companion
+        <div className="flex items-center gap-2 mb-8">
+          <div className="w-14 h-14 bg-primary" />
+          <div className="w-3 h-14 bg-tertiary" />
+        </div>
+        <h1 className="text-masthead text-primary text-center mb-3">
+          Castle<br /><span className="text-secondary">Companion.</span>
         </h1>
         <p className="font-sans text-xs text-muted-foreground text-center leading-relaxed max-w-[240px] mb-16">
           The Sovereign Protocol

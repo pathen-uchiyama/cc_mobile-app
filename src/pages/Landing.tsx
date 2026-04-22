@@ -14,9 +14,12 @@ const Landing = () => {
         transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
         className="mb-16"
       >
-        <div className="w-10 h-10 bg-primary mb-6" />
-        <h1 className="font-display text-4xl text-foreground mb-3">
-          Castle<br />Companion
+        <div className="flex items-center gap-1.5 mb-6">
+          <div className="w-9 h-9 bg-primary" />
+          <div className="w-2 h-9 bg-tertiary" />
+        </div>
+        <h1 className="text-masthead text-primary mb-3">
+          Castle<br /><span className="text-secondary">Companion.</span>
         </h1>
         <p className="font-sans text-sm text-muted-foreground leading-relaxed max-w-[280px]">
           Logic over luck. Your concierge for the parks.
@@ -38,7 +41,7 @@ const Landing = () => {
               <Compass size={24} className="text-primary-foreground" />
             </div>
             <div>
-              <h2 className="font-display text-2xl text-foreground mb-2">Follow My Plan</h2>
+              <h2 className="text-headline text-primary mb-2">Follow My Plan</h2>
               <p className="font-sans text-xs text-muted-foreground leading-relaxed">
                 Your itinerary is locked. Enter the park with your concierge active.
               </p>
@@ -58,7 +61,7 @@ const Landing = () => {
               <BookOpen size={24} className="text-accent-foreground" />
             </div>
             <div>
-              <h2 className="font-display text-2xl text-foreground mb-2">Past Voyages</h2>
+              <h2 className="text-headline text-primary mb-2">Past Voyages</h2>
               <p className="font-sans text-xs text-muted-foreground leading-relaxed">
                 Relive your memories and review past park days.
               </p>

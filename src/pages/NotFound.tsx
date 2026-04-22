@@ -46,10 +46,8 @@ const NotFound = () => {
           404 · Off the Path
         </span>
 
-        <h1 className="font-display text-[34px] leading-[1.05] text-foreground mb-3">
-          This corner of the
-          <br />
-          park is uncharted.
+        <h1 className="text-masthead text-primary mb-3">
+          This corner<br /><span className="text-secondary">is uncharted.</span>
         </h1>
 
         <p className="font-sans italic text-[13px] text-foreground/70 leading-snug mb-8 max-w-[320px]">
