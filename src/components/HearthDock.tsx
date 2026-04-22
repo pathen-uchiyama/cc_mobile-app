@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Coffee, Utensils, CloudRain, RefreshCw, Bath, type LucideIcon } from 'lucide-react';
 import { useHaptics } from '@/hooks/useHaptics';
 
@@ -48,6 +48,7 @@ const HearthDock = ({
   badges = {},
 }: HearthDockProps) => {
   const { fire } = useHaptics();
+  const reduceMotion = useReducedMotion();
 
   const handleSovereign = () => {
     fire('tap');
@@ -72,7 +73,8 @@ const HearthDock = ({
   return (
     <nav
       aria-label="Sovereign navigation"
-      className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[9990] w-[min(440px,calc(100vw-16px))]"
+      className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[min(440px,calc(100vw-16px))]"
+      style={{ zIndex: 'var(--z-dock)' }}
     >
       <div
         className="relative h-[64px] flex items-center justify-between px-3"
@@ -114,7 +116,7 @@ const HearthDock = ({
                 '0 12px 28px hsl(var(--obsidian) / 0.45), 0 0 0 3px hsl(var(--obsidian)), 0 0 0 4px hsl(var(--gold) / 0.4)',
             }}
           >
-            {!active && (
+            {!active && !reduceMotion && (
               <motion.span
                 aria-hidden
                 className="absolute inset-0 rounded-full"
@@ -159,8 +161,12 @@ const PivotButton = ({ action }: { action: PivotAction }) => {
             background: 'hsl(var(--gold))',
             boxShadow: '0 0 0 2px hsl(var(--obsidian)), 0 0 8px hsl(var(--gold) / 0.7)',
           }}
-          animate={{ opacity: [1, 0.45, 1], scale: [1, 1.18, 1] }}
-          transition={{ repeat: Infinity, duration: 1.8, ease: 'easeInOut' }}
+          {...(useReducedMotion()
+            ? {}
+            : {
+                animate: { opacity: [1, 0.45, 1], scale: [1, 1.18, 1] },
+                transition: { repeat: Infinity, duration: 1.8, ease: 'easeInOut' as const },
+              })}
         />
       )}
     </motion.button>
