@@ -227,14 +227,14 @@ const SwapSuggestionsSheet = ({ open, onClose, skipped, reason }: SwapSuggestion
                       collides with the body text on narrow screens. */}
                   <span
                     aria-hidden
-                    className="block font-sans font-semibold uppercase text-[9px] leading-none tracking-sovereign text-primary/80 mb-0.5 whitespace-nowrap"
+                    className="rain-why-eyebrow"
                   >
                     Why now
                   </span>
                   {/* SR-only semantic prefix so the announcement reads naturally
                       ("Why now: ...") without duplicating the visual eyebrow. */}
                   <span className="sr-only">Why now: </span>
-                  <span className="font-sans text-[10px] leading-snug text-primary/90">
+                  <span className="rain-why-body">
                     {opt.rainWhy}
                   </span>
                 </span>
