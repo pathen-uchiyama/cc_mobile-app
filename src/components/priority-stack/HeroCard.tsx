@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Clock, MapPin, ArrowRight, Users, Utensils, Sparkles } from 'lucide-react';
+import { Clock, MapPin, ArrowRight, Users } from 'lucide-react';
 
 interface HeroCardProps {
   attraction: string;
@@ -10,18 +10,6 @@ interface HeroCardProps {
   onCommit?: () => void;
   /** Number of guests who voted this a priority — drives the "why is this here" chip. */
   votes?: number;
-  /**
-   * Imminent dining or experience reservation — surfaces a thin "On the Books"
-   * gold strip above the eyebrow when within ~60 min. Tap opens the Strategic
-   * Dashboard scrolled to Standing Reservations.
-   */
-  upcomingHold?: {
-    kind: 'dining' | 'experience';
-    name: string;
-    minutesAway: number;
-    walkMinutes?: number;
-  };
-  onUpcomingHoldTap?: () => void;
 }
 
 const formatVotes = (n: number) =>
@@ -41,8 +29,6 @@ const HeroCard = ({
   ctaLabel = 'On Our Way',
   onCommit,
   votes,
-  upcomingHold,
-  onUpcomingHoldTap,
 }: HeroCardProps) => {
   return (
     <motion.article
@@ -55,41 +41,6 @@ const HeroCard = ({
           '0 0 0 1px hsl(var(--obsidian) / 0.04), 0 24px 60px hsl(var(--obsidian) / 0.12)',
       }}
     >
-      {/* On the Books — the next dining/experience hold within the hour. */}
-      {upcomingHold && (
-        <button
-          type="button"
-          onClick={onUpcomingHoldTap}
-          className="w-full flex items-center justify-between gap-2 mb-4 px-3 py-2 rounded-xl border-none cursor-pointer transition-opacity hover:opacity-85"
-          style={{
-            background: 'hsl(var(--gold) / 0.10)',
-            border: '1px solid hsl(var(--gold) / 0.25)',
-          }}
-          aria-label={`On the Books: ${upcomingHold.name} in ${upcomingHold.minutesAway} minutes`}
-        >
-          <div className="flex items-center gap-2 min-w-0">
-            {upcomingHold.kind === 'dining' ? (
-              <Utensils size={12} style={{ color: 'hsl(var(--gold))' }} />
-            ) : (
-              <Sparkles size={12} style={{ color: 'hsl(var(--gold))' }} />
-            )}
-            <span
-              className="font-sans text-[9px] uppercase tracking-sovereign font-bold shrink-0"
-              style={{ color: 'hsl(var(--gold))' }}
-            >
-              On the Books
-            </span>
-            <span className="font-sans text-[11px] text-foreground truncate min-w-0">
-              {upcomingHold.name}
-            </span>
-          </div>
-          <span className="font-sans text-[10px] text-muted-foreground tabular-nums shrink-0">
-            {upcomingHold.minutesAway}m
-            {upcomingHold.walkMinutes !== undefined ? ` · ${upcomingHold.walkMinutes}m walk` : ''}
-          </span>
-        </button>
-      )}
-
       {/* Eyebrow + live wait pill */}
       <div className="flex items-start justify-between mb-4">
         <span className="font-sans text-[9px] uppercase tracking-sovereign text-accent font-bold flex items-center gap-1.5">
