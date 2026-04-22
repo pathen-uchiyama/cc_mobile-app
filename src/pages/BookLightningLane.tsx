@@ -143,6 +143,10 @@ const BookLightningLane = () => {
               {llOrdered.length} options
             </span>
           </div>
+          {/* Color legend for the SelloutChip — tiny, persistent affordance so
+              guests learn the urgency mapping without needing to hover each
+              chip. Mirrors the exact thresholds used inside SelloutChip. */}
+          <SelloutLegend />
           {llOrdered.length === 0 ? (
             <EmptyState
               eyebrow="All caught up"
@@ -350,6 +354,41 @@ const RideRow = ({ attraction, held, ridden, mustDo, dim, disabled, lockReason, 
 };
 
 export default BookLightningLane;
+
+/**
+ * Compact three-dot legend that demystifies the SelloutChip color scale.
+ * Sits directly under the section header so the affordance is in-view the
+ * moment the guest scans the list. Uses the same HSL tokens the chip uses,
+ * keeping the two surfaces visually locked.
+ */
+const SelloutLegend = () => {
+  const items: { color: string; label: string }[] = [
+    { color: 'hsl(316 95% 35%)', label: 'Going fast' },
+    { color: 'hsl(var(--gold))', label: 'Soon' },
+    { color: 'hsl(var(--slate-plaid))', label: 'Plenty of time' },
+  ];
+  return (
+    <div
+      className="flex items-center gap-3 mb-2 px-2 py-1.5 rounded-lg flex-wrap"
+      style={{ backgroundColor: 'hsl(var(--obsidian) / 0.03)' }}
+      aria-label="Sell-out urgency color legend"
+    >
+      <span className="font-sans text-[8px] uppercase tracking-sovereign text-muted-foreground font-semibold">
+        Usually gone by
+      </span>
+      {items.map((it) => (
+        <span key={it.label} className="flex items-center gap-1 font-sans text-[9px] text-foreground/70">
+          <span
+            aria-hidden="true"
+            className="inline-block rounded-full"
+            style={{ width: 6, height: 6, backgroundColor: it.color }}
+          />
+          {it.label}
+        </span>
+      ))}
+    </div>
+  );
+};
 
 /**
  * "Usually gone by …" chip — colors itself by urgency:
