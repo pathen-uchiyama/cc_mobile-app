@@ -5,6 +5,7 @@ import BottomGlassNav from '@/components/BottomGlassNav';
 import SovereignAnchor from '@/components/priority-stack/SovereignAnchor';
 import HeroHorizonStack, { type PlanItem, type WalkingPrompt } from '@/components/priority-stack/HeroHorizonStack';
 import PivotShimmer from '@/components/priority-stack/PivotShimmer';
+import ParkEmptyState, { type ParkEmptyVariant } from '@/components/priority-stack/ParkEmptyState';
 import AssistedDrawer from '@/components/priority-stack/AssistedDrawer';
 import AudibleMenu from '@/components/priority-stack/AudibleMenu';
 import StrategicDashboard from '@/components/priority-stack/StrategicDashboard';
@@ -207,6 +208,25 @@ const InPark = () => {
     setAudibleOpen(false);
     pivotWith(label, after);
   };
+
+  // ── Empty-state derivation ────────────────────────────────────────────
+  // The page can legitimately have nothing to show. We pick ONE of four
+  // calm placards based on the current state of the planning machinery.
+  const hasPlan = plan.length > 0;
+  const hasMustDos = mustDos.some((m) => m.desired > 0);
+  const emptyVariant: ParkEmptyVariant | null = !hasPlan
+    ? hasMustDos
+      ? 'pivot-pending'   // Plan was emptied (e.g. by a pivot) but Must-Dos remain.
+      : 'no-plan'         // Truly nothing on the books.
+    : null;
+  const dayComplete = !hasPlan && !hasMustDos && completedAtLeastOne;
+  const emptyHeadline = !hasPlan
+    ? dayComplete
+      ? { eyebrow: 'Today', line1: 'A complete', line2: 'voyage.' }
+      : hasMustDos
+        ? { eyebrow: 'Composing', line1: 'A new line', line2: 'is forming.' }
+        : { eyebrow: 'Today', line1: 'A blank', line2: 'page.' }
+    : { eyebrow: 'Today', line1: 'The Active', line2: 'Journey.' };
 
   return (
     <div className="min-h-screen bg-background digital-plaid-bg max-w-[480px] mx-auto relative flex flex-col">
