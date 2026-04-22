@@ -99,6 +99,7 @@ const AudibleMenu = ({
             <ul className="list-none p-3 m-0 space-y-1 overflow-y-auto">
               {items.map((it) => {
                 const Icon = it.icon;
+                const needsAttention = !!attention?.[it.id as keyof NonNullable<typeof attention>];
                 return (
                   <li key={it.id}>
                     <motion.button
@@ -107,12 +108,12 @@ const AudibleMenu = ({
                         onClose();
                         handlers[it.id]?.();
                       }}
-                      aria-label={it.label}
-                      className="w-full flex items-center gap-3 px-3 py-3 rounded-xl bg-transparent border-none cursor-pointer text-left transition-colors hover:bg-accent/5"
+                      aria-label={`${it.label}${needsAttention ? ' (needs attention)' : ''}`}
+                      className="relative w-full flex items-center gap-3 px-3 py-3 rounded-xl bg-transparent border-none cursor-pointer text-left transition-colors hover:bg-accent/5"
                       style={{ minHeight: '56px' }}
                     >
                       <span
-                        className="shrink-0 flex items-center justify-center rounded-full"
+                        className="relative shrink-0 flex items-center justify-center rounded-full"
                         style={{
                           width: '36px',
                           height: '36px',
@@ -122,6 +123,19 @@ const AudibleMenu = ({
                         }}
                       >
                         <Icon size={18} />
+                        {needsAttention && (
+                          <span
+                            aria-hidden
+                            className="absolute -top-0.5 -right-0.5 rounded-full"
+                            style={{
+                              width: '10px',
+                              height: '10px',
+                              background: 'hsl(316 95% 45%)',
+                              boxShadow:
+                                '0 0 0 2px hsl(var(--card)), 0 0 8px hsl(316 95% 55% / 0.6)',
+                            }}
+                          />
+                        )}
                       </span>
                       <div className="flex-1 min-w-0">
                         <p className="font-display text-[14px] leading-tight text-foreground">
