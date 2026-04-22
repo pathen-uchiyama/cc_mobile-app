@@ -1,8 +1,19 @@
 import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, ChevronRight, Star, Users, TrendingUp } from 'lucide-react';
+import {
+  Check,
+  ChevronRight,
+  Star,
+  Users,
+  TrendingUp,
+  Ticket,
+  Drama,
+  Sparkles,
+  Flag,
+  UtensilsCrossed,
+} from 'lucide-react';
 import type { MustDo } from '@/hooks/park/usePlanStack';
-import type { PartyWant, CommunityPick } from '@/data/wantToDos';
+import type { PartyWant, CommunityPick, AttractionKind } from '@/data/wantToDos';
 
 type Tier = 'all' | 'must' | 'party' | 'community';
 
@@ -25,16 +36,24 @@ interface PullRideInSheetProps {
 const formatVotes = (n: number) =>
   n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, '')}k` : n.toString();
 
+const KIND_META: Record<AttractionKind, { label: string; Icon: typeof Ticket }> = {
+  ride:   { label: 'Ride',           Icon: Ticket },
+  show:   { label: 'Show',           Icon: Drama },
+  meet:   { label: 'Meet & Greet',   Icon: Sparkles },
+  parade: { label: 'Parade',         Icon: Flag },
+  dining: { label: 'Dining',         Icon: UtensilsCrossed },
+};
+
 /**
- * "Pull a ride in" — the unified injection sheet. Replaces the older
- * MustDoFan with three ranked tiers:
+ * "Pull an attraction in" — the unified injection sheet. Three tiers:
  *
- *   1. Must-Do (gold)        — pre-locked priorities, ranked by remaining rides.
- *   2. Party Wants (magenta) — survey wishlist, ranked by yes/total ratio.
- *   3. Community Picks (slate) — park-wide votes for today, ranked by votes.
+ *   1. Must-Do (gold)         — pre-locked priorities, ranked by remaining rides.
+ *   2. Party Wants (magenta)  — survey wishlist, ranked by yes/total ratio.
+ *   3. Community Picks (slate)— park-wide votes for today, ranked by votes.
  *
- * Tapping any row promotes that attraction to the Hero "Right Now" slot via
- * the existing `promoteMustDoToHero` plumbing in usePlanStack.
+ * "Attraction" here covers rides, shows, character meet & greets, parades,
+ * and signature dining experiences. Tapping any row promotes it to the Hero
+ * "Right Now" slot via the existing `promoteMustDoToHero` plumbing.
  */
 const PullRideInSheet = ({
   open,
@@ -130,10 +149,10 @@ const PullRideInSheet = ({
                 className="font-sans text-[8px] uppercase tracking-sovereign font-bold mb-1"
                 style={{ color: 'hsl(var(--gold))' }}
               >
-                Pull a Ride In
+                Pull an Attraction In
               </p>
               <h3 className="font-display text-[18px] text-foreground leading-tight">
-                What goes on the active card next?
+                Rides, shows, meet & greets — what goes on the active card next?
               </h3>
 
               {/* Filter chips */}
@@ -206,6 +225,7 @@ const PullRideInSheet = ({
                       accent="magenta"
                       title={p.attraction}
                       sub={p.location}
+                      kind={p.kind}
                       meta={`${p.party.yes} of ${p.party.total} want this`}
                       metaIcon={<Users size={10} />}
                       onTap={() => handlePromote(`party-${p.id}`, p.attraction)}
@@ -227,6 +247,7 @@ const PullRideInSheet = ({
                       accent="slate"
                       title={c.attraction}
                       sub={c.location}
+                      kind={c.kind}
                       meta={formatVotes(c.votes)}
                       metaIcon={<Users size={10} />}
                       metaTrail={c.trend === 'up' ? <TrendingUp size={9} /> : null}
@@ -302,6 +323,7 @@ interface RowProps {
   accent: Accent;
   title: string;
   sub?: string;
+  kind?: AttractionKind;
   meta?: string;
   metaIcon?: React.ReactNode;
   metaTrail?: React.ReactNode;
@@ -309,8 +331,10 @@ interface RowProps {
   onTap: () => void;
 }
 
-const Row = ({ rank, accent, title, sub, meta, metaIcon, metaTrail, disabled, onTap }: RowProps) => {
+const Row = ({ rank, accent, title, sub, kind, meta, metaIcon, metaTrail, disabled, onTap }: RowProps) => {
   const color = accentColor(accent);
+  const KindIcon = kind ? KIND_META[kind].Icon : null;
+  const kindLabel = kind ? KIND_META[kind].label : null;
   return (
     <li>
       <motion.button
@@ -334,12 +358,29 @@ const Row = ({ rank, accent, title, sub, meta, metaIcon, metaTrail, disabled, on
         </span>
 
         <div className="flex-1 min-w-0">
-          <p
-            className="font-display text-[14px] leading-tight text-foreground truncate"
-            style={{ textDecoration: disabled ? 'line-through' : 'none' }}
-          >
-            {title}
-          </p>
+          <div className="flex items-center gap-2">
+            <p
+              className="font-display text-[14px] leading-tight text-foreground truncate"
+              style={{ textDecoration: disabled ? 'line-through' : 'none' }}
+            >
+              {title}
+            </p>
+            {KindIcon && kindLabel && (
+              <span
+                className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full font-sans text-[8px] uppercase font-bold tracking-sovereign"
+                style={{
+                  background: 'hsl(var(--obsidian) / 0.05)',
+                  color: 'hsl(var(--slate-plaid))',
+                  letterSpacing: '0.12em',
+                }}
+                title={kindLabel}
+                aria-label={kindLabel}
+              >
+                <KindIcon size={9} />
+                {kindLabel}
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-2 mt-0.5">
             {sub && (
               <span
