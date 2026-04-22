@@ -1,7 +1,9 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Star, Heart, Camera, Clock, MapPin, Sparkles, Zap, RefreshCw } from 'lucide-react';
+import { Star, Heart, Camera, Clock, MapPin, Sparkles, Zap, RefreshCw, Mic, FileText, Video, BookOpen, Check } from 'lucide-react';
 import { useJoyEvents, formatEventTime, type JoyEvent } from '@/contexts/JoyEventsContext';
+import { useMemoryVault, formatMemoryTime, type Memory } from '@/contexts/MemoryContext';
+import InterviewSheet from '@/components/memory/InterviewSheet';
 import PageHeader from '@/components/layout/PageHeader';
 import EmptyState from '@/components/layout/EmptyState';
 
@@ -27,6 +29,15 @@ const COLOR_BY_TYPE: Record<JoyEvent['type'], string> = {
 
 const JoyReport = () => {
   const { events } = useJoyEvents();
+  const { memories, interviews, postCompleted } = useMemoryVault();
+  const [postOpen, setPostOpen] = useState(false);
+
+  const sortedMemories = useMemo(
+    () => [...memories].sort((a, b) => a.at - b.at),
+    [memories]
+  );
+  const preAnswers = useMemo(() => interviews.filter((i) => i.phase === 'pre'), [interviews]);
+  const postAnswers = useMemo(() => interviews.filter((i) => i.phase === 'post'), [interviews]);
 
   const sorted = useMemo(
     () => [...events].sort((a, b) => Number(a.at) - Number(b.at)),
@@ -37,13 +48,14 @@ const JoyReport = () => {
     const savedMinutes = sorted.reduce((sum, e) => sum + (e.savedMinutes ?? 0), 0);
     const snipes = sorted.filter((e) => e.type === 'snipe').length;
     const swaps = sorted.filter((e) => e.type === 'swap').length;
-    const memories = sorted.filter((e) => e.type === 'memory').length;
+    const memoryEvents = sorted.filter((e) => e.type === 'memory').length;
     const celebrations = sorted.filter((e) => e.type === 'celebration' || e.type === 'arrival').length;
 
     // Joy score: base 70 + 4/snipe + 3/swap + 2/memory + 2/celebration, capped at 100
-    const score = Math.min(100, Math.round(70 + snipes * 4 + swaps * 3 + memories * 2 + celebrations * 2));
-    return { savedMinutes, snipes, swaps, memories, celebrations, score };
-  }, [sorted]);
+    const memoryCount = memoryEvents + memories.length;
+    const score = Math.min(100, Math.round(70 + snipes * 4 + swaps * 3 + memoryCount * 2 + celebrations * 2));
+    return { savedMinutes, snipes, swaps, memories: memoryCount, celebrations, score };
+  }, [sorted, memories.length]);
 
   const hours = Math.floor(stats.savedMinutes / 60);
   const minutes = stats.savedMinutes % 60;
