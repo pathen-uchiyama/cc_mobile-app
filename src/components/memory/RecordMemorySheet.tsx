@@ -241,6 +241,34 @@ const RecordMemorySheet = ({ open, onClose, contextHint }: RecordMemorySheetProp
           </motion.div>
         )}
 
+        {/* ─────────────────────────────────── STEP 1.5: PERMISSION PRIMING / DENIAL */}
+        {step === 'permission' && (
+          <motion.div
+            key="permission"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="flex flex-col"
+          >
+            <PermissionPanel
+              mode={mode}
+              status={capture.permission}
+              error={capture.error}
+              busy={capture.permission === 'prompting'}
+              onRequest={requestAccess}
+              onUpload={openLibrary}
+              onBack={() => { capture.stop(); setStep('pick'); }}
+            />
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,video/*,audio/*"
+              hidden
+              onChange={handleFileUpload}
+            />
+          </motion.div>
+        )}
+
         {/* ─────────────────────────────────── STEP 2A: CAPTURE (camera/voice) */}
         {step === 'capture' && (
           <motion.div
@@ -250,22 +278,11 @@ const RecordMemorySheet = ({ open, onClose, contextHint }: RecordMemorySheetProp
             exit={{ opacity: 0 }}
             className="flex flex-col"
           >
-            {capture.error && (
-              <div className="bg-destructive/10 text-destructive rounded-xl p-4 mb-4 text-[12px] font-sans">
-                {capture.error}
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="block mt-2 underline cursor-pointer bg-transparent border-none text-destructive font-sans text-[11px]"
-                >
-                  Upload from library instead
-                </button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*,video/*,audio/*"
-                  hidden
-                  onChange={handleFileUpload}
-                />
+            {/* Inline soft-error if device dropped mid-session (rare) */}
+            {capture.error && capture.permission === 'granted' && (
+              <div className="bg-destructive/10 text-destructive rounded-xl p-3 mb-4 text-[12px] font-sans flex items-start gap-2">
+                <AlertCircle size={14} className="flex-shrink-0 mt-0.5" />
+                <span>{capture.error}</span>
               </div>
             )}
 
