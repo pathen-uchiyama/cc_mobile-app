@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Zap, MapPin, Clock, Check, Star, Lock, ArrowRight, Sparkles, Hourglass } from 'lucide-react';
 import { toast } from 'sonner';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   LL_INVENTORY,
   INITIAL_HOLDS,
@@ -355,7 +356,13 @@ export default BookLightningLane;
  *   • Magenta when sellout is within the next 60 minutes (or already past).
  *   • Gold for the next 2 hours.
  *   • Slate otherwise.
- * Uses the same NOW_MINUTES the page is mocked at so the urgency reads true.
+ *
+ * Wrapped in a tooltip that surfaces a disclaimer on hover/focus: this is a
+ * typical pattern from comparable days, NOT a guaranteed cutoff. Disney sells
+ * lanes dynamically and any single day can run hotter or cooler.
+ *
+ * The `title` attribute is kept as a fallback for touch and assistive tech
+ * environments where the Radix tooltip may not surface.
  */
 const SelloutChip = ({ selloutMin }: { selloutMin: number }) => {
   const minsUntil = selloutMin - NOW_MINUTES;
@@ -373,14 +380,35 @@ const SelloutChip = ({ selloutMin }: { selloutMin: number }) => {
     ? `Usually gone by ${formatClockTime(selloutMin)} · cutting it close`
     : `Usually gone by ${formatClockTime(selloutMin)}`;
 
+  const disclaimer = past
+    ? `Based on comparable days, this lane is usually sold out by ${formatClockTime(selloutMin)}. Today's actual cutoff can vary — keep checking.`
+    : `Estimate from comparable days — not a guaranteed cutoff. Today's actual sell-out may run earlier or later.`;
+
   return (
-    <span
-      className="font-sans text-[10px] flex items-center gap-1 tabular-nums"
-      style={{ color }}
-      title={label}
-    >
-      <Hourglass size={9} />
-      {label}
-    </span>
+    <TooltipProvider delayDuration={150}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span
+            tabIndex={0}
+            role="button"
+            aria-label={`${label}. ${disclaimer}`}
+            className="font-sans text-[10px] flex items-center gap-1 tabular-nums cursor-help underline decoration-dotted underline-offset-2 outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-primary/40 rounded"
+            style={{ color }}
+            title={`${label} — ${disclaimer}`}
+          >
+            <Hourglass size={9} />
+            {label}
+          </span>
+        </TooltipTrigger>
+        <TooltipContent side="top" align="start" className="max-w-[240px] text-[11px] leading-snug">
+          <p className="font-sans font-bold mb-0.5" style={{ color }}>
+            Typical sell-out, not a guarantee
+          </p>
+          <p className="font-sans text-foreground/80">
+            {disclaimer}
+          </p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 };
