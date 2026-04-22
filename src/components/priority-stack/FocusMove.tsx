@@ -201,21 +201,14 @@ const FocusMove = ({
           {attraction}
         </h2>
 
-        {/* Strategic Logic — the "why this, why now" line. Inter Italic. */}
-        <div
-          className="mb-4 pl-3"
+        {/* Strategic Logic — the "why this, why now" line.
+            Gold left-bar + italic carries the signal; eyebrow removed for density. */}
+        <p
+          className="font-sans italic text-[14px] text-foreground/80 leading-snug mb-4 pl-3"
           style={{ borderLeft: '2px solid hsl(var(--gold) / 0.5)' }}
         >
-          <span
-            className="font-sans not-italic text-[8px] uppercase tracking-sovereign font-bold block mb-0.5"
-            style={{ color: 'hsl(var(--gold))', letterSpacing: '0.16em' }}
-          >
-            Strategic Logic
-          </span>
-          <p className="font-sans italic text-[14px] text-foreground/80 leading-snug">
-            {logic}
-          </p>
-        </div>
+          {logic}
+        </p>
 
         <div className="flex items-center justify-between gap-2 mb-4">
           <div className="flex items-center gap-1.5 min-w-0">
