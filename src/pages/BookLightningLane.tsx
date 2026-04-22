@@ -381,8 +381,8 @@ const SelloutChip = ({ selloutMin }: { selloutMin: number }) => {
     : `Usually gone by ${formatClockTime(selloutMin)}`;
 
   const disclaimer = past
-    ? `Based on comparable days, this lane is usually sold out by ${formatClockTime(selloutMin)}. Today's actual cutoff can vary — keep checking.`
-    : `Estimate from comparable days — not a guaranteed cutoff. Today's actual sell-out may run earlier or later.`;
+    ? `Based on comparable days, this lane is usually sold out by ${formatClockTime(selloutMin)} park-local time. Today's actual cutoff can vary — keep checking.`
+    : `Estimate from comparable days, shown in park-local time — not a guaranteed cutoff. Today's actual sell-out may run earlier or later.`;
 
   return (
     <TooltipProvider delayDuration={150}>

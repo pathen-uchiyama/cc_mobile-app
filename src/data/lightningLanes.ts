@@ -187,16 +187,114 @@ export const formatCountdown = (mins: number): string => {
 };
 
 /**
- * Format a "minutes since midnight" value as a wall-clock time, e.g.
- * 555 → "9:15 AM", 690 → "11:30 AM", 900 → "3:00 PM".
+ * IANA timezone for the park whose inventory this module models. Walt Disney
+ * World runs on Eastern time year-round (it observes DST). When we expand to
+ * Disneyland or international parks, plumb a per-park override down from the
+ * route — keep this default so every existing call stays correct.
  */
-export const formatClockTime = (minutesSinceMidnight: number): string => {
+export const PARK_TIMEZONE = 'America/New_York';
+
+/**
+ * Best-effort detection of the viewer's IANA timezone. Falls back to the park
+ * timezone if the browser doesn't expose `resolvedOptions().timeZone` (rare,
+ * but happens on locked-down WebViews).
+ */
+const getViewerTimezone = (): string => {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || PARK_TIMEZONE;
+  } catch {
+    return PARK_TIMEZONE;
+  }
+};
+
+/**
+ * Compare two IANA timezones for *current* equivalence by checking the wall
+ * clock they produce for the same instant. Two zones with different IDs but
+ * identical offsets today (e.g. America/New_York vs America/Detroit) read as
+ * the same — which is what we want for "should we tag this with ET?".
+ */
+const sameWallClock = (zoneA: string, zoneB: string): boolean => {
+  if (zoneA === zoneB) return true;
+  try {
+    const sample = new Date();
+    const fmt = (zone: string) =>
+      new Intl.DateTimeFormat('en-US', {
+        timeZone: zone,
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      }).format(sample);
+    return fmt(zoneA) === fmt(zoneB);
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Short, friendly abbreviation for a timezone (e.g. "ET", "PT", "CT", "MT").
+ * Falls back to the long generic name from `Intl` when no short alias maps.
+ */
+const shortZoneLabel = (zone: string, sample: Date = new Date()): string => {
+  // Hand-mapped US aliases — the only ones we ship parks in today. Everything
+  // else degrades to the Intl-provided "GMT+N" string, which is still correct.
+  const KNOWN: Record<string, string> = {
+    'America/New_York': 'ET',
+    'America/Detroit': 'ET',
+    'America/Indiana/Indianapolis': 'ET',
+    'America/Chicago': 'CT',
+    'America/Denver': 'MT',
+    'America/Phoenix': 'MST',
+    'America/Los_Angeles': 'PT',
+    'America/Anchorage': 'AKT',
+    'Pacific/Honolulu': 'HST',
+  };
+  if (KNOWN[zone]) return KNOWN[zone];
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: zone,
+      timeZoneName: 'short',
+    }).formatToParts(sample);
+    return parts.find((p) => p.type === 'timeZoneName')?.value ?? zone;
+  } catch {
+    return zone;
+  }
+};
+
+/**
+ * Format a "minutes since midnight at the park" value as a wall-clock time
+ * **in the park's local timezone**, e.g. 555 → "9:15 AM", 690 → "11:30 AM".
+ *
+ * When the viewer's timezone differs from the park's (e.g. a guest in
+ * California viewing a Walt Disney World schedule), the park's short zone
+ * tag is appended so the time is unambiguous: "9:15 AM ET".
+ *
+ * The number of minutes is interpreted relative to *today's* park-local
+ * midnight, which means the formatter automatically respects DST: a park
+ * that springs forward shows the correct wall-clock hour without the caller
+ * having to think about offsets.
+ */
+export const formatClockTime = (
+  minutesSinceMidnight: number,
+  options: { parkZone?: string; viewerZone?: string } = {},
+): string => {
+  const parkZone = options.parkZone ?? PARK_TIMEZONE;
+  const viewerZone = options.viewerZone ?? getViewerTimezone();
   const totalMin = Math.max(0, Math.min(24 * 60 - 1, Math.round(minutesSinceMidnight)));
   const h24 = Math.floor(totalMin / 60);
   const m = totalMin % 60;
+
+  // The input is already a park-local wall clock — minutes since the park's
+  // own midnight. Render it directly so we never accidentally re-shift by an
+  // offset. Intl is used purely for the timezone *label*, never for the time
+  // math, which sidesteps every DST edge case.
   const period = h24 >= 12 ? 'PM' : 'AM';
   const h12 = ((h24 + 11) % 12) + 1;
-  return `${h12}:${m.toString().padStart(2, '0')} ${period}`;
+  const wallClock = `${h12}:${m.toString().padStart(2, '0')} ${period}`;
+
+  // Only tag the timezone when the viewer is somewhere else — locals don't
+  // need "ET" on every chip.
+  if (sameWallClock(parkZone, viewerZone)) return wallClock;
+  return `${wallClock} ${shortZoneLabel(parkZone)}`;
 };
 
 /**
