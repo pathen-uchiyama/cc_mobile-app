@@ -5,6 +5,7 @@ import BottomSheet from '@/components/BottomSheet';
 import { useMediaCapture, type CaptureMode } from '@/hooks/memory/useMediaCapture';
 import { useMemoryVault, type MemoryKind, type MemoryTag } from '@/contexts/MemoryContext';
 import { useCelebrate } from '@/contexts/CelebrationContext';
+import VideoTrimmer from '@/components/memory/VideoTrimmer';
 
 interface RecordMemorySheetProps {
   open: boolean;
@@ -36,6 +37,9 @@ const RecordMemorySheet = ({ open, onClose, contextHint }: RecordMemorySheetProp
   const [step, setStep] = useState<Step>('pick');
   const [mode, setMode] = useState<CaptureMode>('photo');
   const [captured, setCaptured] = useState<{ kind: MemoryKind; payload: string; mime?: string; durationMs?: number } | null>(null);
+  // Trim window for video memories — seconds, relative to the source clip.
+  // Defaults to the full clip; user confirms (or shortens) before saving.
+  const [trim, setTrim] = useState<{ start: number; end: number } | null>(null);
   const [caption, setCaption] = useState('');
   const [noteBody, setNoteBody] = useState('');
   const [selectedFeelings, setSelectedFeelings] = useState<string[]>([]);
@@ -55,6 +59,7 @@ const RecordMemorySheet = ({ open, onClose, contextHint }: RecordMemorySheetProp
       setNoteBody('');
       setSelectedFeelings([]);
       setBusy(false);
+      setTrim(null);
     }
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -154,11 +159,18 @@ const RecordMemorySheet = ({ open, onClose, contextHint }: RecordMemorySheetProp
     const tags: MemoryTag[] = [];
     if (contextHint?.attraction) tags.push({ label: contextHint.attraction, kind: 'place' });
     selectedFeelings.forEach((f) => tags.push({ label: f, kind: 'feeling' }));
+    // For video, fold the chosen trim window into the saved metadata so
+    // playback respects it everywhere (Detail sheet, Editor, Joy Report).
+    const isVideo = captured.kind === 'video';
+    const trimmedDurationMs =
+      isVideo && trim ? Math.round((trim.end - trim.start) * 1000) : captured.durationMs;
     saveMemory({
       kind: captured.kind,
       payload: captured.payload,
       mime: captured.mime,
-      durationMs: captured.durationMs,
+      durationMs: trimmedDurationMs,
+      trimStart: isVideo && trim ? trim.start : undefined,
+      trimEnd: isVideo && trim ? trim.end : undefined,
       caption: caption.trim() || `A ${captured.kind} memory.`,
       tags,
     });
@@ -445,19 +457,28 @@ const RecordMemorySheet = ({ open, onClose, contextHint }: RecordMemorySheetProp
             exit={{ opacity: 0, y: -8 }}
           >
             {/* Preview */}
-            <div className="rounded-2xl overflow-hidden mb-4 bg-foreground">
-              {captured.kind === 'photo' && (
-                <img src={captured.payload} alt="Captured" className="w-full aspect-[4/5] object-cover" />
-              )}
-              {captured.kind === 'video' && (
-                <video src={captured.payload} controls playsInline className="w-full aspect-[4/5] object-cover bg-foreground" />
-              )}
-              {captured.kind === 'voice' && (
-                <div className="aspect-[4/2] flex items-center justify-center p-6">
-                  <audio src={captured.payload} controls className="w-full" />
-                </div>
-              )}
-            </div>
+            {captured.kind === 'video' ? (
+              <div className="mb-4">
+                <VideoTrimmer
+                  src={captured.payload}
+                  initialDurationSec={(captured.durationMs ?? 0) / 1000}
+                  maxLengthSec={10}
+                  minLengthSec={1}
+                  onChange={(start, end) => setTrim({ start, end })}
+                />
+              </div>
+            ) : (
+              <div className="rounded-2xl overflow-hidden mb-4 bg-foreground">
+                {captured.kind === 'photo' && (
+                  <img src={captured.payload} alt="Captured" className="w-full aspect-[4/5] object-cover" />
+                )}
+                {captured.kind === 'voice' && (
+                  <div className="aspect-[4/2] flex items-center justify-center p-6">
+                    <audio src={captured.payload} controls className="w-full" />
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* The "what is this?" prompt — drives the caption */}
             <span className="font-sans text-[9px] uppercase tracking-sovereign text-accent font-bold block mb-2">
