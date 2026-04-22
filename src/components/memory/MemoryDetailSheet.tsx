@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { Pencil, MapPin, Heart, Camera, Video, Mic, FileText, Calendar, Clock } from 'lucide-react';
 import BottomSheet from '@/components/BottomSheet';
 import { formatMemoryTime, type Memory } from '@/contexts/MemoryContext';
+import TrimmedVideo from '@/components/memory/TrimmedVideo';
 
 interface MemoryDetailSheetProps {
   open: boolean;
@@ -76,10 +77,8 @@ const MemoryDetailSheet = ({ open, onClose, memory, onEdit }: MemoryDetailSheetP
             />
           )}
           {memory.kind === 'video' && (
-            <video
-              src={memory.payload}
-              controls
-              playsInline
+            <TrimmedVideo
+              memory={memory}
               className="w-full max-h-[70vh] object-contain bg-foreground"
             />
           )}
