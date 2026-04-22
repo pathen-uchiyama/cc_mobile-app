@@ -25,10 +25,13 @@ const Auth = () => {
         className="flex flex-col"
       >
         {/* Brand Mark */}
-        <div className="w-8 h-8 bg-primary mb-10" />
+        <div className="flex items-center gap-1.5 mb-10">
+          <div className="w-7 h-7 bg-primary" />
+          <div className="w-1.5 h-7 bg-tertiary" />
+        </div>
 
-        <h1 className="font-display text-3xl text-foreground mb-2">
-          Castle Companion
+        <h1 className="text-masthead text-primary mb-2">
+          Castle<br /><span className="text-secondary">Companion.</span>
         </h1>
         <p className="font-sans text-xs text-muted-foreground leading-relaxed max-w-[260px] mb-14">
           Your private concierge awaits. Enter your credentials to unlock your voyage.

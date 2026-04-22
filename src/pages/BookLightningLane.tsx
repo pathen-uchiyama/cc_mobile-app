@@ -279,7 +279,7 @@ const RideRow = ({ attraction, held, ridden, mustDo, dim, disabled, lockReason, 
               </span>
             )}
           </div>
-          <h3 className="font-display text-[16px] leading-tight text-foreground truncate">
+          <h3 className="text-headline text-primary truncate">
             {attraction.name}
           </h3>
           <div className="flex items-center gap-2 mt-0.5">

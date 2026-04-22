@@ -76,11 +76,11 @@ const PageHeader = ({
             <span className="font-sans text-[11px] font-medium">{backLabel}</span>
           </button>
           {eyebrow && (
-            <div className="inline-flex items-center gap-2 mb-3">
-              <span className="inline-block w-2 h-2 rounded-full bg-secondary-container" />
+            <div className="inline-flex items-center gap-2 mb-3 px-3 py-1.5 rounded-full bg-tertiary-fixed/40">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-tertiary" />
               <p
-                className="font-sans text-[11px] font-bold uppercase text-secondary"
-                style={{ letterSpacing: '0.2em' }}
+                className="font-sans text-[11px] font-bold uppercase text-tertiary-on-fixed-variant"
+                style={{ letterSpacing: '0.18em' }}
               >
                 {eyebrow}
               </p>

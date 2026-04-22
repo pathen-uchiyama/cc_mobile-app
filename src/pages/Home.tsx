@@ -67,7 +67,7 @@ const Home = () => {
               <BookOpen size={16} className="text-gold" />
             </span>
             <div className="min-w-0">
-              <h3 className="font-display text-[18px] leading-tight text-foreground truncate">
+              <h3 className="text-headline text-primary truncate">
                 Past voyages
               </h3>
               <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold">
