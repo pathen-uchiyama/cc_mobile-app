@@ -1,6 +1,6 @@
-import { Eye, Map, Compass, Lock } from 'lucide-react';
+import { Eye, Star, Shuffle } from 'lucide-react';
 
-type TabId = 'horizon' | 'canvas' | 'guide' | 'vault';
+type TabId = 'today' | 'mustdo' | 'pivot';
 
 interface BottomGlassNavProps {
   activeTab: TabId;
@@ -8,10 +8,9 @@ interface BottomGlassNavProps {
 }
 
 const tabs: { id: TabId; label: string; icon: typeof Eye }[] = [
-  { id: 'horizon', label: 'Horizon', icon: Eye },
-  { id: 'canvas', label: 'Canvas', icon: Map },
-  { id: 'guide', label: 'Guide', icon: Compass },
-  { id: 'vault', label: 'Vault', icon: Lock },
+  { id: 'today',  label: 'Today',    icon: Eye },
+  { id: 'mustdo', label: 'Must-Do',  icon: Star },
+  { id: 'pivot',  label: 'Pivot',    icon: Shuffle },
 ];
 
 /**
