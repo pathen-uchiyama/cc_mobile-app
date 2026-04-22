@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { act } from 'react';
 import SwapSuggestionsSheet from './SwapSuggestionsSheet';
 import { CelebrationProvider } from '@/contexts/CelebrationContext';
 import { CompanionProvider } from '@/contexts/CompanionContext';
@@ -141,5 +142,53 @@ describe('SwapSuggestionsSheet — rain rationale announcement', () => {
       const inSrOnly = node.closest('.sr-only') !== null;
       expect(hidden || inSrOnly).toBe(true);
     });
+  });
+
+  it('does not re-announce the focused button label or trigger the live region on focus during a pivot toggle', () => {
+    // Open in rain so a rationale set is active and at least one option
+    // has a describedby target.
+    const { rerender } = renderSheet('rain');
+
+    const buttons = getOptionButtons();
+    expect(buttons.length).toBeGreaterThan(0);
+    const target = buttons[0] as HTMLButtonElement;
+    const labelBeforeFocus = target.getAttribute('aria-label');
+    expect(labelBeforeFocus).toMatch(/min wait/);
+
+    // Snapshot the live region BEFORE focusing — this is the baseline
+    // "rationale-added" announcement from the rain mount.
+    const liveBeforeFocus = getLiveRegion().textContent ?? '';
+    expect(liveBeforeFocus).toMatch(/rationale/i);
+
+    // Focus the option button. Focus alone must NOT mutate the live
+    // region (no aria-live update on focus events) and must NOT change
+    // the button's accessible name.
+    act(() => {
+      target.focus();
+    });
+    expect(document.activeElement).toBe(target);
+    expect(target.getAttribute('aria-label')).toBe(labelBeforeFocus);
+    expect(getLiveRegion().textContent ?? '').toBe(liveBeforeFocus);
+
+    // Now trigger a re-render with the SAME reason (simulates an internal
+    // pivot-state update while the button is focused). The focused
+    // button's aria-label must be byte-identical, and the live region
+    // must NOT receive a duplicate announcement (since the rationale
+    // set didn't change).
+    rerender(
+      <Wrapper>
+        <SwapSuggestionsSheet open onClose={() => {}} reason="rain" />
+      </Wrapper>
+    );
+
+    // Re-locate the same logical button by its (stable) aria-label —
+    // it should be the SAME DOM node since React reconciles by key.
+    const buttonsAfter = getOptionButtons();
+    const targetAfter = buttonsAfter.find(
+      (b) => b.getAttribute('aria-label') === labelBeforeFocus
+    );
+    expect(targetAfter).toBeDefined();
+    expect(targetAfter!.getAttribute('aria-label')).toBe(labelBeforeFocus);
+    expect(getLiveRegion().textContent ?? '').toBe(liveBeforeFocus);
   });
 });
