@@ -241,7 +241,7 @@ const MemoryDetailSheet = ({ open, onClose, memory, onEdit }: MemoryDetailSheetP
                   transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
                 >
                   {detailsExpanded ? <ArrowDown size={14} /> : <ArrowUp size={14} />}
-                  <span className="font-sans text-[8px] uppercase tracking-sovereign font-bold writing-mode-vertical">
+                  <span className="font-sans text-[8px] uppercase tracking-sovereign font-bold">
                     {detailsExpanded ? 'Hide' : 'Details'}
                   </span>
                 </motion.div>
