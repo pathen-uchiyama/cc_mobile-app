@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ChevronLeft, Zap, MapPin, Clock, Check, Star, Lock } from 'lucide-react';
+import { ChevronLeft, Zap, MapPin, Clock, Check, Star, Lock, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   LL_INVENTORY,
@@ -45,6 +45,9 @@ const BookLightningLane = () => {
   const navigate = useNavigate();
   const { fire } = useHaptics();
   const [holds, setHolds] = useState<HeldLL[]>(INITIAL_HOLDS);
+  // Track holds added in this session so we can offer a "see it on your stack"
+  // ribbon — keeps the user oriented after a booking instead of stranding them.
+  const [sessionAdds, setSessionAdds] = useState(0);
 
   const summary = useMemo(
     () => summarizeCapacity(holds, NOW_MINUTES, DEFAULT_CAPACITY),
@@ -94,21 +97,22 @@ const BookLightningLane = () => {
       status: 'held',
     };
     setHolds((prev) => [...prev, newHold]);
+    setSessionAdds((n) => n + 1);
     toast.success(`${a.name} secured for ${a.nextWindow}.`);
   };
 
   return (
-    <div className="min-h-screen bg-background max-w-[480px] mx-auto pb-24">
+    <div className="min-h-screen bg-background max-w-[480px] mx-auto pb-32">
       {/* Header */}
       <header className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm px-5 pt-5 pb-3" style={{ borderBottom: '1px solid hsl(var(--obsidian) / 0.06)' }}>
         <button
           type="button"
-          onClick={() => navigate(-1)}
+          onClick={() => navigate('/park')}
           className="flex items-center gap-1 bg-transparent border-none cursor-pointer p-1 -ml-1 mb-2 text-muted-foreground"
-          aria-label="Go back"
+          aria-label="Back to your day"
         >
           <ChevronLeft size={16} />
-          <span className="font-sans text-[11px]">Back</span>
+          <span className="font-sans text-[11px]">Your day</span>
         </button>
         <span
           className="font-sans text-[9px] uppercase tracking-sovereign font-bold"
@@ -188,6 +192,38 @@ const BookLightningLane = () => {
           </ul>
         </section>
       </main>
+
+      {/* Sticky "Return to your day" ribbon — appears after the user has
+          secured at least one new hold this session. Keeps the booking
+          surface from feeling like a dead-end and pulls the user back to
+          /park where the new hold is reflected on the Hero stack. */}
+      {sessionAdds > 0 && (
+        <motion.div
+          initial={{ y: 24, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="fixed bottom-4 left-1/2 -translate-x-1/2 z-20 w-[min(440px,calc(100vw-24px))]"
+        >
+          <button
+            type="button"
+            onClick={() => navigate('/park')}
+            className="w-full rounded-2xl py-3.5 px-5 flex items-center justify-between gap-2 border-none cursor-pointer min-h-[48px] font-sans text-[12px] font-semibold"
+            style={{
+              backgroundColor: 'hsl(var(--obsidian))',
+              color: 'hsl(var(--parchment))',
+              boxShadow: '0 16px 36px hsl(var(--obsidian) / 0.32)',
+            }}
+          >
+            <span className="flex items-center gap-2">
+              <Check size={14} style={{ color: 'hsl(var(--gold))' }} />
+              {sessionAdds === 1 ? '1 new hold secured' : `${sessionAdds} new holds secured`}
+            </span>
+            <span className="flex items-center gap-1.5" style={{ color: 'hsl(var(--gold))' }}>
+              See it on your stack
+              <ArrowRight size={14} />
+            </span>
+          </button>
+        </motion.div>
+      )}
     </div>
   );
 };
