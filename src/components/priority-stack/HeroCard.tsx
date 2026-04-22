@@ -41,11 +41,16 @@ const HeroCard = ({
           '0 0 0 1px hsl(var(--obsidian) / 0.04), 0 24px 60px hsl(var(--obsidian) / 0.12)',
       }}
     >
-      {/* Eyebrow + live wait pill */}
+      {/* Eyebrow + live wait pill.
+          The "Focus" eyebrow uses tertiary (Magical Magenta) — the single
+          magical accent that distinguishes the *current* hero from the
+          gold-saturated VIP/strategy chrome elsewhere on the page. */}
       <div className="flex items-start justify-between mb-4">
-        <span className="font-sans text-[9px] uppercase tracking-sovereign text-accent font-bold flex items-center gap-1.5">
+        <span className="font-sans text-[9px] uppercase tracking-sovereign text-tertiary font-bold flex items-center gap-1.5"
+              style={{ letterSpacing: '0.2em' }}
+        >
           <motion.span
-            className="inline-block w-2 h-2 bg-accent rounded-full"
+            className="inline-block w-2 h-2 bg-tertiary rounded-full"
             animate={{ scale: [1, 1.4, 1], opacity: [1, 0.5, 1] }}
             transition={{ repeat: Infinity, duration: 2 }}
           />
