@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 export type CaptureMode = 'photo' | 'video' | 'voice';
 
+export type PermissionStatus = 'idle' | 'prompting' | 'granted' | 'denied' | 'unsupported';
+
 interface CaptureState {
   /** The active MediaStream — bind to a <video> for live preview */
   stream: MediaStream | null;
@@ -13,6 +15,8 @@ interface CaptureState {
   error: string | null;
   /** True if getUserMedia is unavailable (insecure context, no API). */
   unsupported: boolean;
+  /** Structured permission lifecycle — drives priming/denial UI. */
+  permission: PermissionStatus;
 }
 
 interface CaptureResult {
@@ -34,6 +38,7 @@ export const useMediaCapture = (mode: CaptureMode) => {
     durationMs: 0,
     error: null,
     unsupported: false,
+    permission: 'idle',
   });
 
   const recorderRef = useRef<MediaRecorder | null>(null);
@@ -55,9 +60,15 @@ export const useMediaCapture = (mode: CaptureMode) => {
   /** Acquire the camera / mic. Bind the returned stream to a <video> element. */
   const start = useCallback(async () => {
     if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
-      setState((s) => ({ ...s, unsupported: true, error: 'Camera and mic are not available in this browser.' }));
+      setState((s) => ({
+        ...s,
+        unsupported: true,
+        permission: 'unsupported',
+        error: 'Camera and mic are not available in this browser. You can still upload from your library.',
+      }));
       return null;
     }
+    setState((s) => ({ ...s, permission: 'prompting', error: null }));
     try {
       const constraints: MediaStreamConstraints =
         mode === 'voice'
@@ -66,14 +77,22 @@ export const useMediaCapture = (mode: CaptureMode) => {
           ? { video: { facingMode: 'environment' }, audio: false }
           : { video: { facingMode: 'environment' }, audio: true };
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      setState({ stream, isRecording: false, durationMs: 0, error: null, unsupported: false });
+      setState({ stream, isRecording: false, durationMs: 0, error: null, unsupported: false, permission: 'granted' });
       return stream;
     } catch (err) {
-      const message =
-        err instanceof DOMException && err.name === 'NotAllowedError'
-          ? 'Permission was denied. You can still upload from your library.'
-          : 'We couldn\u2019t access the camera or mic. Try again or upload instead.';
-      setState((s) => ({ ...s, error: message }));
+      const isDenied = err instanceof DOMException && (err.name === 'NotAllowedError' || err.name === 'SecurityError');
+      const isMissing = err instanceof DOMException && (err.name === 'NotFoundError' || err.name === 'OverconstrainedError');
+      const message = isDenied
+        ? 'Permission was denied. You can still upload from your library.'
+        : isMissing
+        ? 'No camera or microphone was found on this device. Try uploading from your library instead.'
+        : 'We couldn\u2019t access the camera or mic. Try again or upload instead.';
+      setState((s) => ({
+        ...s,
+        error: message,
+        permission: isDenied ? 'denied' : isMissing ? 'unsupported' : s.permission === 'prompting' ? 'idle' : s.permission,
+        unsupported: s.unsupported || isMissing,
+      }));
       return null;
     }
   }, [mode]);
