@@ -55,6 +55,14 @@ export default {
           DEFAULT: "hsl(var(--tertiary))",
           foreground: "hsl(var(--tertiary-foreground))",
           container: "hsl(var(--tertiary-container))",
+          fixed: "hsl(var(--tertiary-fixed))",
+          "on-fixed-variant": "hsl(var(--on-tertiary-fixed-variant))",
+        },
+        "on-secondary-container": "hsl(var(--on-secondary-container))",
+        error: {
+          DEFAULT: "hsl(var(--error))",
+          container: "hsl(var(--error-container))",
+          "on-container": "hsl(var(--on-error-container))",
         },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
