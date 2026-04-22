@@ -153,9 +153,9 @@ const FocusMove = ({
         />
 
         <div className="flex items-start justify-between mb-4 gap-2">
-          <span className="font-sans text-[9px] uppercase tracking-sovereign text-accent font-bold flex items-center gap-1.5">
+          <span className="font-sans text-[9px] uppercase tracking-sovereign text-primary font-bold flex items-center gap-1.5">
             <motion.span
-              className="inline-block w-2 h-2 bg-accent rounded-full"
+              className="inline-block w-2 h-2 bg-secondary-container rounded-full ring-2 ring-secondary-container/40"
               {...(reduceMotion
                 ? {}
                 : {
@@ -167,9 +167,9 @@ const FocusMove = ({
           </span>
           <div className="flex items-center gap-1.5 shrink-0">
             {wait && (
-              <div className="flex items-center gap-1.5 bg-accent/15 px-3 py-1.5 rounded-full">
-                <Clock size={12} className="text-accent" />
-                <span className="font-sans text-sm text-accent font-bold tabular-nums">
+              <div className="flex items-center gap-1.5 bg-secondary-container px-3 py-1.5 rounded-full">
+                <Clock size={12} className="text-primary" />
+                <span className="font-sans text-sm text-primary font-bold tabular-nums">
                   {wait}
                 </span>
               </div>

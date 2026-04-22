@@ -35,7 +35,7 @@ const BottomGlassNav = ({ activeTab, onTabChange }: BottomGlassNavProps) => {
               className={[
                 'flex flex-col items-center justify-center gap-1 min-w-[56px] min-h-[44px] px-3 py-1 cursor-pointer border-none rounded-md transition-colors duration-200',
                 isActive
-                  ? 'bg-secondary-container text-primary'
+                  ? 'bg-secondary-container text-primary shadow-boutique'
                   : 'bg-transparent text-on-surface-variant hover:opacity-80',
               ].join(' ')}
               aria-label={tab.label}
