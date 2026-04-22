@@ -140,25 +140,26 @@ const BookLightningLane = () => {
     const isILL = a.type === 'ill';
     if (isILL && !summary.canBookILL) {
       toast.error('Daily Individual Lightning Lane cap reached.');
-      return;
+      return false;
     }
     if (!isILL && !summary.canBookLLNow) {
       toast.error(`Next standard slot unlocks in ${formatCountdown(summary.llUnlocksInMin)}.`);
-      return;
+      return false;
     }
     fire('bookingSuccess');
     const newHold: HeldLL = {
       id: `h-${Date.now()}`,
       attractionId: a.id,
       type: a.type,
-      bookedAtMin: NOW_MINUTES,
-      windowStartMin: NOW_MINUTES + 60,
+      bookedAtMin: nowMinutes,
+      windowStartMin: nowMinutes + 60,
       status: 'held',
     };
     setHolds((prev) => [...prev, newHold]);
     setSessionAdds((n) => n + 1);
     // Single confirmation surface — the sticky "Return to your day" ribbon
     // already announces session adds. Avoid double-firing the same signal.
+    return true;
   };
 
   return (
