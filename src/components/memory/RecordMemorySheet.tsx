@@ -497,6 +497,123 @@ const RecordMemorySheet = ({ open, onClose, contextHint }: RecordMemorySheetProp
   );
 };
 
+/**
+ * PermissionPanel — primes the OS prompt or, on denial, becomes a graceful
+ * library-only fallback with browser-specific recovery hints.
+ */
+const PermissionPanel = ({
+  mode,
+  status,
+  error,
+  busy,
+  onRequest,
+  onUpload,
+  onBack,
+}: {
+  mode: CaptureMode;
+  status: 'idle' | 'prompting' | 'granted' | 'denied' | 'unsupported';
+  error: string | null;
+  busy: boolean;
+  onRequest: () => void;
+  onUpload: () => void;
+  onBack: () => void;
+}) => {
+  const device = mode === 'voice' ? 'microphone' : mode === 'video' ? 'camera and microphone' : 'camera';
+  const blocked = status === 'denied' || status === 'unsupported';
+  const Icon = blocked ? AlertCircle : ShieldCheck;
+
+  return (
+    <div className="flex flex-col">
+      {/* Hero */}
+      <div className="bg-card rounded-2xl p-6 shadow-boutique flex flex-col items-center text-center">
+        <div
+          className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 ${
+            blocked ? 'bg-destructive/12' : 'bg-accent/15'
+          }`}
+        >
+          <Icon size={26} className={blocked ? 'text-destructive' : 'text-accent'} />
+        </div>
+
+        {status === 'denied' && (
+          <>
+            <h3 className="font-display text-[18px] text-foreground leading-tight mb-2">
+              Your {device} is blocked
+            </h3>
+            <p className="font-sans text-[12px] text-muted-foreground leading-relaxed max-w-[28ch]">
+              No problem — you can still preserve this moment by uploading from your library, or re-enable access in your browser settings.
+            </p>
+          </>
+        )}
+
+        {status === 'unsupported' && (
+          <>
+            <h3 className="font-display text-[18px] text-foreground leading-tight mb-2">
+              Capture isn't available
+            </h3>
+            <p className="font-sans text-[12px] text-muted-foreground leading-relaxed max-w-[28ch]">
+              {error ?? 'This browser or device can\u2019t reach the camera or mic right now. The library is always open.'}
+            </p>
+          </>
+        )}
+
+        {(status === 'idle' || status === 'prompting' || status === 'granted') && (
+          <>
+            <h3 className="font-display text-[18px] text-foreground leading-tight mb-2">
+              We need your {device}
+            </h3>
+            <p className="font-sans text-[12px] text-muted-foreground leading-relaxed max-w-[30ch]">
+              The next prompt is from your browser. Nothing leaves this device — your moments stay in the Vault, just for you.
+            </p>
+          </>
+        )}
+      </div>
+
+      {/* Recovery hint for denial */}
+      {status === 'denied' && (
+        <div className="mt-3 bg-transparent border border-border rounded-xl p-3 flex items-start gap-2.5">
+          <Settings size={14} className="text-muted-foreground flex-shrink-0 mt-0.5" />
+          <p className="font-sans text-[11px] text-muted-foreground leading-relaxed">
+            To re-enable: tap the lock or info icon in your browser's address bar, then allow {device} access for this site and reload.
+          </p>
+        </div>
+      )}
+
+      {/* Actions */}
+      <div className="flex flex-col gap-2.5 mt-5">
+        {!blocked && (
+          <button
+            onClick={onRequest}
+            disabled={busy}
+            className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-sans text-[12px] uppercase tracking-sovereign font-semibold cursor-pointer border-none disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {busy ? <Loader2 size={14} className="animate-spin" /> : <ShieldCheck size={14} />}
+            {busy ? 'Waiting for permission\u2026' : `Allow ${device} access`}
+          </button>
+        )}
+
+        <button
+          onClick={onUpload}
+          className={`w-full py-3.5 rounded-2xl font-sans text-[12px] uppercase tracking-sovereign cursor-pointer border flex items-center justify-center gap-2 ${
+            blocked
+              ? 'bg-primary text-primary-foreground border-none font-semibold'
+              : 'bg-transparent text-foreground border-border'
+          }`}
+        >
+          <Upload size={14} />
+          Upload from library
+        </button>
+
+        <button
+          onClick={onBack}
+          className="w-full py-2.5 rounded-2xl bg-transparent text-muted-foreground font-sans text-[11px] uppercase tracking-sovereign cursor-pointer border-none"
+        >
+          Back
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const FeelingPicker = ({ selected, onToggle }: { selected: string[]; onToggle: (f: string) => void }) => (
   <div className="mt-5">
     <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold block mb-2">
