@@ -1,5 +1,6 @@
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Clock, MapPin, Sparkles, CloudRain, Home, Coffee, Zap, Theater } from 'lucide-react';
+import { Clock, MapPin, Sparkles, CloudRain, Home, Coffee, Zap, Theater, AlertTriangle } from 'lucide-react';
 import BottomSheet from './BottomSheet';
 import { useCelebrate, WHISPERS } from '@/contexts/CelebrationContext';
 
@@ -48,10 +49,29 @@ interface SwapSuggestionsSheetProps {
   reason?: SwapReason;
 }
 
-const SwapSuggestionsSheet = ({ open, onClose, skipped, reason = 'manual' }: SwapSuggestionsSheetProps) => {
+const VALID_REASONS: SwapReason[] = ['rain', 'closure', 'manual'];
+
+const SwapSuggestionsSheet = ({ open, onClose, skipped, reason }: SwapSuggestionsSheetProps) => {
   const { celebrate } = useCelebrate();
 
-  const isRain = reason === 'rain';
+  // Defensive: parent should always pass a valid reason. If it doesn't, we
+  // surface a fallback banner instead of silently picking the wrong roster.
+  const reasonMissing = reason === undefined || reason === null;
+  const reasonInvalid = !reasonMissing && !VALID_REASONS.includes(reason as SwapReason);
+  const safeReason: SwapReason = reasonMissing || reasonInvalid ? 'manual' : (reason as SwapReason);
+
+  useEffect(() => {
+    if (!open) return;
+    if (reasonMissing) {
+      console.warn('[SwapSuggestionsSheet] opened without a `reason` prop — falling back to "manual" roster.');
+    } else if (reasonInvalid) {
+      console.warn('[SwapSuggestionsSheet] received invalid `reason`:', reason, '— falling back to "manual".');
+    } else {
+      console.info('[SwapSuggestionsSheet] mounted with reason:', reason);
+    }
+  }, [open, reason, reasonMissing, reasonInvalid]);
+
+  const isRain = safeReason === 'rain';
   const roster = isRain ? RAIN_OPTIONS : DEFAULT_OPTIONS;
   // Visual ordering: 'Do now' first, then indoor/show/break, outdoor last.
   const options = [...roster].sort((a, b) => KIND_ORDER[a.kind] - KIND_ORDER[b.kind]);
@@ -73,6 +93,23 @@ const SwapSuggestionsSheet = ({ open, onClose, skipped, reason = 'manual' }: Swa
         ? 'Stay dry — indoor rides, covered shows, breaks, or get an outdoor pick done now.'
         : 'Three nearby alternatives, ranked by signal.'}
     >
+      {(reasonMissing || reasonInvalid) && (
+        <motion.div
+          role="status"
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-3 flex items-start gap-2.5 rounded-xl border border-destructive/30 bg-destructive/10 p-3"
+        >
+          <AlertTriangle size={16} className="text-destructive shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="font-sans text-[11px] text-foreground leading-snug">
+              <span className="font-semibold">Heads up:</span> we couldn\u2019t determine why this pivot was suggested
+              {reasonInvalid ? ` (got "${String(reason)}")` : ''}. Showing your standard nearby alternatives.
+            </p>
+          </div>
+        </motion.div>
+      )}
+
       {isRain && (
         <motion.div
           initial={{ opacity: 0, y: -6 }}
