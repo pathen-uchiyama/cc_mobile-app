@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import LoomingHorizon from '@/components/LoomingHorizon';
 import HeroHorizonStack, { type PlanItem, type WalkingPrompt } from '@/components/priority-stack/HeroHorizonStack';
 import PivotShimmer from '@/components/priority-stack/PivotShimmer';
 import MustDoRibbon, { type MustDoIcon } from '@/components/priority-stack/MustDoRibbon';
 import MustDoDropdown, { type MustDoEntry } from '@/components/priority-stack/MustDoDropdown';
-
 import AssistedDrawer from '@/components/priority-stack/AssistedDrawer';
 import AudibleMenu from '@/components/priority-stack/AudibleMenu';
 import StrategicDashboard from '@/components/priority-stack/StrategicDashboard';
@@ -22,12 +22,9 @@ import WhisperStrip from '@/components/WhisperStrip';
 import { useCompanion } from '@/contexts/CompanionContext';
 import { useCelebrate, WHISPERS } from '@/contexts/CelebrationContext';
 import { RESERVATIONS, nextHospitalityReservation, minutesUntil } from '@/data/reservations';
-import {
-  INITIAL_HOLDS,
-  DEFAULT_CAPACITY,
-  summarizeCapacity,
-} from '@/data/lightningLanes';
-import { useNavigate } from 'react-router-dom';
+import { INITIAL_HOLDS, DEFAULT_CAPACITY, summarizeCapacity } from '@/data/lightningLanes';
+import { usePlanStack, type MustDo } from '@/hooks/park/usePlanStack';
+import { useStrategyEngine } from '@/hooks/park/useStrategyEngine';
 
 const PLAN: PlanItem[] = [
   {
@@ -71,34 +68,43 @@ const PLAN: PlanItem[] = [
   },
 ];
 
-// The user's day-of Must-Do list — drives the Sovereign Progress Bar at the top
-// and the gold border on any matching card in the stack.
-//
-// Survey responses can flag an attraction as a multi-ride favorite — `desired`
-// captures how many times the party wants to ride it. `done` tracks completed
-// rides; the attraction stays "live" until done >= desired.
-type MustDo = { id: string; attraction: string; desired: number; done: number };
 const MUST_DOS: MustDo[] = [
   { id: 'm1', attraction: 'Pirates of the Caribbean', desired: 1, done: 0 },
   { id: 'm2', attraction: 'Haunted Mansion', desired: 2, done: 0 },
   { id: 'm3', attraction: 'Big Thunder Mountain', desired: 2, done: 0 },
   { id: 'm4', attraction: 'Space Mountain', desired: 1, done: 0 },
-  { id: 'm5', attraction: 'Peter Pan\u2019s Flight', desired: 1, done: 0 },
+  { id: 'm5', attraction: "Peter Pan\u2019s Flight", desired: 1, done: 0 },
 ];
 
-// Walking prompts are intentionally retained as data but NOT rendered as cards
-// — the page must never show more than 3 cards. Whimsy surfaces via WhisperStrip.
+// Walking prompts retained as data but never rendered as cards — the page
+// must never show more than 3 cards. Whimsy surfaces via WhisperStrip.
 const WALKING_PROMPTS: WalkingPrompt[] = [];
 
+const NOW_MINUTES = 10 * 60 + 45; // mock 10:45 AM park-time
 
 const InPark = () => {
   const navigate = useNavigate();
-  // The Sovereign Stack lives in state so cards can be promoted, completed,
-  // and pulled in from the Must-Do dropdown — all with a shared-layout swap.
-  const [plan, setPlan] = useState<PlanItem[]>(PLAN);
-  const [mustDos, setMustDos] = useState<MustDo[]>(MUST_DOS);
+  const { celebrate } = useCelebrate();
+  const { minimalist, tier, devPanelEnabled, llTrackerVisible } = useCompanion();
+  const useQuietView = minimalist || tier === 'sovereign';
 
-  // Sovereign Key contextual mode: 'audible' for relaxed users, 'dashboard' for Type A.
+  // ── State machines extracted into hooks ───────────────────────────────
+  const { plan, hero, mustDos, completeHero, promoteToHero, promoteMustDoToHero, adjustDesired } =
+    usePlanStack({
+      initialPlan: PLAN,
+      initialMustDos: MUST_DOS,
+      onCelebrate: celebrate,
+    });
+  const {
+    pivotSuggested,
+    setPivotSuggested,
+    pivotBadges,
+    clearBadge,
+    pivotLabel,
+    pivotWith,
+  } = useStrategyEngine({ enabled: !useQuietView });
+
+  // ── Sovereign Key context ─────────────────────────────────────────────
   const [audibleOpen, setAudibleOpen] = useState(false);
   const [dashboardOpen, setDashboardOpen] = useState(false);
   const [needType, setNeedType] = useState<'bathroom' | 'quiet' | 'food' | null>(null);
@@ -108,37 +114,7 @@ const InPark = () => {
   const [drawerHandled, setDrawerHandled] = useState(false);
   const [findAndSeekOpen, setFindAndSeekOpen] = useState(false);
 
-  // Lightning Lanes are managed EXCLUSIVELY through the Contextual Booking
-  // Drawer (`AssistedDrawer`). There is no manual "Secure" surface anywhere —
-  // the strategy engine surfaces a Strategic Window when one fits the day.
-
-  // Pivot state — shows the Pivot Shimmer while the strategy recalculates after an Audible.
-  const [pivotLabel, setPivotLabel] = useState<string | null>(null);
-
-  // Mocked: surfaces the Burnished Gold pulse + "A New Path is Available" headline on the Hero card.
-  // In production this is driven by the strategy engine (weather, wait deltas, party sentiment).
-  const [pivotSuggested, setPivotSuggested] = useState(false);
-  // Per-pivot proactive-suggestion flags shown as gold dots on the dock icons.
-  const [pivotBadges, setPivotBadges] = useState<Partial<Record<'restroom' | 'refuel' | 'break' | 'rain' | 'reset', boolean>>>({});
-  useEffect(() => {
-    const t = setTimeout(() => setPivotSuggested(true), 6000);
-    // Mock: weather radar shows rain in 30 min → flag Rain Pivot.
-    const rainFlag = setTimeout(() => setPivotBadges((b) => ({ ...b, rain: true })), 8000);
-    // Mock: party sentiment dips + lunch window opens → flag Refuel.
-    const refuelFlag = setTimeout(() => setPivotBadges((b) => ({ ...b, refuel: true })), 12000);
-    return () => { clearTimeout(t); clearTimeout(rainFlag); clearTimeout(refuelFlag); };
-  }, []);
-
-  const { minimalist, tier, devPanelEnabled, llTrackerVisible } = useCompanion();
-  const { celebrate } = useCelebrate();
-
-  const useQuietView = minimalist || tier === 'sovereign';
-  const hero = plan.find((p) => p.rank === 'now') ?? plan[0];
-
-  // "On the Books" — surface the next dining/experience hold within 60 min.
-  // Mock current park-time of 10:45 AM (645 min). In production this would be
-  // `Date.now()` projected to park-local minutes-since-midnight.
-  const NOW_MINUTES = 10 * 60 + 45;
+  // ── Derived data ──────────────────────────────────────────────────────
   const nextHold = nextHospitalityReservation(RESERVATIONS, NOW_MINUTES, 60);
   const upcomingHold = nextHold && (nextHold.kind === 'dining' || nextHold.kind === 'experience')
     ? {
@@ -149,9 +125,6 @@ const InPark = () => {
       }
     : undefined;
 
-  // Lightning Lane capacity — drives the Hero countdown chip + dashboard CTA.
-  // Uses the same NOW_MINUTES anchor as upcomingHold so the two surfaces stay
-  // in lockstep. INITIAL_HOLDS mirrors the standard LLs in RESERVATIONS.
   const llSummary = summarizeCapacity(INITIAL_HOLDS, NOW_MINUTES, DEFAULT_CAPACITY);
   const llCapacity = {
     canBookNow: llSummary.canBookLLNow,
@@ -159,18 +132,6 @@ const InPark = () => {
     held: llSummary.llHeldCount,
     cap: llSummary.llCapTotal,
   };
-
-  // Fire a one-time celebration whisper the moment the unlock window opens.
-  // In production this would tick on a real clock; here we trigger when
-  // canBookNow flips true on mount (simulating the unlock moment).
-  useEffect(() => {
-    if (!llSummary.canBookLLNow) return;
-    const t = setTimeout(() => {
-      celebrate('Your next Lightning Lane is ready to book.', 'Slot Open');
-    }, 1500);
-    return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   // Type A = manager tier with LL tracking on. They get the Strategic Dashboard.
   const isTypeA = tier === 'manager' && llTrackerVisible;
@@ -192,108 +153,27 @@ const InPark = () => {
     done: m.done,
   }));
 
-  // The Assisted Drawer is the canonical LL surface — invisible by default,
-  // surfaces only when the strategy engine identifies a Strategic Opportunity.
-  // Tier 3 (sovereign) renders as a top toast + auto-confirm (handled inside the drawer).
+  // Fire a one-time celebration whisper the moment the unlock window opens.
+  useEffect(() => {
+    if (!llSummary.canBookLLNow) return;
+    const t = setTimeout(() => {
+      celebrate('Your next Lightning Lane is ready to book.', 'Slot Open');
+    }, 1500);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Contextual Booking Drawer auto-surface (suppressed in quiet view).
   useEffect(() => {
     if (minimalist || drawerHandled) return;
     const t = setTimeout(() => setDrawerOpen(true), 4000);
     return () => clearTimeout(t);
   }, [minimalist, drawerHandled]);
 
+  // ── Handlers ──────────────────────────────────────────────────────────
   const commitHero = () => {
     const tip = WHISPERS.arrival[Math.floor(Math.random() * WHISPERS.arrival.length)];
     celebrate(tip, 'On Your Way');
-  };
-
-  /**
-   * Mark the Hero ride as completed.
-   *
-   * Increments the Must-Do `done` counter (rides can be repeated, so we count
-   * each ride independently rather than flipping a boolean). Removes the card
-   * from the active stack and promotes the next item. If the attraction still
-   * has remaining rides (done < desired), the Must-Do stays on deck so the
-   * user can promote it again later.
-   */
-  const completeHero = () => {
-    if (!hero) return;
-    setPlan((prev) => {
-      const remaining = prev.filter((p) => p.id !== hero.id);
-      if (remaining.length === 0) return remaining;
-      const [first, second, ...rest] = remaining;
-      return [
-        { ...first, rank: 'now' as const },
-        ...(second ? [{ ...second, rank: 'next' as const }] : []),
-        ...rest.map((r) => ({ ...r, rank: 'later' as const })),
-      ];
-    });
-    let toastSuffix = '';
-    setMustDos((prev) =>
-      prev.map((m) => {
-        if (m.attraction !== hero.attraction) return m;
-        const nextDone = Math.min(m.desired, m.done + 1);
-        const remaining = m.desired - nextDone;
-        toastSuffix =
-          m.desired > 1
-            ? remaining > 0
-              ? ` · ${remaining} ride${remaining === 1 ? '' : 's'} to go`
-              : ` · all ${m.desired} rides done`
-            : '';
-        return { ...m, done: nextDone };
-      }),
-    );
-    celebrate(`${hero.attraction} — tucked into the Vault.${toastSuffix}`, 'Marked Done');
-  };
-
-  /** Adjust the desired ride count for a Must-Do (e.g. user wants to ride Tron 3x instead of 2x). */
-  const adjustDesired = (mustDoId: string, nextDesired: number) => {
-    const clamped = Math.max(1, Math.min(10, nextDesired));
-    setMustDos((prev) =>
-      prev.map((m) => (m.id === mustDoId ? { ...m, desired: clamped } : m)),
-    );
-  };
-
-  /** Promote a Horizon card into the Hero slot — shared-layout swap. */
-  const promoteToHero = (planItemId: string) => {
-    setPlan((prev) => {
-      const target = prev.find((p) => p.id === planItemId);
-      if (!target) return prev;
-      const others = prev.filter((p) => p.id !== planItemId);
-      const reordered: PlanItem[] = [
-        { ...target, rank: 'now' },
-        ...others.map((o, i) => ({ ...o, rank: i === 0 ? ('next' as const) : ('later' as const) })),
-      ];
-      return reordered;
-    });
-  };
-
-  /** Promote an off-stack Must-Do into the Hero slot. Synthesizes a PlanItem. */
-  const promoteMustDoToHero = (mustDoId: string, attraction: string) => {
-    setPlan((prev) => {
-      // If already in the plan, just promote it.
-      const existing = prev.find((p) => p.attraction === attraction);
-      if (existing) {
-        const others = prev.filter((p) => p.id !== existing.id);
-        return [
-          { ...existing, rank: 'now' as const },
-          ...others.map((o, i) => ({ ...o, rank: i === 0 ? ('next' as const) : ('later' as const) })),
-        ];
-      }
-      // Otherwise synthesize a fresh card and demote the rest.
-      const synthesized: PlanItem = {
-        id: `must-${mustDoId}`,
-        rank: 'now',
-        time: 'Now',
-        attraction,
-        location: 'On the way',
-        logic: 'Pulled from your Must-Do list — strategy is recalculating.',
-        wait: '—',
-        mustDo: true,
-      };
-      const demoted = prev.map((o, i) => ({ ...o, rank: i === 0 ? ('next' as const) : ('later' as const) }));
-      return [synthesized, ...demoted];
-    });
-    celebrate(`${attraction} promoted to your main card.`, 'Pulled In');
   };
 
   const confirmDrawer = () => {
@@ -313,18 +193,21 @@ const InPark = () => {
     else setAudibleOpen(true);
   };
 
-  /**
-   * Pivot the strategy after an Audible is selected.
-   * Shows the parchment shimmer while the new Top 3 "computes," then runs the side-effect.
-   */
-  const pivotWith = (label: string, after: () => void) => {
+  const runPivot = (label: string, after: () => void) => {
     setAudibleOpen(false);
-    setPivotLabel(label);
-    window.setTimeout(() => {
-      setPivotLabel(null);
-      after();
-    }, 1400);
+    pivotWith(label, after);
   };
+
+  // Pause whisper rotation whenever something else is competing for attention.
+  const whisperPaused =
+    pivotSuggested ||
+    audibleOpen ||
+    dashboardOpen ||
+    drawerOpen ||
+    needType !== null ||
+    showRecalibrate ||
+    swapFor !== null ||
+    findAndSeekOpen;
 
   return (
     <div className="min-h-screen bg-background max-w-[480px] mx-auto relative flex flex-col">
@@ -347,8 +230,7 @@ const InPark = () => {
               </h1>
             </header>
 
-            {/* Sovereign Progress Bar — only the Must-Dos. Items currently in
-                the stack glow gold to mirror the card border. */}
+            {/* Sovereign Progress Bar — Must-Dos with gold glow on stack matches */}
             <div className="mb-2">
               <MustDoRibbon items={mustDoIcons} />
             </div>
@@ -364,21 +246,10 @@ const InPark = () => {
 
             {/* Whisper ticker */}
             <div className="mb-4 -mx-5">
-              <WhisperStrip
-                paused={
-                  pivotSuggested ||
-                  audibleOpen ||
-                  dashboardOpen ||
-                  drawerOpen ||
-                  needType !== null ||
-                  showRecalibrate ||
-                  swapFor !== null ||
-                  findAndSeekOpen
-                }
-              />
+              <WhisperStrip paused={whisperPaused} />
             </div>
 
-            {/* ── The Sovereign Stack (max 3 cards) OR Pivot Shimmer ── */}
+            {/* The Sovereign Stack OR Pivot Shimmer */}
             <section aria-label="Today's plan" className="shrink-0">
               <AnimatePresence mode="wait">
                 {pivotLabel ? (
@@ -412,13 +283,11 @@ const InPark = () => {
               </AnimatePresence>
             </section>
           </main>
-
         </>
       )}
 
       {/* Contextual Booking Drawer — globally mounted so Tier 3 (sovereign)
-          users still receive the auto-confirm toast even in the quiet view.
-          Invisible by default; surfaces only when a Strategic Opportunity hits. */}
+          users still receive the auto-confirm toast in the quiet view. */}
       <AssistedDrawer
         open={drawerOpen}
         attraction="Pirates of the Caribbean"
@@ -429,27 +298,24 @@ const InPark = () => {
         onDismiss={dismissDrawer}
       />
 
-      {/* The Hearth: Floating Obsidian dock with the centered Gold Sovereign Key.
-          No side slots — the Key is the only OS anchor. Lightning Lanes are
-          surfaced exclusively through the Strategic Window drawer. */}
       <HearthDock
         onSovereignTap={handleSovereignTap}
         active={audibleOpen || dashboardOpen}
         badges={pivotBadges}
-        onRestroom={() => { setPivotBadges((b) => ({ ...b, restroom: false })); pivotWith('Restroom', () => setNeedType('bathroom')); }}
-        onRefuel={() => { setPivotBadges((b) => ({ ...b, refuel: false })); pivotWith('Refuel', () => setNeedType('food')); }}
-        onBreak={() => { setPivotBadges((b) => ({ ...b, break: false })); pivotWith('Need a Break', () => setNeedType('quiet')); }}
-        onRain={() => { setPivotBadges((b) => ({ ...b, rain: false })); pivotWith('Rain Pivot', () => setSwapFor(hero?.attraction ?? 'current ride')); }}
-        onReset={() => { setPivotBadges((b) => ({ ...b, reset: false })); pivotWith('Reset Strategy', () => { setPivotSuggested(false); setShowRecalibrate(true); }); }}
+        onRestroom={() => { clearBadge('restroom'); runPivot('Restroom', () => setNeedType('bathroom')); }}
+        onRefuel={() => { clearBadge('refuel'); runPivot('Refuel', () => setNeedType('food')); }}
+        onBreak={() => { clearBadge('break'); runPivot('Need a Break', () => setNeedType('quiet')); }}
+        onRain={() => { clearBadge('rain'); runPivot('Rain Pivot', () => setSwapFor(hero?.attraction ?? 'current ride')); }}
+        onReset={() => { clearBadge('reset'); runPivot('Reset Strategy', () => { setPivotSuggested(false); setShowRecalibrate(true); }); }}
       />
 
       <AudibleMenu
         open={audibleOpen}
         onClose={() => setAudibleOpen(false)}
-        onBreak={() => pivotWith('Need a Break', () => setNeedType('quiet'))}
-        onRefuel={() => pivotWith('Refuel', () => setNeedType('food'))}
-        onClosure={() => pivotWith('Rain Pivot', () => setSwapFor(hero?.attraction ?? 'current ride'))}
-        onReset={() => pivotWith('Reset Strategy', () => { setPivotSuggested(false); setShowRecalibrate(true); })}
+        onBreak={() => runPivot('Need a Break', () => setNeedType('quiet'))}
+        onRefuel={() => runPivot('Refuel', () => setNeedType('food'))}
+        onClosure={() => runPivot('Rain Pivot', () => setSwapFor(hero?.attraction ?? 'current ride'))}
+        onReset={() => runPivot('Reset Strategy', () => { setPivotSuggested(false); setShowRecalibrate(true); })}
       />
 
       <StrategicDashboard
