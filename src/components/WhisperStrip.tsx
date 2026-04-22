@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { ChevronUp } from 'lucide-react';
+import { toast } from 'sonner';
 import { useWhispers } from '@/hooks/useWhispers';
 
 interface WhisperStripProps {
@@ -23,7 +24,7 @@ const ROTATE_MS = 7000;
  * simulated proximity, and itinerary state.
  */
 const WhisperStrip = ({ bare = false, paused: externalPaused = false }: WhisperStripProps) => {
-  const { whispers, dismiss } = useWhispers();
+  const { whispers, dismiss, restore } = useWhispers();
   const reduceMotion = useReducedMotion();
   const [index, setIndex] = useState(0);
   const [expanded, setExpanded] = useState(false);
@@ -55,10 +56,18 @@ const WhisperStrip = ({ bare = false, paused: externalPaused = false }: WhisperS
     if (startY.current === null) return;
     const delta = e.changedTouches[0].clientY - startY.current;
     if (delta < -40) {
-      // Swipe up — dismiss permanently
+      // Swipe up — dismiss with a 4s undo so a stray gesture isn't fatal.
       if (current?.id) {
-        dismiss(current.id);
+        const dismissed = current;
+        dismiss(dismissed.id);
         setIndex(0);
+        toast('Whisper hushed.', {
+          description: dismissed.text.slice(0, 80),
+          duration: 4000,
+          action: restore
+            ? { label: 'Undo', onClick: () => restore(dismissed.id) }
+            : undefined,
+        });
       }
     } else if (delta > 40) {
       // Swipe down — expand history

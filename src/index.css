@@ -219,3 +219,25 @@ input[type="range"]::-moz-range-thumb {
     animation: none !important;
   }
 }
+
+/* ── Global keyboard focus ring ─────────────────────────────────────────
+ * Every interactive element inherits a Burnished Gold ring on
+ * `:focus-visible` (keyboard / AT only — never on mouse). Components can
+ * override with their own `focus-visible:` utilities. We intentionally
+ * skip plain `:focus` so pointer users don't see the outline.
+ */
+@layer base {
+  :focus { outline: none; }
+  :focus-visible {
+    outline: 2px solid hsl(var(--gold));
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  /* Buttons + links inside the dock and chips already round generously —
+   * lift the offset so the ring doesn't crop against rounded edges. */
+  button:focus-visible,
+  a:focus-visible,
+  [role="button"]:focus-visible {
+    outline-offset: 3px;
+  }
+}

@@ -15,8 +15,6 @@ interface BottomSheetProps {
   /** Optional subtitle/description under title */
   subtitle?: ReactNode;
   children: ReactNode;
-  /** zIndex override (default 9990) */
-  zIndex?: number;
 }
 
 const HEIGHTS: Record<SnapPoint, string> = {
@@ -42,7 +40,6 @@ const BottomSheet = ({
   title,
   subtitle,
   children,
-  zIndex,
 }: BottomSheetProps) => {
   // Lock body scroll while open
   useEffect(() => {
@@ -68,7 +65,7 @@ const BottomSheet = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0"
-          style={{ zIndex: zIndex ?? 'var(--z-sheet)' as unknown as number }}
+          style={{ zIndex: 'var(--z-sheet)' as unknown as number }}
         >
           {/* Vellum-blur backdrop */}
           <motion.div

@@ -88,6 +88,9 @@ export const useWhispers = ({ rotateMs = 60_000, maxHistory = 6 }: UseWhispersOp
   }, []);
 
   const [whispers, setWhispers] = useState<Whisper[]>(seed);
+  // Soft trash — last few dismissed whispers, kept briefly so the user
+  // can undo a stray swipe without losing the message forever.
+  const [trash, setTrash] = useState<Whisper[]>([]);
 
   useEffect(() => {
     const tick = () => {
@@ -122,8 +125,21 @@ export const useWhispers = ({ rotateMs = 60_000, maxHistory = 6 }: UseWhispersOp
   }, [rotateMs, maxHistory]);
 
   const dismiss = (id: string) => {
-    setWhispers((prev) => prev.filter((w) => w.id !== id));
+    setWhispers((prev) => {
+      const target = prev.find((w) => w.id === id);
+      if (target) setTrash((t) => [target, ...t].slice(0, 5));
+      return prev.filter((w) => w.id !== id);
+    });
   };
 
-  return { whispers, dismiss };
+  const restore = (id: string) => {
+    setTrash((t) => {
+      const target = t.find((w) => w.id === id);
+      if (!target) return t;
+      setWhispers((prev) => (prev.some((w) => w.id === id) ? prev : [target, ...prev].slice(0, maxHistory)));
+      return t.filter((w) => w.id !== id);
+    });
+  };
+
+  return { whispers, dismiss, restore };
 };

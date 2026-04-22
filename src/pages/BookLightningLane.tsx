@@ -100,7 +100,8 @@ const BookLightningLane = () => {
     };
     setHolds((prev) => [...prev, newHold]);
     setSessionAdds((n) => n + 1);
-    toast.success(`${a.name} secured for ${a.nextWindow}.`);
+    // Single confirmation surface — the sticky "Return to your day" ribbon
+    // already announces session adds. Avoid double-firing the same signal.
   };
 
   return (
