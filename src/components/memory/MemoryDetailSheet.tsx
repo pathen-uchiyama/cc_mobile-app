@@ -59,6 +59,24 @@ const MIN_CONFIRM_VELOCITY = 120; // must be moving, not a settle
 // or vertical — prevents diagonal scrolls from being misclassified.
 const AXIS_DOMINANCE = 1.4;
 
+// Shared spring used across the reveal so children feel like one organism.
+const REVEAL_SPRING = { type: 'spring' as const, damping: 26, stiffness: 240, mass: 0.8 };
+
+// Each section drifts up from the pill's baseline with a soft scale, giving
+// the impression that the panel "blooms" from the toggle rather than just
+// expanding. On exit we mirror the motion so it folds back toward the pill.
+const sectionVariants = {
+  hidden: { opacity: 0, y: -14, scale: 0.97, transition: REVEAL_SPRING },
+  shown: { opacity: 1, y: 0, scale: 1, transition: REVEAL_SPRING },
+};
+
+// Chips ride a slightly tighter spring so they pop in after their parent
+// section settles — readable hierarchy without feeling chaotic.
+const chipVariants = {
+  hidden: { opacity: 0, y: -8, scale: 0.9, transition: REVEAL_SPRING },
+  shown: { opacity: 1, y: 0, scale: 1, transition: REVEAL_SPRING },
+};
+
 /**
  * MemoryDetailSheet — gesture-driven playback view for a saved Vault entry.
  *
