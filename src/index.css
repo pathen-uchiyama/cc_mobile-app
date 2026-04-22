@@ -52,6 +52,19 @@
     --sidebar-accent-foreground: var(--obsidian);
     --sidebar-border: var(--slate-divider);
     --sidebar-ring: var(--gold);
+
+    /* ── Z-index scale — single source of truth for layered overlays ─────
+     * Replace magic numbers across HearthDock / BottomSheet / Dashboards.
+     *   base       — page chrome
+     *   dock       — Hearth dock
+     *   sheet      — Drawers and bottom sheets above the dock
+     *   overlay    — Backdrops + dialogs sitting above sheets
+     *   toast      — Always-on-top notifications
+     */
+    --z-dock: 40;
+    --z-sheet: 50;
+    --z-overlay: 60;
+    --z-toast: 70;
   }
 }
 
@@ -183,4 +196,26 @@ input[type="range"]::-moz-range-thumb {
 
 .animate-flash {
   animation: card-flash 0.4s ease-out;
+}
+
+/* ── Reduced-motion guard ────────────────────────────────────────────────
+ * Honour the user's OS preference. We disable our looping pulses and
+ * spring-driven motion globally, while leaving short purposeful
+ * transitions intact so navigation still feels alive.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-heartbeat,
+  .animate-shake,
+  .animate-flash {
+    animation: none !important;
+  }
 }

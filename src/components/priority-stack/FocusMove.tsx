@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Clock, MapPin, ArrowRight, Users, Check, Utensils, Sparkles, Zap } from 'lucide-react';
 import EngagementRibbon from './EngagementRibbon';
 
@@ -85,6 +85,7 @@ const FocusMove = ({
   llCapacity,
   onLLChipTap,
 }: FocusMoveProps) => {
+  const reduceMotion = useReducedMotion();
   // Boutique Shadow — heavy Deep Obsidian at 10% opacity per spec.
   // Must-Do cards add a Burnished Gold border ring.
   const ring = mustDo
@@ -102,7 +103,7 @@ const FocusMove = ({
       style={{ borderRadius: '16px', boxShadow }}
     >
       {/* Burnished Gold pulse — surfaces when the system detects a strategic pivot */}
-      {pivotSuggested && (
+      {pivotSuggested && !reduceMotion && (
         <motion.span
           aria-hidden
           className="pointer-events-none absolute inset-0"
@@ -228,8 +229,12 @@ const FocusMove = ({
           <span className="font-sans text-[9px] uppercase tracking-sovereign text-accent font-bold flex items-center gap-1.5">
             <motion.span
               className="inline-block w-2 h-2 bg-accent rounded-full"
-              animate={{ scale: [1, 1.4, 1], opacity: [1, 0.5, 1] }}
-              transition={{ repeat: Infinity, duration: 2 }}
+              {...(reduceMotion
+                ? {}
+                : {
+                    animate: { scale: [1, 1.4, 1], opacity: [1, 0.5, 1] },
+                    transition: { repeat: Infinity, duration: 2 },
+                  })}
             />
             Right Now
           </span>

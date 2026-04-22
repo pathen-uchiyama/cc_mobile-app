@@ -88,8 +88,12 @@ const StrategicDashboard = ({ open, onClose }: StrategicDashboardProps) => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-[9970] bg-foreground/30"
-            style={{ backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}
+            className="fixed inset-0 bg-foreground/30"
+            style={{
+              backdropFilter: 'blur(6px)',
+              WebkitBackdropFilter: 'blur(6px)',
+              zIndex: 'var(--z-overlay)' as unknown as number,
+            }}
           />
           <motion.aside
             role="dialog"
@@ -98,11 +102,12 @@ const StrategicDashboard = ({ open, onClose }: StrategicDashboardProps) => {
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 280 }}
-            className="fixed bottom-[108px] left-1/2 -translate-x-1/2 z-[9985] w-full max-w-[480px] bg-card flex flex-col"
+            className="fixed bottom-[108px] left-1/2 -translate-x-1/2 w-full max-w-[480px] bg-card flex flex-col"
             style={{
               maxHeight: 'calc(80vh - 108px)',
               borderRadius: '16px',
               boxShadow: '0 -24px 60px hsl(var(--obsidian) / 0.2)',
+              zIndex: 'calc(var(--z-overlay) + 1)' as unknown as number,
             }}
           >
             <div className="flex justify-center pt-3 pb-1 shrink-0">

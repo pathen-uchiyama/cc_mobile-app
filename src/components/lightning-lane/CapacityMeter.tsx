@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import { Zap, Clock } from 'lucide-react';
 import { formatCountdown, type CapacitySummary } from '@/data/lightningLanes';
 
@@ -64,21 +65,50 @@ const CapacityMeter = ({ summary, compact = false }: CapacityMeterProps) => {
             const filled = i < llHeldCount;
             const isBonus = i >= 3; // anything past base cap is a bonus pip
             return (
-              <span
-                key={i}
-                aria-label={filled ? 'held' : 'open'}
-                className="inline-block rounded-full"
-                style={{
-                  width: compact ? '7px' : '9px',
-                  height: compact ? '7px' : '9px',
-                  backgroundColor: filled ? 'hsl(var(--gold))' : 'transparent',
-                  border: `1.5px solid hsl(var(--gold) / ${isBonus ? 0.5 : 1})`,
-                }}
-              />
+              <Fragment key={i}>
+                {/* Visual divider between base 3 and bonus pips —
+                    celebrates the upgrade rather than fading it. */}
+                {i === 3 && (
+                  <span
+                    aria-hidden
+                    className="inline-block"
+                    style={{
+                      width: '1px',
+                      height: compact ? '10px' : '12px',
+                      backgroundColor: 'hsl(var(--gold) / 0.45)',
+                      margin: '0 2px',
+                    }}
+                  />
+                )}
+                <span
+                  aria-label={filled ? 'held' : isBonus ? 'bonus open' : 'open'}
+                  title={isBonus ? 'Bonus slot from your tier' : undefined}
+                  className="inline-block rounded-full"
+                  style={{
+                    width: compact ? '7px' : '9px',
+                    height: compact ? '7px' : '9px',
+                    backgroundColor: filled
+                      ? 'hsl(var(--gold))'
+                      : isBonus
+                        ? 'hsl(var(--gold) / 0.06)'
+                        : 'transparent',
+                    border: '1.5px solid hsl(var(--gold))',
+                  }}
+                />
+              </Fragment>
             );
           })}
           <span className="font-sans text-[10px] tabular-nums font-bold ml-1.5" style={{ color: 'hsl(var(--gold))' }}>
             {llHeldCount} / {llCapTotal}
+            {llCapTotal > 3 && (
+              <span
+                className="ml-1 font-sans text-[8px] font-semibold"
+                style={{ color: 'hsl(var(--gold) / 0.7)' }}
+                title="Includes bonus slots from Premier / Hopper"
+              >
+                +{llCapTotal - 3} bonus
+              </span>
+            )}
           </span>
         </div>
       </div>
