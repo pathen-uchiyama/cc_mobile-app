@@ -245,11 +245,11 @@ const InPark = () => {
                   className="font-sans text-[10px] uppercase font-bold text-tertiary-on-fixed-variant"
                   style={{ letterSpacing: '0.18em' }}
                 >
-                  Today
+                  {masthead.eyebrow}
                 </span>
               </div>
               <h1 className="text-masthead text-primary">
-                The Active<br /><span className="text-secondary">Journey.</span>
+                {masthead.line1}<br /><span className="text-secondary">{masthead.line2}</span>
               </h1>
             </header>
 
@@ -259,6 +259,37 @@ const InPark = () => {
                 {pivotLabel ? (
                   <motion.div key="shimmer">
                     <PivotShimmer audibleLabel={pivotLabel} />
+                  </motion.div>
+                ) : emptyVariant ? (
+                  <motion.div
+                    key={`empty-${emptyVariant}`}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.35 }}
+                  >
+                    <ParkEmptyState
+                      variant={emptyVariant}
+                      action={
+                        emptyVariant === 'no-plan'
+                          ? {
+                              label: 'Sketch your day',
+                              onPress: () => navigate('/edit-itinerary'),
+                            }
+                          : emptyVariant === 'day-complete'
+                            ? {
+                                label: 'Open your Joy Report',
+                                onPress: () => navigate('/joy-report'),
+                              }
+                            : undefined
+                      }
+                      secondary={
+                        emptyVariant === 'pivot-pending'
+                          ? { label: 'Call an audible', onPress: () => setAudibleOpen(true) }
+                          : emptyVariant === 'no-plan'
+                            ? { label: 'Or call an audible', onPress: () => setAudibleOpen(true) }
+                            : undefined
+                      }
+                    />
                   </motion.div>
                 ) : (
                   <motion.div
