@@ -128,6 +128,41 @@ const FocusMove = ({
       {/* ─── TOP HALF · TACTICAL ─── (24px no-bleed padding) — flex-1 so the
           card fills its slot and the Engagement Ribbon hugs the bottom. */}
       <div className="flex-1 p-6 pb-5" style={{ padding: '24px', paddingBottom: '20px' }}>
+        {/* On the Books — next dining/experience hold within the hour */}
+        {upcomingHold && (
+          <button
+            type="button"
+            onClick={onUpcomingHoldTap}
+            className="w-full flex items-center justify-between gap-2 mb-4 px-3 py-2 rounded-xl border-none cursor-pointer transition-opacity hover:opacity-85"
+            style={{
+              background: 'hsl(var(--gold) / 0.10)',
+              border: '1px solid hsl(var(--gold) / 0.25)',
+            }}
+            aria-label={`On the Books: ${upcomingHold.name} in ${upcomingHold.minutesAway} minutes`}
+          >
+            <div className="flex items-center gap-2 min-w-0">
+              {upcomingHold.kind === 'dining' ? (
+                <Utensils size={12} style={{ color: 'hsl(var(--gold))' }} />
+              ) : (
+                <Sparkles size={12} style={{ color: 'hsl(var(--gold))' }} />
+              )}
+              <span
+                className="font-sans text-[9px] uppercase tracking-sovereign font-bold shrink-0"
+                style={{ color: 'hsl(var(--gold))', letterSpacing: '0.14em' }}
+              >
+                On the Books
+              </span>
+              <span className="font-sans text-[11px] text-foreground truncate min-w-0">
+                {upcomingHold.name}
+              </span>
+            </div>
+            <span className="font-sans text-[10px] text-muted-foreground tabular-nums shrink-0">
+              {upcomingHold.minutesAway}m
+              {upcomingHold.walkMinutes !== undefined ? ` · ${upcomingHold.walkMinutes}m walk` : ''}
+            </span>
+          </button>
+        )}
+
         <div className="flex items-start justify-between mb-4 gap-2">
           <span className="font-sans text-[9px] uppercase tracking-sovereign text-accent font-bold flex items-center gap-1.5">
             <motion.span
