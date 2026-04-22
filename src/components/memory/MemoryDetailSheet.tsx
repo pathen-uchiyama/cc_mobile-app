@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
-import { Pencil, MapPin, Heart, Camera, Video, Mic, FileText, Calendar, Clock, ChevronUp, ChevronDown, X } from 'lucide-react';
+import { Pencil, MapPin, Heart, Camera, Video, Mic, FileText, Calendar, Clock, ChevronUp, ChevronDown, X, ArrowUp, ArrowLeft, ArrowDown } from 'lucide-react';
 import { formatMemoryTime, type Memory } from '@/contexts/MemoryContext';
 import TrimmedVideo from '@/components/memory/TrimmedVideo';
 
@@ -59,6 +59,20 @@ const MIN_CONFIRM_VELOCITY = 120; // must be moving, not a settle
 // or vertical — prevents diagonal scrolls from being misclassified.
 const AXIS_DOMINANCE = 1.4;
 
+// Once the user has successfully completed any swipe gesture on this sheet,
+// we stop showing the on-screen hints. Persisted so it's a true "first run"
+// affordance, not a per-open one.
+const HINTS_SEEN_KEY = 'memory-detail-hints-seen-v1';
+
+const readHintsSeen = () => {
+  if (typeof window === 'undefined') return false;
+  try {
+    return window.localStorage.getItem(HINTS_SEEN_KEY) === '1';
+  } catch {
+    return false;
+  }
+};
+
 /**
  * MemoryDetailSheet — gesture-driven playback view for a saved Vault entry.
  *
@@ -72,6 +86,19 @@ const AXIS_DOMINANCE = 1.4;
  */
 const MemoryDetailSheet = ({ open, onClose, memory, onEdit }: MemoryDetailSheetProps) => {
   const [detailsExpanded, setDetailsExpanded] = useState(false);
+  // Hints stay until the user successfully completes a real swipe gesture.
+  // Tap-only users (who use the pill / X / Close buttons) keep seeing them
+  // because the hints aren't in their way — they sit out near the edges.
+  const [hintsVisible, setHintsVisible] = useState<boolean>(() => !readHintsSeen());
+
+  const dismissHints = () => {
+    setHintsVisible(false);
+    try {
+      window.localStorage.setItem(HINTS_SEEN_KEY, '1');
+    } catch {
+      /* storage may be unavailable (private mode); UI just won't persist */
+    }
+  };
 
   // Lock body scroll while open + reset panel state on each open.
   useEffect(() => {
@@ -139,6 +166,7 @@ const MemoryDetailSheet = ({ open, onClose, memory, onEdit }: MemoryDetailSheetP
     if (horizontalDominant) {
       // Swipe left to dismiss — needs a firm, deliberate drag.
       if (passes(offset.x, velocity.x, DISMISS_DISTANCE, -1)) {
+        dismissHints();
         onClose();
       }
       return;
@@ -151,6 +179,7 @@ const MemoryDetailSheet = ({ open, onClose, memory, onEdit }: MemoryDetailSheetP
 
     // Vertical: up reveals (cheap), down collapses or dismisses (expensive).
     if (passes(offset.y, velocity.y, REVEAL_DISTANCE, -1)) {
+      dismissHints();
       setDetailsExpanded(true);
       return;
     }
@@ -158,11 +187,13 @@ const MemoryDetailSheet = ({ open, onClose, memory, onEdit }: MemoryDetailSheetP
     if (detailsExpanded) {
       // Collapse: medium threshold so accidental jitter doesn't hide details.
       if (passes(offset.y, velocity.y, COLLAPSE_DISTANCE, 1)) {
+        dismissHints();
         setDetailsExpanded(false);
       }
     } else {
       // Dismiss-by-swipe-down: hardest threshold to clear.
       if (passes(offset.y, velocity.y, DISMISS_DISTANCE, 1)) {
+        dismissHints();
         onClose();
       }
     }
@@ -187,6 +218,48 @@ const MemoryDetailSheet = ({ open, onClose, memory, onEdit }: MemoryDetailSheetP
             style={{ backdropFilter: 'blur(8px) contrast(1.1) brightness(0.9)', WebkitBackdropFilter: 'blur(8px) contrast(1.1) brightness(0.9)' }}
             onClick={onClose}
           />
+
+          {/* Gesture hints — floating, non-interactive overlay. Auto-fades after
+              the user completes their first successful swipe. The visible cue
+              swaps based on the current state so it's always pointing at the
+              next available action (reveal vs collapse). */}
+          <AnimatePresence>
+            {hintsVisible && (
+              <motion.div
+                key="gesture-hints"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1, transition: { delay: 0.45, duration: 0.35 } }}
+                exit={{ opacity: 0, transition: { duration: 0.4 } }}
+                className="pointer-events-none absolute inset-0 max-w-[480px] mx-auto"
+                style={{ zIndex: 1 }}
+                aria-hidden="true"
+              >
+                {/* Up/down hint — anchored to right edge, vertically centered */}
+                <motion.div
+                  className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col items-center gap-1.5 bg-foreground/85 text-background rounded-full px-2.5 py-3 shadow-boutique"
+                  animate={{ y: detailsExpanded ? [0, 8, 0] : [0, -8, 0] }}
+                  transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  {detailsExpanded ? <ArrowDown size={14} /> : <ArrowUp size={14} />}
+                  <span className="font-sans text-[8px] uppercase tracking-sovereign font-bold">
+                    {detailsExpanded ? 'Hide' : 'Details'}
+                  </span>
+                </motion.div>
+
+                {/* Swipe-left-to-close hint — anchored to left edge */}
+                <motion.div
+                  className="absolute left-3 top-1/2 -translate-y-1/2 flex flex-col items-center gap-1.5 bg-foreground/85 text-background rounded-full px-2.5 py-3 shadow-boutique"
+                  animate={{ x: [0, -8, 0] }}
+                  transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }}
+                >
+                  <ArrowLeft size={14} />
+                  <span className="font-sans text-[8px] uppercase tracking-sovereign font-bold">
+                    Close
+                  </span>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Sheet — drag-anywhere, routes gesture by dominant axis */}
           <motion.div
