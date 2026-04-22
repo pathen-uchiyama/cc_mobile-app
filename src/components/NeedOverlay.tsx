@@ -89,7 +89,19 @@ const NeedOverlay = ({ type, onClose, currentLocation, hasKids }: NeedOverlayPro
           {sorted.map((item) => (
             <div key={item.name} className="bg-card p-4 shadow-boutique rounded-xl">
               <div className="flex items-start justify-between gap-2 mb-2">
-                <h3 className="font-sans text-sm font-semibold text-foreground">{item.name}</h3>
+                <div className="flex items-center gap-2 flex-wrap min-w-0">
+                  <h3 className="font-sans text-sm font-semibold text-foreground">{item.name}</h3>
+                  <span
+                    className="inline-flex items-center gap-0.5 shrink-0 px-1.5 py-0.5 rounded-full"
+                    style={{ background: 'hsl(var(--gold) / 0.10)' }}
+                    aria-label={`${item.rating} out of 5 stars`}
+                  >
+                    <Star size={10} className="fill-current" style={{ color: 'hsl(var(--gold))' }} />
+                    <span className="font-sans text-[10px] font-bold" style={{ color: 'hsl(var(--gold))' }}>
+                      {item.rating.toFixed(1)}
+                    </span>
+                  </span>
+                </div>
                 <span
                   className="font-sans text-[9px] uppercase tracking-sovereign font-bold shrink-0 px-1.5 py-0.5 rounded-full"
                   style={{
@@ -116,6 +128,16 @@ const NeedOverlay = ({ type, onClose, currentLocation, hasKids }: NeedOverlayPro
                 </div>
                 <span className="font-sans text-[10px] text-muted-foreground italic">{item.note}</span>
               </div>
+              <a
+                href={item.yelpUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-flex items-center gap-1.5 font-sans text-[10px] uppercase tracking-sovereign font-bold transition-opacity hover:opacity-70"
+                style={{ color: 'hsl(var(--gold))', letterSpacing: '0.14em' }}
+              >
+                View on Yelp
+                <ExternalLink size={10} />
+              </a>
             </div>
           ))}
         </div>
