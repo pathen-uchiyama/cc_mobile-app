@@ -392,6 +392,14 @@ const InPark = () => {
         onClosure={() => runPivot('Rain Pivot', () => openSwap('rain', hero?.attraction ?? 'current ride'))}
         onReset={() => runPivot('Reset Strategy', () => { setPivotSuggested(false); setShowRecalibrate(true); })}
         onRestroom={() => runPivot('Restroom', () => setNeedType('bathroom'))}
+        attention={{
+          // Mirror the strategy-engine badges on the matching action row.
+          closure: !!pivotBadges.rain,
+          refuel: !!pivotBadges.refuel,
+          break: !!pivotBadges.break,
+          restroom: !!pivotBadges.restroom,
+          reset: pivotSuggested && !pivotLabel,
+        }}
       />
 
       <StrategicDashboard
