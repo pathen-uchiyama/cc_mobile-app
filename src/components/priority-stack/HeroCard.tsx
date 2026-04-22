@@ -67,7 +67,7 @@ const HeroCard = ({
       </div>
 
       {/* Attraction name — Playfair 24px */}
-      <h2 className="font-display text-[24px] leading-[1.15] text-foreground mb-2">
+      <h2 className="text-headline text-primary mb-2">
         {attraction}
       </h2>
 
