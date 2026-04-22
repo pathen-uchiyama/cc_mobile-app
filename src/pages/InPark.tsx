@@ -113,6 +113,7 @@ const InPark = () => {
   const [needType, setNeedType] = useState<'bathroom' | 'quiet' | 'food' | null>(null);
   const [showRecalibrate, setShowRecalibrate] = useState(false);
   const [swapFor, setSwapFor] = useState<string | null>(null);
+  const [swapReason, setSwapReason] = useState<'rain' | 'closure' | 'manual'>('manual');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerHandled, setDrawerHandled] = useState(false);
   const [findAndSeekOpen, setFindAndSeekOpen] = useState(false);
