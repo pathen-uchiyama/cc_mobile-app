@@ -483,9 +483,25 @@ const SelloutChip = ({ selloutMin }: { selloutMin: number }) => {
       ? 'hsl(var(--gold))'
       : 'hsl(var(--slate-plaid))';
 
-  const label = past
-    ? `Usually gone by ${formatClockTime(selloutMin)} · cutting it close`
-    : `Usually gone by ${formatClockTime(selloutMin)}`;
+  // Urgency tier in plain words — surfaced both visually (next to the time)
+  // and in the aria-label so screen-reader users and color-blind sighted
+  // users get the same signal as someone reading the magenta/gold/slate hue.
+  const tierLabel = past
+    ? 'cutting it close'
+    : urgent
+      ? 'going fast'
+      : soon
+        ? 'soon'
+        : 'plenty of time';
+
+  const clockTime = formatClockTime(selloutMin);
+  const visibleLabel = `Usually gone by ${clockTime}`;
+
+  // Aria-label is built to read naturally: time first, then urgency, then
+  // disclaimer. Avoids leaning on color as the sole conveyance.
+  const ariaLabel = past
+    ? `Sell-out estimate: ${clockTime} park-local time, ${tierLabel}. Estimate from comparable days, not a guaranteed cutoff.`
+    : `Sell-out estimate: ${clockTime} park-local time, ${tierLabel}, in ${minsUntil} minutes. Estimate from comparable days, not a guaranteed cutoff.`;
 
   const disclaimer = past
     ? `Based on comparable days, this lane is usually sold out by ${formatClockTime(selloutMin)} park-local time. Today's actual cutoff can vary — keep checking.`
@@ -498,13 +514,21 @@ const SelloutChip = ({ selloutMin }: { selloutMin: number }) => {
           <span
             tabIndex={0}
             role="button"
-            aria-label={`${label}. ${disclaimer}`}
+            aria-label={ariaLabel}
             className="font-sans text-[10px] flex items-center gap-1 tabular-nums cursor-help underline decoration-dotted underline-offset-2 outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-primary/40 rounded"
             style={{ color }}
-            title={`${label} — ${disclaimer}`}
+            title={`${visibleLabel} — ${tierLabel}. ${disclaimer}`}
           >
-            <Hourglass size={9} />
-            {label}
+            <Hourglass size={9} aria-hidden="true" />
+            <span>{visibleLabel}</span>
+            {/* Visible urgency token — redundant with color so the signal
+                survives color-blindness and grayscale rendering. */}
+            <span
+              className="font-semibold uppercase tracking-sovereign text-[8px] px-1 py-0.5 rounded"
+              style={{ backgroundColor: `${color.replace(')', ' / 0.12)')}` }}
+            >
+              {tierLabel}
+            </span>
           </span>
         </TooltipTrigger>
         <TooltipContent side="top" align="start" className="max-w-[240px] text-[11px] leading-snug">
