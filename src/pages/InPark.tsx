@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import BottomGlassNav from '@/components/BottomGlassNav';
-import SovereignAnchor from '@/components/priority-stack/SovereignAnchor';
 import HeroHorizonStack, { type PlanItem, type WalkingPrompt } from '@/components/priority-stack/HeroHorizonStack';
 import PivotShimmer from '@/components/priority-stack/PivotShimmer';
 import ParkEmptyState, { type ParkEmptyVariant } from '@/components/priority-stack/ParkEmptyState';
@@ -365,8 +364,7 @@ const InPark = () => {
         onDismiss={dismissDrawer}
       />
 
-      {/* Single bottom nav — 4 tabs. The pivot/audible actions all live one
-          tap deep, inside the floating Sovereign Key. */}
+      {/* Bottom nav — 4 tabs: Today, Must-Do, Pivot, Dashboard. */}
       <BottomGlassNav
         activeTab="today"
         mustDoProgress={{
@@ -377,14 +375,8 @@ const InPark = () => {
           if (tab === 'today') return;
           if (tab === 'mustdo') setMustDoOpen(true);
           if (tab === 'pivot') setAudibleOpen(true);
+          if (tab === 'dashboard') setDashboardOpen(true);
         }}
-      />
-
-      {/* Single floating FAB — opens the Audible menu (rain pivot, refuel,
-          break, reset). Replaces the 5-icon HearthDock entirely. */}
-      <SovereignAnchor
-        active={audibleOpen || dashboardOpen}
-        onTap={handleSovereignTap}
       />
 
       <AudibleMenu
