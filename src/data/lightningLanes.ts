@@ -187,6 +187,19 @@ export const formatCountdown = (mins: number): string => {
 };
 
 /**
+ * Format a "minutes since midnight" value as a wall-clock time, e.g.
+ * 555 → "9:15 AM", 690 → "11:30 AM", 900 → "3:00 PM".
+ */
+export const formatClockTime = (minutesSinceMidnight: number): string => {
+  const totalMin = Math.max(0, Math.min(24 * 60 - 1, Math.round(minutesSinceMidnight)));
+  const h24 = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  const period = h24 >= 12 ? 'PM' : 'AM';
+  const h12 = ((h24 + 11) % 12) + 1;
+  return `${h12}:${m.toString().padStart(2, '0')} ${period}`;
+};
+
+/**
  * Initial held-LL state used by /park and /book-ll. Mocked to mirror the three
  * standard LLs already shown in `RESERVATIONS` so the two surfaces stay
  * consistent. Booked at 9:00 AM means the 2-hour gap elapsed by 11:00 AM —

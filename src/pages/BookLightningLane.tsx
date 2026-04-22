@@ -9,6 +9,7 @@ import {
   DEFAULT_CAPACITY,
   summarizeCapacity,
   formatCountdown,
+  formatClockTime,
   isMustDo,
   isRidden,
   type LLAttraction,
