@@ -1,4 +1,4 @@
-import { MapPin, Clock, Utensils } from 'lucide-react';
+import { MapPin, Clock, Utensils, Star, ExternalLink } from 'lucide-react';
 import BottomSheet from './BottomSheet';
 
 interface NeedOverlayProps {
@@ -31,15 +31,17 @@ interface FoodItem {
   waitMinutes: number;
   service: FoodService;
   note: string;
+  rating: number;
+  yelpUrl: string;
 }
 
 const FOOD: FoodItem[] = [
-  { name: 'Skipper Canteen', land: 'Adventureland', walkMinutes: 3, waitMinutes: 10, service: 'sit-down', note: 'Sit-down, mobile order open' },
-  { name: 'Be Our Guest', land: 'Fantasyland', walkMinutes: 7, waitMinutes: 25, service: 'sit-down', note: 'Reservation-only, French menu' },
-  { name: 'Pecos Bill Tall Tale Inn', land: 'Frontierland', walkMinutes: 4, waitMinutes: 5, service: 'quick-service', note: 'Quick service, fixings bar' },
-  { name: 'Cosmic Ray\u2019s Starlight Cafe', land: 'Tomorrowland', walkMinutes: 6, waitMinutes: 6, service: 'quick-service', note: 'Mobile order, three bays' },
-  { name: 'Sleepy Hollow Refreshments', land: 'Liberty Square', walkMinutes: 6, waitMinutes: 3, service: 'snack', note: 'Fresh waffles, walk-up window' },
-  { name: 'Aloha Isle (Dole Whip)', land: 'Adventureland', walkMinutes: 2, waitMinutes: 8, service: 'snack', note: 'Iconic pineapple soft serve' },
+  { name: 'Skipper Canteen', land: 'Adventureland', walkMinutes: 3, waitMinutes: 10, service: 'sit-down', note: 'Sit-down, mobile order open', rating: 4.2, yelpUrl: 'https://www.yelp.com/search?find_desc=Jungle+Navigation+Co+Skipper+Canteen&find_loc=Walt+Disney+World' },
+  { name: 'Be Our Guest', land: 'Fantasyland', walkMinutes: 7, waitMinutes: 25, service: 'sit-down', note: 'Reservation-only, French menu', rating: 4.0, yelpUrl: 'https://www.yelp.com/search?find_desc=Be+Our+Guest+Restaurant&find_loc=Walt+Disney+World' },
+  { name: 'Pecos Bill Tall Tale Inn', land: 'Frontierland', walkMinutes: 4, waitMinutes: 5, service: 'quick-service', note: 'Quick service, fixings bar', rating: 3.8, yelpUrl: 'https://www.yelp.com/search?find_desc=Pecos+Bill+Tall+Tale+Inn&find_loc=Walt+Disney+World' },
+  { name: 'Cosmic Ray\u2019s Starlight Cafe', land: 'Tomorrowland', walkMinutes: 6, waitMinutes: 6, service: 'quick-service', note: 'Mobile order, three bays', rating: 3.9, yelpUrl: 'https://www.yelp.com/search?find_desc=Cosmic+Rays+Starlight+Cafe&find_loc=Walt+Disney+World' },
+  { name: 'Sleepy Hollow Refreshments', land: 'Liberty Square', walkMinutes: 6, waitMinutes: 3, service: 'snack', note: 'Fresh waffles, walk-up window', rating: 4.4, yelpUrl: 'https://www.yelp.com/search?find_desc=Sleepy+Hollow+Refreshments&find_loc=Walt+Disney+World' },
+  { name: 'Aloha Isle (Dole Whip)', land: 'Adventureland', walkMinutes: 2, waitMinutes: 8, service: 'snack', note: 'Iconic pineapple soft serve', rating: 4.6, yelpUrl: 'https://www.yelp.com/search?find_desc=Aloha+Isle&find_loc=Walt+Disney+World' },
 ];
 
 /**
@@ -87,7 +89,19 @@ const NeedOverlay = ({ type, onClose, currentLocation, hasKids }: NeedOverlayPro
           {sorted.map((item) => (
             <div key={item.name} className="bg-card p-4 shadow-boutique rounded-xl">
               <div className="flex items-start justify-between gap-2 mb-2">
-                <h3 className="font-sans text-sm font-semibold text-foreground">{item.name}</h3>
+                <div className="flex items-center gap-2 flex-wrap min-w-0">
+                  <h3 className="font-sans text-sm font-semibold text-foreground">{item.name}</h3>
+                  <span
+                    className="inline-flex items-center gap-0.5 shrink-0 px-1.5 py-0.5 rounded-full"
+                    style={{ background: 'hsl(var(--gold) / 0.10)' }}
+                    aria-label={`${item.rating} out of 5 stars`}
+                  >
+                    <Star size={10} className="fill-current" style={{ color: 'hsl(var(--gold))' }} />
+                    <span className="font-sans text-[10px] font-bold" style={{ color: 'hsl(var(--gold))' }}>
+                      {item.rating.toFixed(1)}
+                    </span>
+                  </span>
+                </div>
                 <span
                   className="font-sans text-[9px] uppercase tracking-sovereign font-bold shrink-0 px-1.5 py-0.5 rounded-full"
                   style={{
@@ -114,6 +128,16 @@ const NeedOverlay = ({ type, onClose, currentLocation, hasKids }: NeedOverlayPro
                 </div>
                 <span className="font-sans text-[10px] text-muted-foreground italic">{item.note}</span>
               </div>
+              <a
+                href={item.yelpUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-flex items-center gap-1.5 font-sans text-[10px] uppercase tracking-sovereign font-bold transition-opacity hover:opacity-70"
+                style={{ color: 'hsl(var(--gold))', letterSpacing: '0.14em' }}
+              >
+                View on Yelp
+                <ExternalLink size={10} />
+              </a>
             </div>
           ))}
         </div>
