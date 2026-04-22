@@ -536,8 +536,8 @@ const UrgencyFilter = ({ value, onChange }: { value: UrgencyValue; onChange: (v:
  * The `title` attribute is kept as a fallback for touch and assistive tech
  * environments where the Radix tooltip may not surface.
  */
-const SelloutChip = ({ selloutMin }: { selloutMin: number }) => {
-  const minsUntil = selloutMin - NOW_MINUTES;
+const SelloutChip = ({ selloutMin, nowMinutes }: { selloutMin: number; nowMinutes: number }) => {
+  const minsUntil = selloutMin - nowMinutes;
   const past = minsUntil <= 0;
   const urgent = !past && minsUntil <= 60;
   const soon = !past && !urgent && minsUntil <= 120;
