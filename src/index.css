@@ -129,6 +129,33 @@
     letter-spacing: 0.2em;
   }
 
+  /* ── Rain pivot "Why now" subtitle ──────────────────────────────────
+   * Locks the typography scale (9px uppercase eyebrow + 10px body) so
+   * every rain-pivot suggestion renders at the same hierarchy regardless
+   * of where it's used. Keep these classes in sync with the design
+   * tokens in tailwind.config.ts.
+   */
+  .rain-why-eyebrow {
+    font-family: 'Inter', sans-serif;
+    font-size: 9px;
+    line-height: 1;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: hsl(var(--primary) / 0.8);
+    white-space: nowrap;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .rain-why-body {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    line-height: 1.35;
+    color: hsl(var(--primary) / 0.9);
+    letter-spacing: -0.01em;
+  }
+
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
