@@ -32,7 +32,7 @@ const CapacityMeter = ({ summary, compact = false }: CapacityMeterProps) => {
       }}
     >
       {!compact && (
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-3" aria-live="polite">
           <span
             className="font-sans text-[9px] uppercase tracking-sovereign font-bold"
             style={{ color: 'hsl(var(--gold))', letterSpacing: '0.16em' }}
