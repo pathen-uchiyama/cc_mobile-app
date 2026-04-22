@@ -422,6 +422,17 @@ const InPark = () => {
         <FindAndSeekWidget />
       </BottomSheet>
 
+      <BottomSheet
+        open={mustDoOpen}
+        onClose={() => setMustDoOpen(false)}
+        snap="full"
+        eyebrow="The Crowd's Voice"
+        title="Must-Do Rides"
+        subtitle="Voted by guests in the park today."
+      >
+        <PriorityRides />
+      </BottomSheet>
+
       <RecordMemorySheet
         open={memoryOpen}
         onClose={() => setMemoryOpen(false)}
