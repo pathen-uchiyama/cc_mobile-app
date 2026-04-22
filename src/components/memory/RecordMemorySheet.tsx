@@ -24,6 +24,15 @@ const MODES: { id: CaptureMode | 'note'; label: string; icon: typeof Camera; hin
   { id: 'note', label: 'Note', icon: FileText, hint: 'A typed thought.' },
 ];
 
+/**
+ * Interview prompts — guided question sets bookending the day.
+ * Tapping one launches the existing InterviewSheet for that phase.
+ */
+const INTERVIEWS: { id: InterviewPhase; label: string; icon: typeof Camera; hint: string }[] = [
+  { id: 'pre', label: 'Morning interview', icon: Sunrise, hint: 'Three questions before the gates.' },
+  { id: 'post', label: 'Evening interview', icon: Moon, hint: 'Reflect while it\u2019s still warm.' },
+];
+
 const FEELINGS = ['Joyful', 'Awestruck', 'Cozy', 'Hilarious', 'Quiet', 'Proud'];
 
 const formatMs = (ms: number) => {
