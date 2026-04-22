@@ -175,12 +175,10 @@ const InPark = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Contextual Booking Drawer auto-surface (suppressed in quiet view).
-  useEffect(() => {
-    if (minimalist || drawerHandled) return;
-    const t = setTimeout(() => setDrawerOpen(true), 4000);
-    return () => clearTimeout(t);
-  }, [minimalist, drawerHandled]);
+  // The Contextual Booking Drawer no longer auto-surfaces. The whitespace
+  // reset means /park shows ONE thing — the active journey — until the
+  // guest taps the Sovereign Key for an audible. Drawer remains mounted
+  // for celebrate-on-confirm but only opens via explicit triggers.
 
   // ── Handlers ──────────────────────────────────────────────────────────
   const commitHero = () => {
@@ -209,19 +207,6 @@ const InPark = () => {
     setAudibleOpen(false);
     pivotWith(label, after);
   };
-
-  // Pause whisper rotation whenever something else is competing for attention.
-  const whisperPaused =
-    pivotSuggested ||
-    audibleOpen ||
-    dashboardOpen ||
-    drawerOpen ||
-    needType !== null ||
-    showRecalibrate ||
-    swapFor !== null ||
-    findAndSeekOpen ||
-    memoryOpen ||
-    preInterviewOpen;
 
   return (
     <div className="min-h-screen bg-background digital-plaid-bg max-w-[480px] mx-auto relative flex flex-col">
