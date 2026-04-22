@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import SwapSuggestionsSheet from './SwapSuggestionsSheet';
 import { CelebrationProvider } from '@/contexts/CelebrationContext';
 import { CompanionProvider } from '@/contexts/CompanionContext';
+import { JoyEventsProvider } from '@/contexts/JoyEventsContext';
 
 /**
  * Accessibility regression: when the active rain pivot toggles, the
@@ -21,7 +22,9 @@ import { CompanionProvider } from '@/contexts/CompanionContext';
 
 const Wrapper = ({ children }: { children: React.ReactNode }) => (
   <CompanionProvider>
-    <CelebrationProvider>{children}</CelebrationProvider>
+    <JoyEventsProvider>
+      <CelebrationProvider>{children}</CelebrationProvider>
+    </JoyEventsProvider>
   </CompanionProvider>
 );
 
