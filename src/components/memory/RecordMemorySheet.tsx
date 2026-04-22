@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, Video, Mic, FileText, Square, Check, Upload, X, Loader2, ShieldCheck, AlertCircle, Settings } from 'lucide-react';
+import { Camera, Video, Mic, FileText, Square, Check, Upload, X, Loader2, ShieldCheck, AlertCircle, Settings, Sunrise, Moon } from 'lucide-react';
 import BottomSheet from '@/components/BottomSheet';
 import { useMediaCapture, type CaptureMode } from '@/hooks/memory/useMediaCapture';
-import { useMemoryVault, type MemoryKind, type MemoryTag } from '@/contexts/MemoryContext';
+import { useMemoryVault, type MemoryKind, type MemoryTag, type InterviewPhase } from '@/contexts/MemoryContext';
 import { useCelebrate } from '@/contexts/CelebrationContext';
 import VideoTrimmer from '@/components/memory/VideoTrimmer';
+import InterviewSheet from '@/components/memory/InterviewSheet';
 
 interface RecordMemorySheetProps {
   open: boolean;
@@ -21,6 +22,15 @@ const MODES: { id: CaptureMode | 'note'; label: string; icon: typeof Camera; hin
   { id: 'video', label: 'Video', icon: Video, hint: 'Up to 10 seconds.' },
   { id: 'voice', label: 'Voice memo', icon: Mic, hint: 'Up to 1 minute.' },
   { id: 'note', label: 'Note', icon: FileText, hint: 'A typed thought.' },
+];
+
+/**
+ * Interview prompts — guided question sets bookending the day.
+ * Tapping one launches the existing InterviewSheet for that phase.
+ */
+const INTERVIEWS: { id: InterviewPhase; label: string; icon: typeof Camera; hint: string }[] = [
+  { id: 'pre', label: 'Morning interview', icon: Sunrise, hint: 'Three questions before the gates.' },
+  { id: 'post', label: 'Evening interview', icon: Moon, hint: 'Reflect while it\u2019s still warm.' },
 ];
 
 const FEELINGS = ['Joyful', 'Awestruck', 'Cozy', 'Hilarious', 'Quiet', 'Proud'];
@@ -44,6 +54,8 @@ const RecordMemorySheet = ({ open, onClose, contextHint }: RecordMemorySheetProp
   const [noteBody, setNoteBody] = useState('');
   const [selectedFeelings, setSelectedFeelings] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
+  /** Which interview phase is currently open, if any. */
+  const [interviewPhase, setInterviewPhase] = useState<InterviewPhase | null>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -184,6 +196,7 @@ const RecordMemorySheet = ({ open, onClose, contextHint }: RecordMemorySheetProp
     : 'A moment, preserved.';
 
   return (
+    <>
     <BottomSheet
       open={open}
       onClose={onClose}
@@ -231,6 +244,31 @@ const RecordMemorySheet = ({ open, onClose, contextHint }: RecordMemorySheetProp
                   </div>
                   <span className="font-display text-base text-foreground leading-tight">{m.label}</span>
                   <span className="font-sans text-[11px] text-muted-foreground leading-snug">{m.hint}</span>
+                </motion.button>
+              );
+            })}
+
+            {/* ── Guided interview prompts — bookend the day in the user's own words. */}
+            <div className="col-span-2 mt-1 flex items-center gap-2">
+              <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold">
+                Guided interviews
+              </span>
+              <div className="flex-1 h-px bg-border" />
+            </div>
+            {INTERVIEWS.map((i) => {
+              const Icon = i.icon;
+              return (
+                <motion.button
+                  key={i.id}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => setInterviewPhase(i.id)}
+                  className="bg-card rounded-2xl p-5 shadow-boutique flex flex-col items-start gap-2 border-none cursor-pointer text-left min-h-[120px]"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Icon size={18} className="text-primary" />
+                  </div>
+                  <span className="font-display text-base text-foreground leading-tight">{i.label}</span>
+                  <span className="font-sans text-[11px] text-muted-foreground leading-snug">{i.hint}</span>
                 </motion.button>
               );
             })}
@@ -515,6 +553,13 @@ const RecordMemorySheet = ({ open, onClose, contextHint }: RecordMemorySheetProp
         )}
       </AnimatePresence>
     </BottomSheet>
+    {/* Guided interview sheet — opens over Record Memory when chosen. */}
+    <InterviewSheet
+      open={interviewPhase !== null}
+      onClose={() => setInterviewPhase(null)}
+      phase={interviewPhase ?? 'pre'}
+    />
+    </>
   );
 };
 
