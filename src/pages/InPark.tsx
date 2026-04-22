@@ -382,6 +382,7 @@ const InPark = () => {
         onRefuel={() => runPivot('Refuel', () => setNeedType('food'))}
         onClosure={() => runPivot('Rain Pivot', () => openSwap('rain', hero?.attraction ?? 'current ride'))}
         onReset={() => runPivot('Reset Strategy', () => { setPivotSuggested(false); setShowRecalibrate(true); })}
+        onRestroom={() => runPivot('Restroom', () => setNeedType('bathroom'))}
       />
 
       <StrategicDashboard
