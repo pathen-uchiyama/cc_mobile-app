@@ -1,7 +1,7 @@
-import { useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Zap, MapPin, Clock, Check, Star, Lock, ArrowRight, Sparkles, Hourglass } from 'lucide-react';
+import { Zap, MapPin, Clock, Check, Star, Lock, ArrowRight, Sparkles, Hourglass, Heart, Bell } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
@@ -18,6 +18,9 @@ import {
   type MustDoState,
 } from '@/data/lightningLanes';
 import CapacityMeter from '@/components/lightning-lane/CapacityMeter';
+import WatchlistStrip from '@/components/lightning-lane/WatchlistStrip';
+import { useLLWatchlist } from '@/hooks/lightning-lane/useLLWatchlist';
+import { useCompanion } from '@/contexts/CompanionContext';
 import { useHaptics } from '@/hooks/useHaptics';
 import PageHeader from '@/components/layout/PageHeader';
 import EmptyState from '@/components/layout/EmptyState';
@@ -32,7 +35,20 @@ const MOCK_MUST_DOS: MustDoState[] = [
   { attraction: "Peter Pan\u2019s Flight", desired: 1, done: 0 },        // pinned top
 ];
 
-const NOW_MINUTES = 11 * 60 + 5; // mock 11:05 AM park-time
+/**
+ * Mock park-time anchor — 11:05 AM. The page now ticks `nowMinutes` forward
+ * every few seconds so the watchlist countdown progresses and "open" events
+ * can fire in a session. In production this would be replaced by the device
+ * clock (or a server-issued park-time header).
+ */
+const INITIAL_NOW_MINUTES = 11 * 60 + 5;
+/**
+ * How fast the mocked park clock advances. 1 wall-second = TICK_MIN_PER_SEC
+ * park-minutes. We accelerate it heavily for the prototype so a guest can see
+ * a "watch" mature into an "alert" without waiting hours; real usage would
+ * use a 1:1 ratio (or just `new Date()`).
+ */
+const TICK_MIN_PER_SEC = 0.5; // ~30 park-minutes per real minute
 
 /**
  * /book-ll — the manual Browse & Book surface.
@@ -48,7 +64,18 @@ const NOW_MINUTES = 11 * 60 + 5; // mock 11:05 AM park-time
 const BookLightningLane = () => {
   const navigate = useNavigate();
   const { fire } = useHaptics();
+  const { tier } = useCompanion();
   const [holds, setHolds] = useState<HeldLL[]>(INITIAL_HOLDS);
+  // Stateful park-time clock — drives countdowns, sell-out chips, and the
+  // watchlist alert engine. See INITIAL_NOW_MINUTES / TICK_MIN_PER_SEC for
+  // the prototype's accelerated tick.
+  const [nowMinutes, setNowMinutes] = useState<number>(INITIAL_NOW_MINUTES);
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setNowMinutes((n) => n + TICK_MIN_PER_SEC);
+    }, 1000);
+    return () => window.clearInterval(interval);
+  }, []);
   // Track holds added in this session so we can offer a "see it on your stack"
   // ribbon — keeps the user oriented after a booking instead of stranding them.
   const [sessionAdds, setSessionAdds] = useState(0);
@@ -58,8 +85,8 @@ const BookLightningLane = () => {
   const [urgency, setUrgency] = useState<'all' | '1h' | '2h' | 'later'>('all');
 
   const summary = useMemo(
-    () => summarizeCapacity(holds, NOW_MINUTES, DEFAULT_CAPACITY),
-    [holds],
+    () => summarizeCapacity(holds, nowMinutes, DEFAULT_CAPACITY),
+    [holds, nowMinutes],
   );
 
   const heldIds = useMemo(() => new Set(holds.map((h) => h.attractionId)), [holds]);
@@ -76,7 +103,7 @@ const BookLightningLane = () => {
     // is actually seeing.
     const filtered = ll.filter((a) => {
       if (urgency === 'all') return true;
-      const minsUntil = a.typicalSelloutMin - NOW_MINUTES;
+      const minsUntil = a.typicalSelloutMin - nowMinutes;
       if (urgency === '1h') return minsUntil <= 60;          // includes already-past
       if (urgency === '2h') return minsUntil > 60 && minsUntil <= 120;
       return minsUntil > 120;                                // 'later'
@@ -98,7 +125,7 @@ const BookLightningLane = () => {
         if (ba !== bb) return ba - bb;
         return a.typicalSelloutMin - b.typicalSelloutMin;
       });
-  }, [heldIds, urgency]);
+  }, [heldIds, urgency, nowMinutes]);
 
   // ILLs always sort by earliest sellout — these go fastest.
   const illOrdered = useMemo(
@@ -113,26 +140,62 @@ const BookLightningLane = () => {
     const isILL = a.type === 'ill';
     if (isILL && !summary.canBookILL) {
       toast.error('Daily Individual Lightning Lane cap reached.');
-      return;
+      return false;
     }
     if (!isILL && !summary.canBookLLNow) {
       toast.error(`Next standard slot unlocks in ${formatCountdown(summary.llUnlocksInMin)}.`);
-      return;
+      return false;
     }
     fire('bookingSuccess');
     const newHold: HeldLL = {
       id: `h-${Date.now()}`,
       attractionId: a.id,
       type: a.type,
-      bookedAtMin: NOW_MINUTES,
-      windowStartMin: NOW_MINUTES + 60,
+      bookedAtMin: nowMinutes,
+      windowStartMin: nowMinutes + 60,
       status: 'held',
     };
     setHolds((prev) => [...prev, newHold]);
     setSessionAdds((n) => n + 1);
     // Single confirmation surface — the sticky "Return to your day" ribbon
     // already announces session adds. Avoid double-firing the same signal.
+    return true;
   };
+
+  // Watchlist — pre-selected lanes the guest wants alerted/auto-booked when
+  // their slot opens. The hook decides per-tier whether to auto-book or just
+  // surface a tap-to-book alert. We mark the booked entry once handleBook
+  // succeeds so the strip can show the success state.
+  const watchlist = useLLWatchlist({
+    nowMinutes,
+    canBookNow: summary.canBookLLNow,
+    onAutoBook: (attraction) => handleBook(attraction),
+    onAlert: (attraction, mode) => {
+      if (mode === 'auto-book') {
+        toast.success(`Auto-booked ${attraction.name}`, {
+          description: 'Your held stack just grew. Tap to view it.',
+        });
+      } else {
+        toast(`${attraction.name} is open!`, {
+          description: 'Tap Book in your watchlist to grab it.',
+        });
+      }
+    },
+  });
+
+  // When the guest taps "Book" on an alerted entry, run the standard
+  // booking flow and reflect the outcome on the watchlist row.
+  const handleWatchlistBookNow = useCallback(
+    (attraction: LLAttraction) => {
+      const ok = handleBook(attraction);
+      if (ok) watchlist.markBooked(attraction.id);
+    },
+    // handleBook closes over nowMinutes/summary which are already reactive
+    // through the parent render. Keeping deps minimal to avoid stale closures
+    // on watchlist methods.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [watchlist.markBooked, nowMinutes, summary.canBookLLNow, summary.canBookILL],
+  );
 
   return (
     <div className="min-h-screen bg-background digital-plaid-bg max-w-[480px] mx-auto pb-32">
@@ -146,6 +209,15 @@ const BookLightningLane = () => {
       </PageHeader>
 
       <main className="px-5 pt-5 space-y-6">
+        <WatchlistStrip
+          entries={watchlist.entries}
+          nowMinutes={nowMinutes}
+          tier={tier}
+          onUnwatch={watchlist.unwatch}
+          onBookNow={handleWatchlistBookNow}
+          onRearm={watchlist.rearm}
+        />
+
         {/* Standard LL section */}
         <section>
           <div className="flex items-center justify-between mb-2 px-1">
@@ -189,6 +261,18 @@ const BookLightningLane = () => {
                   disabled={disabled}
                   lockReason={!summary.canBookLLNow && !held ? `Unlocks in ${formatCountdown(summary.llUnlocksInMin)}` : undefined}
                   onBook={() => handleBook(a)}
+                  nowMinutes={nowMinutes}
+                  isWatching={watchlist.isWatching(a.id)}
+                  onToggleWatch={() =>
+                    watchlist.isWatching(a.id)
+                      ? watchlist.unwatch(a.id)
+                      : watchlist.watch(a.id, nowMinutes + Math.max(1, summary.llUnlocksInMin))
+                  }
+                  watchOpensAtMin={
+                    !summary.canBookLLNow && !held
+                      ? nowMinutes + Math.max(1, summary.llUnlocksInMin)
+                      : undefined
+                  }
                 />
               );
             })}
@@ -228,6 +312,13 @@ const BookLightningLane = () => {
                   disabled={disabled}
                   lockReason={!summary.canBookILL && !held ? 'Daily cap reached' : undefined}
                   onBook={() => handleBook(a)}
+                  nowMinutes={nowMinutes}
+                  isWatching={watchlist.isWatching(a.id)}
+                  onToggleWatch={() =>
+                    watchlist.isWatching(a.id)
+                      ? watchlist.unwatch(a.id)
+                      : watchlist.watch(a.id, nowMinutes)
+                  }
                 />
               );
             })}
@@ -280,20 +371,53 @@ interface RideRowProps {
   disabled: boolean;
   lockReason?: string;
   onBook: () => void;
+  /** Park-time used by the Sellout chip and the Watch button countdown. */
+  nowMinutes: number;
+  /** Whether this lane is on the watchlist — drives the heart-toggle icon. */
+  isWatching: boolean;
+  onToggleWatch: () => void;
+  /**
+   * When provided and the lane is currently locked, replaces the "Locked"
+   * primary CTA with a Watch CTA. Returns the openAtMin to seed the watch.
+   * Optional so ILL rows (which can be locked by daily cap, where watching
+   * doesn't help) can omit it.
+   */
+  watchOpensAtMin?: number;
 }
 
-const RideRow = ({ attraction, held, ridden, mustDo, dim, disabled, lockReason, onBook }: RideRowProps) => {
+const RideRow = ({
+  attraction,
+  held,
+  ridden,
+  mustDo,
+  dim,
+  disabled,
+  lockReason,
+  onBook,
+  nowMinutes,
+  isWatching,
+  onToggleWatch,
+  watchOpensAtMin,
+}: RideRowProps) => {
   const isILL = attraction.type === 'ill';
+  // The Watch CTA replaces the "Locked" primary button only when the lane is
+  // genuinely watchable (i.e. the user isn't already holding it and the page
+  // owner passed a future open-time). Held lanes never show Watch.
+  const showWatchCTA = !!watchOpensAtMin && disabled && !held;
   return (
     <li
       className="rounded-2xl p-4 bg-card transition-opacity"
       style={{
-        border: mustDo ? '1.5px solid hsl(var(--gold) / 0.6)' : '1px solid hsl(var(--obsidian) / 0.05)',
+        border: isWatching
+          ? '1.5px solid hsl(var(--gold) / 0.45)'
+          : mustDo
+            ? '1.5px solid hsl(var(--gold) / 0.6)'
+            : '1px solid hsl(var(--obsidian) / 0.05)',
         boxShadow: mustDo ? '0 4px 14px hsl(var(--gold) / 0.10)' : '0 4px 12px hsl(var(--obsidian) / 0.03)',
         opacity: dim ? 0.55 : 1,
       }}
     >
-      <div className="flex items-start justify-between gap-3 mb-1.5">
+      <div className="flex items-start justify-between gap-2 mb-1.5">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
             {mustDo && (
@@ -327,9 +451,26 @@ const RideRow = ({ attraction, held, ridden, mustDo, dim, disabled, lockReason, 
             <span className="font-sans text-[10px] text-muted-foreground flex items-center gap-1 tabular-nums">
               <Clock size={9} /> {attraction.standbyMin}m standby
             </span>
-            <SelloutChip selloutMin={attraction.typicalSelloutMin} />
+            <SelloutChip selloutMin={attraction.typicalSelloutMin} nowMinutes={nowMinutes} />
           </div>
         </div>
+        {/* Heart toggle — pre-select this lane to be alerted (or auto-booked,
+            depending on tier) the moment its booking window opens. Always
+            visible, including for held lanes (so the guest can re-watch
+            after a hold expires) and ridden lanes (low cost, future-proof). */}
+        <button
+          type="button"
+          onClick={onToggleWatch}
+          aria-pressed={isWatching}
+          aria-label={isWatching ? `Stop watching ${attraction.name}` : `Watch ${attraction.name} for opening`}
+          title={isWatching ? 'Watching — tap to remove' : 'Pre-select to alert at open'}
+          className="shrink-0 rounded-full p-2 bg-transparent border-none cursor-pointer flex items-center justify-center min-h-[36px] min-w-[36px] outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-primary/40"
+          style={{
+            color: isWatching ? 'hsl(var(--gold))' : 'hsl(var(--slate-plaid))',
+          }}
+        >
+          <Heart size={16} fill={isWatching ? 'currentColor' : 'none'} />
+        </button>
       </div>
 
       <p className="font-sans italic text-[11px] text-foreground/65 leading-snug mb-3">
@@ -345,21 +486,38 @@ const RideRow = ({ attraction, held, ridden, mustDo, dim, disabled, lockReason, 
             {attraction.nextWindow}
           </span>
         </div>
-        <motion.button
-          whileTap={disabled ? undefined : { scale: 0.97 }}
-          onClick={onBook}
-          disabled={disabled}
-          aria-label={held ? 'Already held' : `Book ${attraction.name}`}
-          title={lockReason}
-          className="rounded-xl px-4 py-2.5 border-none font-sans text-[12px] font-semibold flex items-center gap-1.5 min-h-[40px]"
-          style={{
-            backgroundColor: held ? 'hsl(var(--accent) / 0.15)' : disabled ? 'hsl(var(--obsidian) / 0.06)' : 'hsl(var(--primary))',
-            color: held ? 'hsl(var(--accent))' : disabled ? 'hsl(var(--slate-plaid))' : 'hsl(var(--primary-foreground))',
-            cursor: disabled ? 'not-allowed' : 'pointer',
-          }}
-        >
-          {held ? (<><Check size={12} /> Held</>) : disabled ? (<><Lock size={12} /> Locked</>) : 'Book'}
-        </motion.button>
+        {showWatchCTA ? (
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            onClick={onToggleWatch}
+            aria-pressed={isWatching}
+            aria-label={isWatching ? `Stop watching ${attraction.name}` : `Watch ${attraction.name}`}
+            className="rounded-xl px-4 py-2.5 border cursor-pointer font-sans text-[12px] font-semibold flex items-center gap-1.5 min-h-[40px]"
+            style={{
+              backgroundColor: isWatching ? 'hsl(var(--gold) / 0.18)' : 'transparent',
+              color: 'hsl(var(--gold))',
+              borderColor: 'hsl(var(--gold) / 0.55)',
+            }}
+          >
+            {isWatching ? (<><Check size={12} /> Watching</>) : (<><Bell size={12} /> Watch</>)}
+          </motion.button>
+        ) : (
+          <motion.button
+            whileTap={disabled ? undefined : { scale: 0.97 }}
+            onClick={onBook}
+            disabled={disabled}
+            aria-label={held ? 'Already held' : `Book ${attraction.name}`}
+            title={lockReason}
+            className="rounded-xl px-4 py-2.5 border-none font-sans text-[12px] font-semibold flex items-center gap-1.5 min-h-[40px]"
+            style={{
+              backgroundColor: held ? 'hsl(var(--accent) / 0.15)' : disabled ? 'hsl(var(--obsidian) / 0.06)' : 'hsl(var(--primary))',
+              color: held ? 'hsl(var(--accent))' : disabled ? 'hsl(var(--slate-plaid))' : 'hsl(var(--primary-foreground))',
+              cursor: disabled ? 'not-allowed' : 'pointer',
+            }}
+          >
+            {held ? (<><Check size={12} /> Held</>) : disabled ? (<><Lock size={12} /> Locked</>) : 'Book'}
+          </motion.button>
+        )}
       </div>
       {lockReason && !held && (
         <p className="font-sans text-[9px] mt-1.5 tabular-nums text-right" style={{ color: 'hsl(var(--slate-plaid))' }}>
@@ -508,8 +666,8 @@ const UrgencyFilter = ({ value, onChange }: { value: UrgencyValue; onChange: (v:
  * The `title` attribute is kept as a fallback for touch and assistive tech
  * environments where the Radix tooltip may not surface.
  */
-const SelloutChip = ({ selloutMin }: { selloutMin: number }) => {
-  const minsUntil = selloutMin - NOW_MINUTES;
+const SelloutChip = ({ selloutMin, nowMinutes }: { selloutMin: number; nowMinutes: number }) => {
+  const minsUntil = selloutMin - nowMinutes;
   const past = minsUntil <= 0;
   const urgent = !past && minsUntil <= 60;
   const soon = !past && !urgent && minsUntil <= 120;
