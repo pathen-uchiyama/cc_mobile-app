@@ -49,6 +49,13 @@ interface HeroHorizonStackProps {
     walkMinutes?: number;
   };
   onUpcomingHoldTap?: () => void;
+  llCapacity?: {
+    canBookNow: boolean;
+    unlocksInMin: number;
+    held: number;
+    cap: number;
+  };
+  onLLChipTap?: () => void;
 }
 
 /**
@@ -73,6 +80,8 @@ const HeroHorizonStack = ({
   pivotHeadline,
   upcomingHold,
   onUpcomingHoldTap,
+  llCapacity,
+  onLLChipTap,
 }: HeroHorizonStackProps) => {
   const hero = items.find((i) => i.rank === 'now') ?? items[0];
   if (!hero) return null;
@@ -127,6 +136,8 @@ const HeroHorizonStack = ({
                 mustDo={hero.mustDo}
                 upcomingHold={upcomingHold}
                 onUpcomingHoldTap={onUpcomingHoldTap}
+                llCapacity={llCapacity}
+                onLLChipTap={onLLChipTap}
               />
             </motion.div>
           </AnimatePresence>

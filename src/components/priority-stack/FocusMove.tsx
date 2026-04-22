@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Clock, MapPin, ArrowRight, Users, Check, Utensils, Sparkles } from 'lucide-react';
+import { Clock, MapPin, ArrowRight, Users, Check, Utensils, Sparkles, Zap } from 'lucide-react';
 import EngagementRibbon from './EngagementRibbon';
 
 interface FocusMoveProps {
@@ -37,6 +37,17 @@ interface FocusMoveProps {
     walkMinutes?: number;
   };
   onUpcomingHoldTap?: () => void;
+  /**
+   * Lightning Lane booking status — drives the always-visible countdown chip.
+   * `unlocksInMin === 0` means the next standard slot is open right now.
+   */
+  llCapacity?: {
+    canBookNow: boolean;
+    unlocksInMin: number;
+    held: number;
+    cap: number;
+  };
+  onLLChipTap?: () => void;
 }
 
 /**
@@ -71,6 +82,8 @@ const FocusMove = ({
   onComplete,
   upcomingHold,
   onUpcomingHoldTap,
+  llCapacity,
+  onLLChipTap,
 }: FocusMoveProps) => {
   // Boutique Shadow — heavy Deep Obsidian at 10% opacity per spec.
   // Must-Do cards add a Burnished Gold border ring.
@@ -159,6 +172,54 @@ const FocusMove = ({
             <span className="font-sans text-[10px] text-muted-foreground tabular-nums shrink-0">
               {upcomingHold.minutesAway}m
               {upcomingHold.walkMinutes !== undefined ? ` · ${upcomingHold.walkMinutes}m walk` : ''}
+            </span>
+          </button>
+        )}
+
+        {/* Next-LL countdown chip — passive when locked, accent when open */}
+        {llCapacity && (
+          <button
+            type="button"
+            onClick={onLLChipTap}
+            className="w-full flex items-center justify-between gap-2 mb-4 px-3 py-2 rounded-xl border-none cursor-pointer transition-opacity hover:opacity-85"
+            style={{
+              background: llCapacity.canBookNow
+                ? 'hsl(var(--accent) / 0.12)'
+                : 'hsl(var(--obsidian) / 0.04)',
+              border: llCapacity.canBookNow
+                ? '1px solid hsl(var(--accent) / 0.35)'
+                : '1px solid hsl(var(--obsidian) / 0.08)',
+            }}
+            aria-label={
+              llCapacity.canBookNow
+                ? 'Lightning Lane slot open — tap to browse'
+                : `Next Lightning Lane unlocks in ${llCapacity.unlocksInMin} minutes`
+            }
+          >
+            <div className="flex items-center gap-2 min-w-0">
+              <Zap
+                size={12}
+                style={{
+                  color: llCapacity.canBookNow ? 'hsl(var(--accent))' : 'hsl(var(--slate-plaid))',
+                }}
+              />
+              <span
+                className="font-sans text-[9px] uppercase tracking-sovereign font-bold shrink-0"
+                style={{
+                  color: llCapacity.canBookNow ? 'hsl(var(--accent))' : 'hsl(var(--slate-plaid))',
+                  letterSpacing: '0.14em',
+                }}
+              >
+                {llCapacity.canBookNow ? 'Slot Open' : 'Next LL'}
+              </span>
+              <span className="font-sans text-[11px] text-foreground truncate min-w-0">
+                {llCapacity.canBookNow
+                  ? 'Browse & book a Lightning Lane'
+                  : `Unlocks in ${llCapacity.unlocksInMin}m`}
+              </span>
+            </div>
+            <span className="font-sans text-[10px] tabular-nums shrink-0" style={{ color: 'hsl(var(--slate-plaid))' }}>
+              {llCapacity.held} / {llCapacity.cap} held
             </span>
           </button>
         )}
