@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
-import { Pencil, MapPin, Heart, Camera, Video, Mic, FileText, Calendar, Clock, ChevronUp, ChevronDown, X } from 'lucide-react';
+import { Pencil, MapPin, Heart, Camera, Video, Mic, FileText, Calendar, Clock, ChevronUp, ChevronDown, X, ArrowUp, ArrowLeft, ArrowDown } from 'lucide-react';
 import { formatMemoryTime, type Memory } from '@/contexts/MemoryContext';
 import TrimmedVideo from '@/components/memory/TrimmedVideo';
 
