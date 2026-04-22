@@ -283,7 +283,11 @@ const InPark = () => {
                       items={plan}
                       walkingPrompts={WALKING_PROMPTS}
                       onCommitHero={commitHero}
-                      onCaptureMemory={(id) => celebrate('Memory tucked into the Vault.', `Captured · ${id}`)}
+                      onCaptureMemory={(id) => {
+                        const item = plan.find((p) => p.id === id);
+                        setMemoryContext(item ? { attraction: item.attraction, location: item.location } : undefined);
+                        setMemoryOpen(true);
+                      }}
                       onFindAndSeek={() => setFindAndSeekOpen(true)}
                       onPromote={promoteToHero}
                       onCompleteHero={completeHero}
@@ -370,6 +374,18 @@ const InPark = () => {
       >
         <FindAndSeekWidget />
       </BottomSheet>
+
+      <RecordMemorySheet
+        open={memoryOpen}
+        onClose={() => setMemoryOpen(false)}
+        contextHint={memoryContext}
+      />
+
+      <InterviewSheet
+        open={preInterviewOpen}
+        onClose={() => setPreInterviewOpen(false)}
+        phase="pre"
+      />
     </div>
   );
 };
