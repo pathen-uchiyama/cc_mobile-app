@@ -86,11 +86,11 @@ const PageHeader = ({
               </p>
             </div>
           )}
-          <h1 className="font-display font-black text-[34px] leading-[1.05] tracking-tight text-primary">
+          <h1 className="text-masthead text-primary">
             {title}
           </h1>
           {subtitle && (
-            <p className="font-sans text-[13px] text-on-surface-variant mt-3 leading-relaxed">
+            <p className="font-sans text-[14px] font-medium text-on-surface-variant mt-3 leading-relaxed max-w-[34ch]">
               {subtitle}
             </p>
           )}

@@ -255,8 +255,8 @@ const InPark = () => {
               <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold">
                 Today
               </span>
-              <h1 className="font-display text-[28px] leading-tight text-foreground mt-1">
-                The Active Journey
+              <h1 className="text-masthead text-primary mt-2">
+                The Active<br /><span className="text-secondary">Journey.</span>
               </h1>
             </header>
 

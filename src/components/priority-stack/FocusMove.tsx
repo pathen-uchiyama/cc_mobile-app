@@ -189,8 +189,7 @@ const FocusMove = ({
         </div>
 
         <h2
-          className="font-display text-[28px] leading-[1.05] text-foreground mb-2"
-          style={{ fontFamily: '"Publico Headline", "Playfair Display", serif' }}
+          className="text-headline text-primary mb-2"
         >
           {attraction}
         </h2>
