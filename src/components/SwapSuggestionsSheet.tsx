@@ -14,6 +14,8 @@ interface SwapOption {
   wait: string;
   reason: string;
   kind: SwapKind;
+  /** Weather-pivot-specific rationale, shown only when reason='rain'. */
+  rainWhy?: string;
 }
 
 const DEFAULT_OPTIONS: SwapOption[] = [
