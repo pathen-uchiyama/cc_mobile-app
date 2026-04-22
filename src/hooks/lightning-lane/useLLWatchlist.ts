@@ -172,7 +172,7 @@ export const useLLWatchlist = ({
         // Auto-book failed (capacity gone, etc). Drop into the alerted state
         // so the guest can retry. Treat this exactly like an explorer alert.
         mutated = true;
-        onAlert(attraction, 'tap-to-book');
+        onAlert(attraction, 'auto-book-failed');
         return { ...e, status: 'alerted' as const };
       }
 
