@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import SwapSuggestionsSheet from './SwapSuggestionsSheet';
 import { CelebrationProvider } from '@/contexts/CelebrationContext';
+import { CompanionProvider } from '@/contexts/CompanionContext';
 
 /**
  * Accessibility regression: when the active rain pivot toggles, the
@@ -18,11 +19,17 @@ import { CelebrationProvider } from '@/contexts/CelebrationContext';
  *      (the "removed" announcement) and the button labels stay stable.
  */
 
+const Wrapper = ({ children }: { children: React.ReactNode }) => (
+  <CompanionProvider>
+    <CelebrationProvider>{children}</CelebrationProvider>
+  </CompanionProvider>
+);
+
 const renderSheet = (reason: 'rain' | 'manual') =>
   render(
-    <CelebrationProvider>
+    <Wrapper>
       <SwapSuggestionsSheet open onClose={() => {}} reason={reason} />
-    </CelebrationProvider>
+    </Wrapper>
   );
 
 const getLiveRegion = () => {
@@ -56,9 +63,9 @@ describe('SwapSuggestionsSheet — rain rationale announcement', () => {
 
     // 2) Flip to 'rain' — rationale appears, live region announces ONCE.
     rerender(
-      <CelebrationProvider>
+      <Wrapper>
         <SwapSuggestionsSheet open onClose={() => {}} reason="rain" />
-      </CelebrationProvider>
+      </Wrapper>
     );
 
     const rainButtons = getOptionButtons();
@@ -89,9 +96,9 @@ describe('SwapSuggestionsSheet — rain rationale announcement', () => {
     // 3) Flip back to 'manual' — exactly one further update describing
     //    that the rationales were removed; option labels stay stable.
     rerender(
-      <CelebrationProvider>
+      <Wrapper>
         <SwapSuggestionsSheet open onClose={() => {}} reason="manual" />
-      </CelebrationProvider>
+      </Wrapper>
     );
 
     const finalButtons = getOptionButtons();
