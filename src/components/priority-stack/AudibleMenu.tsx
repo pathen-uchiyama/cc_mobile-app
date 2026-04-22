@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Coffee, Utensils, CloudRain, RefreshCw, Bath } from 'lucide-react';
+import { Coffee, Utensils, CloudRain, RefreshCw, Bath, ChevronRight } from 'lucide-react';
 
 interface AudibleMenuProps {
   open: boolean;
@@ -11,37 +11,21 @@ interface AudibleMenuProps {
   onRestroom?: () => void;
 }
 
-/**
- * Fan menu items. Order matters — they radiate counter-clockwise from the
- * Pivot tab in the bottom nav (rightmost tab). First item sits closest to
- * straight-up, last item closest to horizontal-left.
- */
 const items = [
-  { id: 'restroom', label: 'Restroom',    icon: Bath },
-  { id: 'refuel',   label: 'Meals',       icon: Utensils },
-  { id: 'break',    label: 'Break',       icon: Coffee },
-  { id: 'closure',  label: 'Rain',        icon: CloudRain },
-  { id: 'reset',    label: 'Reset',       icon: RefreshCw },
+  { id: 'restroom', label: 'Restroom',     hint: 'Nearest quiet stall',          icon: Bath },
+  { id: 'refuel',   label: 'Meals',        hint: 'Snack or sit-down nearby',     icon: Utensils },
+  { id: 'break',    label: 'Need a Break', hint: 'Find shade and a calm spot',   icon: Coffee },
+  { id: 'closure',  label: 'Rain Pivot',   hint: 'Indoor swap suggestions',      icon: CloudRain },
+  { id: 'reset',    label: 'Reset Strategy', hint: 'Re-rank the day from scratch', icon: RefreshCw },
 ] as const;
 
-/** Radius of the fan in pixels — distance from the Pivot tab anchor. */
-const FAN_RADIUS = 110;
-/** Angular sweep of the fan in degrees, opening up-and-to-the-left from the Pivot tab. */
-const FAN_START_DEG = 180; // straight left
-const FAN_END_DEG = 270;   // straight up
-
 /**
- * Audible Menu — opened from the Sovereign Anchor.
+ * Pivot menu — opened from the Pivot tab.
  *
- * 4 secondary actions in a 2x2 grid.
- * Buttons are Burnished Gold OUTLINES (secondary action language).
- */
-/**
- * Audible Menu — radial "fan" opened from the Pivot tab.
- *
- * Items pop out one-by-one along an arc that sweeps from straight-left
- * to straight-up above the Pivot tab (rightmost tab in the bottom nav).
- * Tapping the parchment scrim closes the fan.
+ * Vertical, anchored card above the bottom nav. Replaces the earlier radial
+ * fan because the chips overlapped at smaller viewports and tap targets
+ * sometimes fell behind the nav. List rows give comfortable 56px hit areas
+ * and clear hierarchy.
  */
 const AudibleMenu = ({
   open,
@@ -60,9 +44,6 @@ const AudibleMenu = ({
     restroom: onRestroom,
   };
 
-  // Distribute items evenly across the arc.
-  const step = (FAN_END_DEG - FAN_START_DEG) / Math.max(1, items.length - 1);
-
   return (
     <AnimatePresence>
       {open && (
@@ -73,7 +54,7 @@ const AudibleMenu = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-[9970]"
+            className="fixed inset-0 z-[9995]"
             style={{
               background: 'hsl(var(--parchment) / 0.78)',
               backdropFilter: 'blur(6px) saturate(120%)',
@@ -81,73 +62,94 @@ const AudibleMenu = ({
             }}
           />
 
-          {/* Fan anchor — positioned over the Pivot tab.
-              Bottom nav is fixed bottom-4, max-w-[448px], 3 evenly-spaced tabs.
-              The Pivot tab center sits at ~5/6 of the nav width.
-              We render an absolutely-positioned anchor and lay items around it. */}
-          <div
-            className="fixed inset-x-0 bottom-0 z-[9985] pointer-events-none mx-auto max-w-[448px] px-4"
-            style={{ height: '0px' }}
+          {/* Anchored card — sits above the bottom nav (nav z=9998). */}
+          <motion.aside
+            role="dialog"
+            aria-label="Pivot the day"
+            initial={{ opacity: 0, y: 24, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 24, scale: 0.97 }}
+            transition={{ type: 'spring', damping: 24, stiffness: 280 }}
+            className="fixed bottom-[100px] left-1/2 -translate-x-1/2 w-[calc(100%-32px)] max-w-[400px] bg-card rounded-2xl flex flex-col z-[9999]"
+            style={{
+              maxHeight: '70vh',
+              boxShadow:
+                '0 24px 60px hsl(var(--obsidian) / 0.22), 0 0 0 1px hsl(var(--gold) / 0.2)',
+            }}
           >
-            <div
-              className="absolute pointer-events-none"
-              style={{
-                // Pivot tab center: nav padded px-4 + tabs in a flex row, the
-                // 3rd of 3 tab centers is at ~5/6 of the inner width.
-                left: '83.3%',
-                bottom: '88px',
-                width: 0,
-                height: 0,
-              }}
-            >
-              {items.map((it, i) => {
-                const Icon = it.icon;
-                const angleDeg = FAN_START_DEG + step * i;
-                const angleRad = (angleDeg * Math.PI) / 180;
-                const x = Math.cos(angleRad) * FAN_RADIUS;
-                const y = Math.sin(angleRad) * FAN_RADIUS;
+            <header className="px-5 pt-5 pb-3 shrink-0">
+              <p
+                className="font-sans text-[8px] uppercase tracking-sovereign font-bold mb-1"
+                style={{ color: 'hsl(var(--gold))' }}
+              >
+                The Sovereign's Choice
+              </p>
+              <h3 className="font-display text-[18px] text-foreground leading-tight">
+                Pivot the strategy with a single tap.
+              </h3>
+            </header>
 
+            <ul className="list-none p-3 m-0 space-y-1 overflow-y-auto">
+              {items.map((it) => {
+                const Icon = it.icon;
                 return (
-                  <motion.button
-                    key={it.id}
-                    initial={{ opacity: 0, x: 0, y: 0, scale: 0.4 }}
-                    animate={{ opacity: 1, x, y, scale: 1 }}
-                    exit={{ opacity: 0, x: 0, y: 0, scale: 0.4 }}
-                    transition={{
-                      type: 'spring',
-                      damping: 18,
-                      stiffness: 240,
-                      delay: i * 0.04,
-                    }}
-                    whileTap={{ scale: 0.92 }}
-                    onClick={() => {
-                      onClose();
-                      handlers[it.id]?.();
-                    }}
-                    aria-label={it.label}
-                    className="absolute pointer-events-auto flex flex-col items-center justify-center gap-1 rounded-full bg-card border-none cursor-pointer"
-                    style={{
-                      width: '64px',
-                      height: '64px',
-                      // y is positive-down in screen space; framer-motion x/y
-                      // are added to the element's natural position. We anchor
-                      // the button so its center sits at (x, y) relative to anchor.
-                      marginLeft: '-32px',
-                      marginTop: '-32px',
-                      boxShadow:
-                        '0 12px 28px hsl(var(--obsidian) / 0.18), 0 0 0 1.5px hsl(var(--gold))',
-                      color: 'hsl(var(--gold))',
-                    }}
-                  >
-                    <Icon size={20} />
-                    <span className="font-sans text-[8px] uppercase font-bold tracking-widest">
-                      {it.label}
-                    </span>
-                  </motion.button>
+                  <li key={it.id}>
+                    <motion.button
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        onClose();
+                        handlers[it.id]?.();
+                      }}
+                      aria-label={it.label}
+                      className="w-full flex items-center gap-3 px-3 py-3 rounded-xl bg-transparent border-none cursor-pointer text-left transition-colors hover:bg-accent/5"
+                      style={{ minHeight: '56px' }}
+                    >
+                      <span
+                        className="shrink-0 flex items-center justify-center rounded-full"
+                        style={{
+                          width: '36px',
+                          height: '36px',
+                          background: 'hsl(var(--gold) / 0.12)',
+                          color: 'hsl(var(--gold))',
+                          boxShadow: '0 0 0 1px hsl(var(--gold) / 0.35)',
+                        }}
+                      >
+                        <Icon size={18} />
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-display text-[14px] leading-tight text-foreground">
+                          {it.label}
+                        </p>
+                        <p
+                          className="font-sans text-[10px] mt-0.5"
+                          style={{ color: 'hsl(var(--slate-plaid))' }}
+                        >
+                          {it.hint}
+                        </p>
+                      </div>
+                      <ChevronRight
+                        size={16}
+                        className="shrink-0"
+                        style={{ color: 'hsl(var(--gold))' }}
+                      />
+                    </motion.button>
+                  </li>
                 );
               })}
-            </div>
-          </div>
+            </ul>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="shrink-0 m-3 mt-1 rounded-xl py-2.5 bg-transparent border cursor-pointer font-sans text-[10px] uppercase tracking-sovereign font-bold"
+              style={{
+                borderColor: 'hsl(var(--obsidian) / 0.1)',
+                color: 'hsl(var(--slate-plaid))',
+              }}
+            >
+              Close
+            </button>
+          </motion.aside>
         </>
       )}
     </AnimatePresence>
