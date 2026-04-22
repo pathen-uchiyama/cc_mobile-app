@@ -141,6 +141,7 @@ const HearthDock = ({
 
 const PivotButton = ({ action }: { action: PivotAction }) => {
   const Icon = action.icon;
+  const reduce = useReducedMotion();
   return (
     <motion.button
       whileTap={{ scale: 0.9 }}
@@ -161,7 +162,7 @@ const PivotButton = ({ action }: { action: PivotAction }) => {
             background: 'hsl(var(--gold))',
             boxShadow: '0 0 0 2px hsl(var(--obsidian)), 0 0 8px hsl(var(--gold) / 0.7)',
           }}
-          {...(useReducedMotion()
+          {...(reduce
             ? {}
             : {
                 animate: { opacity: [1, 0.45, 1], scale: [1, 1.18, 1] },
