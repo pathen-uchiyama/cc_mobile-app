@@ -1,8 +1,29 @@
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
+const ENTERED_KEY = 'cc.entered';
+
 const Welcome = () => {
   const navigate = useNavigate();
+
+  // Returning users skip Welcome — once they've crossed the threshold,
+  // we land them straight on /home so the app feels owned, not introduced.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (window.localStorage.getItem(ENTERED_KEY) === '1') {
+      navigate('/home', { replace: true });
+    }
+  }, [navigate]);
+
+  const handleEnter = () => {
+    try {
+      window.localStorage.setItem(ENTERED_KEY, '1');
+    } catch {
+      // Private mode / storage disabled — non-blocking.
+    }
+    navigate('/home');
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-8 max-w-[480px] mx-auto">
@@ -28,7 +49,7 @@ const Welcome = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5, duration: 0.5 }}
         whileTap={{ scale: 0.98 }}
-        onClick={() => navigate('/home')}
+        onClick={handleEnter}
         className="w-full bg-primary text-primary-foreground font-sans text-sm tracking-wide py-4 min-h-[48px] shadow-boutique cursor-pointer border-none"
       >
         Enter
