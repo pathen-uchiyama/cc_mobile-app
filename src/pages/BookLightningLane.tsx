@@ -1,7 +1,7 @@
-import { useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Zap, MapPin, Clock, Check, Star, Lock, ArrowRight, Sparkles, Hourglass } from 'lucide-react';
+import { Zap, MapPin, Clock, Check, Star, Lock, ArrowRight, Sparkles, Hourglass, Heart, Bell } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
@@ -18,6 +18,9 @@ import {
   type MustDoState,
 } from '@/data/lightningLanes';
 import CapacityMeter from '@/components/lightning-lane/CapacityMeter';
+import WatchlistStrip from '@/components/lightning-lane/WatchlistStrip';
+import { useLLWatchlist } from '@/hooks/lightning-lane/useLLWatchlist';
+import { useCompanion } from '@/contexts/CompanionContext';
 import { useHaptics } from '@/hooks/useHaptics';
 import PageHeader from '@/components/layout/PageHeader';
 import EmptyState from '@/components/layout/EmptyState';
