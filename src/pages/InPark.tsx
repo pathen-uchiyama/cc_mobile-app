@@ -21,6 +21,7 @@ import DevPanel from '@/components/DevPanel';
 import WhisperStrip from '@/components/WhisperStrip';
 import { useCompanion } from '@/contexts/CompanionContext';
 import { useCelebrate, WHISPERS } from '@/contexts/CelebrationContext';
+import { RESERVATIONS, nextHospitalityReservation, minutesUntil } from '@/data/reservations';
 
 const PLAN: PlanItem[] = [
   {
@@ -126,6 +127,20 @@ const InPark = () => {
 
   const useQuietView = minimalist || tier === 'sovereign';
   const hero = plan.find((p) => p.rank === 'now') ?? plan[0];
+
+  // "On the Books" — surface the next dining/experience hold within 60 min.
+  // Mock current park-time of 10:45 AM (645 min). In production this would be
+  // `Date.now()` projected to park-local minutes-since-midnight.
+  const NOW_MINUTES = 10 * 60 + 45;
+  const nextHold = nextHospitalityReservation(RESERVATIONS, NOW_MINUTES, 60);
+  const upcomingHold = nextHold && (nextHold.kind === 'dining' || nextHold.kind === 'experience')
+    ? {
+        kind: nextHold.kind,
+        name: nextHold.name,
+        minutesAway: Math.max(0, minutesUntil(nextHold.startsAt, NOW_MINUTES)),
+        walkMinutes: nextHold.walkMinutes,
+      }
+    : undefined;
 
   // Type A = manager tier with LL tracking on. They get the Strategic Dashboard.
   const isTypeA = tier === 'manager' && llTrackerVisible;
@@ -346,6 +361,8 @@ const InPark = () => {
                       onCompleteHero={completeHero}
                       pivotSuggested={pivotSuggested && !pivotLabel}
                       pivotHeadline="A New Path is Available"
+                      upcomingHold={upcomingHold}
+                      onUpcomingHoldTap={() => setDashboardOpen(true)}
                     />
                   </motion.div>
                 )}
