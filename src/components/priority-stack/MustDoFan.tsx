@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, Check } from 'lucide-react';
+import { Check, ChevronRight, Star } from 'lucide-react';
 import type { MustDo } from '@/hooks/park/usePlanStack';
 
 interface MustDoFanProps {
@@ -11,27 +11,36 @@ interface MustDoFanProps {
 }
 
 /**
- * Radius of the fan in pixels — distance from the Must-Do tab anchor.
- * Slightly larger than the Pivot fan because the Must-Do tab sits at center
- * and we have more horizontal headroom.
+ * Recommendation order:
+ *  1. Incomplete first (sorted by remaining rides desc → biggest gap first).
+ *  2. Then completed, dimmed, non-interactive.
+ *
+ * The top row is highlighted as "Recommended next" so the guest sees a clear
+ * pick rather than a roulette of equally-weighted chips.
  */
-const FAN_RADIUS = 130;
-/** Sweep above the tab — wide arc since the tab is centered. */
-const FAN_START_DEG = 200; // upper-left
-const FAN_END_DEG = 340;   // upper-right
+const rankMustDos = (mustDos: MustDo[]): MustDo[] => {
+  const score = (m: MustDo) => {
+    const remaining = Math.max(0, m.desired - m.done);
+    if (remaining === 0) return -1; // sink completed
+    // Bigger remaining → higher priority. Tie-breaker: more desired overall.
+    return remaining * 100 + m.desired;
+  };
+  return [...mustDos].sort((a, b) => score(b) - score(a));
+};
 
 /**
- * Must-Do Fan — radial menu opened from the Must-Do tab.
+ * Must-Do priority sheet — opened from the Must-Do tab.
  *
- * Each chip is one Must-Do attraction with a tiny "n/m" progress badge.
- * Tap a chip → it's pulled into the active journey as the new "Now" card.
- * Completed Must-Dos render dim and disabled.
+ * Replaces the radial circle with a ranked, scrollable list. Each row shows
+ * a rank pip, the attraction name, and progress (n/m). Tapping a row pulls
+ * that attraction in as the new "Now" card on the active journey.
+ *
+ * Anchored bottom-sheet style above the nav so chips never overlap and the
+ * tap targets stay generous.
  */
 const MustDoFan = ({ open, onClose, mustDos, onPromote }: MustDoFanProps) => {
-  const items = mustDos.slice(0, 6); // cap the arc
-  const step = items.length > 1
-    ? (FAN_END_DEG - FAN_START_DEG) / (items.length - 1)
-    : 0;
+  const ranked = rankMustDos(mustDos);
+  const recommended = ranked.find((m) => m.done < m.desired);
 
   return (
     <AnimatePresence>
@@ -43,7 +52,7 @@ const MustDoFan = ({ open, onClose, mustDos, onPromote }: MustDoFanProps) => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-[9970]"
+            className="fixed inset-0 z-[9995]"
             style={{
               background: 'hsl(var(--parchment) / 0.78)',
               backdropFilter: 'blur(6px) saturate(120%)',
@@ -51,128 +60,148 @@ const MustDoFan = ({ open, onClose, mustDos, onPromote }: MustDoFanProps) => {
             }}
           />
 
-          {/* Fan anchor positioned over the Must-Do tab (2nd of 3, ~50% width) */}
-          <div
-            className="fixed inset-x-0 bottom-0 z-[9985] pointer-events-none mx-auto max-w-[448px] px-4"
-            style={{ height: '0px' }}
+          {/* Anchored card — sits above the bottom nav (nav z=9998). */}
+          <motion.aside
+            role="dialog"
+            aria-label="Must-Do priority list"
+            initial={{ opacity: 0, y: 24, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 24, scale: 0.97 }}
+            transition={{ type: 'spring', damping: 24, stiffness: 280 }}
+            className="fixed bottom-[100px] left-1/2 -translate-x-1/2 w-[calc(100%-32px)] max-w-[400px] bg-card rounded-2xl flex flex-col z-[9999]"
+            style={{
+              maxHeight: '70vh',
+              boxShadow:
+                '0 24px 60px hsl(var(--obsidian) / 0.22), 0 0 0 1px hsl(var(--gold) / 0.2)',
+            }}
           >
-            <div
-              className="absolute pointer-events-none"
-              style={{
-                left: '50%',
-                bottom: '88px',
-                width: 0,
-                height: 0,
-              }}
-            >
-              {/* Eyebrow label floating above the fan */}
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 8 }}
-                transition={{ delay: 0.05 }}
-                className="absolute pointer-events-none"
-                style={{
-                  left: 0,
-                  bottom: FAN_RADIUS + 60,
-                  transform: 'translateX(-50%)',
-                  whiteSpace: 'nowrap',
-                }}
+            <header className="px-5 pt-5 pb-3 shrink-0">
+              <p
+                className="font-sans text-[8px] uppercase tracking-sovereign font-bold mb-1"
+                style={{ color: 'hsl(var(--gold))' }}
               >
-                <p
-                  className="font-sans text-[8px] uppercase tracking-sovereign font-bold"
-                  style={{ color: 'hsl(var(--gold))' }}
-                >
-                  Pull into Active Journey
-                </p>
-              </motion.div>
+                Must-Do · Recommended Order
+              </p>
+              <h3 className="font-display text-[18px] text-foreground leading-tight">
+                Pull the next ride into your journey.
+              </h3>
+            </header>
 
-              {items.map((m, i) => {
-                const isComplete = m.done >= m.desired;
-                const angleDeg = items.length === 1
-                  ? 270 // straight up if just one
-                  : FAN_START_DEG + step * i;
-                const angleRad = (angleDeg * Math.PI) / 180;
-                const x = Math.cos(angleRad) * FAN_RADIUS;
-                const y = Math.sin(angleRad) * FAN_RADIUS;
+            <ol className="list-none p-3 m-0 space-y-1.5 overflow-y-auto">
+              {ranked.map((m, i) => {
+                const remaining = Math.max(0, m.desired - m.done);
+                const isComplete = remaining === 0;
+                const isRecommended = recommended?.id === m.id;
 
                 return (
-                  <motion.button
-                    key={m.id}
-                    initial={{ opacity: 0, x: 0, y: 0, scale: 0.4 }}
-                    animate={{ opacity: 1, x, y, scale: 1 }}
-                    exit={{ opacity: 0, x: 0, y: 0, scale: 0.4 }}
-                    transition={{
-                      type: 'spring',
-                      damping: 18,
-                      stiffness: 240,
-                      delay: i * 0.04,
-                    }}
-                    whileTap={isComplete ? undefined : { scale: 0.92 }}
-                    onClick={() => {
-                      if (isComplete) return;
-                      onClose();
-                      onPromote(m.id, m.attraction);
-                    }}
-                    disabled={isComplete}
-                    aria-label={`${m.attraction}${isComplete ? ' — complete' : ' — pull into active journey'}`}
-                    className="absolute pointer-events-auto flex flex-col items-center justify-center gap-1 rounded-full bg-card border-none cursor-pointer"
-                    style={{
-                      width: '76px',
-                      height: '76px',
-                      marginLeft: '-38px',
-                      marginTop: '-38px',
-                      padding: '4px',
-                      boxShadow: isComplete
-                        ? '0 6px 16px hsl(var(--obsidian) / 0.08), 0 0 0 1px hsl(var(--slate-plaid) / 0.25)'
-                        : '0 12px 28px hsl(var(--obsidian) / 0.18), 0 0 0 1.5px hsl(var(--gold))',
-                      color: isComplete
-                        ? 'hsl(var(--slate-plaid))'
-                        : 'hsl(var(--gold))',
-                      opacity: isComplete ? 0.6 : 1,
-                    }}
-                  >
-                    {isComplete ? <Check size={16} /> : <Star size={16} />}
-                    <span
-                      className="font-sans text-[8.5px] font-bold leading-tight text-center px-0.5"
+                  <li key={m.id}>
+                    <motion.button
+                      whileTap={isComplete ? undefined : { scale: 0.98 }}
+                      onClick={() => {
+                        if (isComplete) return;
+                        onClose();
+                        onPromote(m.id, m.attraction);
+                      }}
+                      disabled={isComplete}
+                      aria-label={`${m.attraction} — ${
+                        isComplete
+                          ? 'all rides complete'
+                          : `${remaining} ride${remaining === 1 ? '' : 's'} remaining, pull into active journey`
+                      }`}
+                      className="w-full flex items-center gap-3 px-3 py-3 rounded-xl bg-transparent border-none cursor-pointer text-left transition-colors hover:bg-accent/5 disabled:cursor-not-allowed"
                       style={{
-                        color: isComplete
-                          ? 'hsl(var(--slate-plaid))'
-                          : 'hsl(var(--obsidian))',
-                        // Allow up to 2 lines for longer attraction names
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
+                        minHeight: '56px',
+                        opacity: isComplete ? 0.5 : 1,
+                        background: isRecommended
+                          ? 'hsl(var(--gold) / 0.10)'
+                          : 'transparent',
+                        boxShadow: isRecommended
+                          ? '0 0 0 1px hsl(var(--gold) / 0.45)'
+                          : 'none',
                       }}
                     >
-                      {m.attraction}
-                    </span>
-
-                    {/* Progress pip — tiny n/m badge */}
-                    {m.desired > 1 && (
+                      {/* Rank pip */}
                       <span
-                        aria-hidden
-                        className="absolute -top-1 -right-1 flex items-center justify-center rounded-full font-sans font-bold tabular-nums"
+                        className="shrink-0 flex items-center justify-center rounded-full font-display text-[14px] tabular-nums font-bold"
                         style={{
-                          minWidth: '18px',
-                          height: '14px',
-                          padding: '0 4px',
-                          fontSize: '8.5px',
-                          lineHeight: 1,
-                          background: 'hsl(var(--card))',
-                          color: 'hsl(var(--obsidian))',
-                          border: '1px solid hsl(var(--gold))',
+                          width: '28px',
+                          height: '28px',
+                          background: isComplete
+                            ? 'hsl(var(--slate-plaid) / 0.15)'
+                            : isRecommended
+                              ? 'hsl(var(--gold))'
+                              : 'hsl(var(--gold) / 0.15)',
+                          color: isComplete
+                            ? 'hsl(var(--slate-plaid))'
+                            : isRecommended
+                              ? 'hsl(var(--card))'
+                              : 'hsl(var(--gold))',
                         }}
                       >
-                        {m.done}/{m.desired}
+                        {isComplete ? <Check size={14} /> : i + 1}
                       </span>
-                    )}
-                  </motion.button>
+
+                      {/* Title + meta */}
+                      <div className="flex-1 min-w-0">
+                        <p
+                          className="font-display text-[14px] leading-tight text-foreground truncate"
+                          style={{
+                            textDecoration: isComplete ? 'line-through' : 'none',
+                          }}
+                        >
+                          {m.attraction}
+                        </p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          {isRecommended && (
+                            <span
+                              className="font-sans text-[8px] uppercase tracking-sovereign font-bold"
+                              style={{ color: 'hsl(var(--gold))' }}
+                            >
+                              Recommended next
+                            </span>
+                          )}
+                          <span
+                            className="font-sans text-[10px] tabular-nums"
+                            style={{ color: 'hsl(var(--slate-plaid))' }}
+                          >
+                            {m.done}/{m.desired} ride{m.desired === 1 ? '' : 's'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Affordance */}
+                      {!isComplete ? (
+                        <ChevronRight
+                          size={16}
+                          className="shrink-0"
+                          style={{ color: 'hsl(var(--gold))' }}
+                        />
+                      ) : (
+                        <Star
+                          size={14}
+                          className="shrink-0"
+                          style={{ color: 'hsl(var(--slate-plaid))' }}
+                          fill="currentColor"
+                        />
+                      )}
+                    </motion.button>
+                  </li>
                 );
               })}
-            </div>
-          </div>
+            </ol>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="shrink-0 m-3 mt-1 rounded-xl py-2.5 bg-transparent border cursor-pointer font-sans text-[10px] uppercase tracking-sovereign font-bold"
+              style={{
+                borderColor: 'hsl(var(--obsidian) / 0.1)',
+                color: 'hsl(var(--slate-plaid))',
+              }}
+            >
+              Close
+            </button>
+          </motion.aside>
         </>
       )}
     </AnimatePresence>
