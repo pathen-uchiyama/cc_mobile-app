@@ -84,6 +84,19 @@ const MemoryDetailSheet = ({ open, onClose, memory, onEdit }: MemoryDetailSheetP
     };
   }, [open, memory?.id]);
 
+  // Keyboard fallback: Escape dismisses the sheet for users who can't swipe.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
+
   if (!memory) return null;
 
   const Icon = KIND_ICON[memory.kind];
