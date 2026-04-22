@@ -209,8 +209,11 @@
     filter: sepia(0.3);
   }
 
+  /* Editorial eyebrow / label utility — every uppercase label inherits
+   * 0.2em tracking AND bold weight, matching the reference masthead. */
   .tracking-sovereign {
     letter-spacing: 0.2em;
+    font-weight: 700;
   }
 
   /* ── Rain pivot "Why now" subtitle ──────────────────────────────────
