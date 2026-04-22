@@ -139,12 +139,8 @@ const InPark = () => {
   const [preInterviewOpen, setPreInterviewOpen] = useState(false);
   const { preCompleted } = useMemoryVault();
 
-  // Surface the pre-park interview once, on first arrival.
-  useEffect(() => {
-    if (preCompleted || useQuietView) return;
-    const t = setTimeout(() => setPreInterviewOpen(true), 1200);
-    return () => clearTimeout(t);
-  }, [preCompleted, useQuietView]);
+  // The pre-park interview is no longer auto-surfaced. It now opens only when
+  // the guest taps "Record Memory" for the first time (and hasn't completed it).
 
   // ── Derived data ──────────────────────────────────────────────────────
   const nextHold = nextHospitalityReservation(RESERVATIONS, NOW_MINUTES, 60);
@@ -304,7 +300,13 @@ const InPark = () => {
                       onCaptureMemory={(id) => {
                         const item = plan.find((p) => p.id === id);
                         setMemoryContext(item ? { attraction: item.attraction, location: item.location } : undefined);
-                        setMemoryOpen(true);
+                        // First tap on Record Memory surfaces the pre-park interview
+                        // (once). Subsequent taps go straight to the recorder.
+                        if (!preCompleted) {
+                          setPreInterviewOpen(true);
+                        } else {
+                          setMemoryOpen(true);
+                        }
                       }}
                       onFindAndSeek={() => setFindAndSeekOpen(true)}
                       onPromote={promoteToHero}
