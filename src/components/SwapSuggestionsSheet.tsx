@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, MapPin, Sparkles, CloudRain, Home, Coffee, Zap, Theater, AlertTriangle, ChevronRight } from 'lucide-react';
 import BottomSheet from './BottomSheet';
@@ -91,6 +91,30 @@ const SwapSuggestionsSheet = ({ open, onClose, skipped, reason }: SwapSuggestion
   }, [open]);
   const headerKey = `${safeReason}-${openCountRef.current}`;
 
+  // ── Rain rationale live-region plumbing ──────────────────────────────
+  // The button's aria-label stays STABLE (option-only) so screen readers
+  // never re-announce the ride/wait/area when only the rain rationale
+  // changes. The rationale itself is announced exactly once per change
+  // through a single polite live region, and is associated to each
+  // button via aria-describedby so AT users still hear it on focus.
+  const [liveRainWhy, setLiveRainWhy] = useState('');
+  const lastRainSigRef = useRef<string>('');
+  useEffect(() => {
+    if (!open || !isRain) {
+      lastRainSigRef.current = '';
+      setLiveRainWhy('');
+      return;
+    }
+    // Signature = ordered rain rationales. Only announce when it actually
+    // changes — never on focus, never on re-renders.
+    const sig = options.map((o) => `${o.id}:${o.rainWhy ?? ''}`).join('|');
+    if (sig === lastRainSigRef.current) return;
+    lastRainSigRef.current = sig;
+    // Announce a compact summary of what changed, not every option.
+    const focused = options.find((o) => !!o.rainWhy);
+    setLiveRainWhy(focused?.rainWhy ? `Updated rationale: ${focused.rainWhy}` : '');
+  }, [open, isRain, options]);
+
   const pick = (opt: SwapOption) => {
     onClose();
     const tip = WHISPERS.swap[Math.floor(Math.random() * WHISPERS.swap.length)];
@@ -171,15 +195,13 @@ const SwapSuggestionsSheet = ({ open, onClose, skipped, reason }: SwapSuggestion
           const badge = KIND_BADGE[opt.kind];
           const BadgeIcon = badge.Icon;
           const showRainWhy = isRain && !!opt.rainWhy;
-          // The button owns the SINGLE accessible name for this option.
-          // When a rain-specific rationale exists, fold it into the button's
-          // aria-label so screen readers announce the option + rationale as
-          // one utterance. The visual rationale block below is marked
-          // aria-hidden so it can never produce a second announcement when
-          // the active rain pivot changes.
-          const ariaLabel = showRainWhy
-            ? `${opt.ride}, ${opt.wait} wait, in ${opt.area}. Why now: ${opt.rainWhy}`
-            : `${opt.ride}, ${opt.wait} wait, in ${opt.area}. ${opt.reason}`;
+          // STABLE accessible name — never includes the rain rationale, so
+          // changes to opt.rainWhy cannot trigger re-announcement of the
+          // option text. The rationale is exposed via aria-describedby
+          // (per-option) and announced through the shared polite live
+          // region above when (and only when) it actually changes.
+          const ariaLabel = `${opt.ride}, ${opt.wait} wait, in ${opt.area}`;
+          const whyId = showRainWhy ? `swap-why-${opt.id}` : undefined;
           return (
           <motion.button
             key={opt.id}
@@ -189,6 +211,7 @@ const SwapSuggestionsSheet = ({ open, onClose, skipped, reason }: SwapSuggestion
             whileTap={{ scale: 0.98 }}
             onClick={() => pick(opt)}
             aria-label={ariaLabel}
+            aria-describedby={whyId}
             className="w-full text-left bg-card hover:bg-accent/5 border border-border hover:border-accent/40 rounded-xl p-4 cursor-pointer transition-colors"
           >
             <div className="flex items-start justify-between gap-3 mb-2">
@@ -244,9 +267,30 @@ const SwapSuggestionsSheet = ({ open, onClose, skipped, reason }: SwapSuggestion
                 </span>
               </div>
             )}
+            {/* Hidden, per-option description target for aria-describedby.
+                Used by AT on focus only — not a live region, so updating
+                its text does NOT trigger an announcement on its own. */}
+            {showRainWhy && (
+              <span id={whyId} className="sr-only">
+                Why now: {opt.rainWhy}
+              </span>
+            )}
           </motion.button>
           );
         })}
+      </div>
+
+      {/* Single shared polite live region for rain-rationale changes.
+          Updates here are the ONLY way rationale changes get announced,
+          which guarantees the option text is never re-spoken when only
+          the rain "why now" copy changes. */}
+      <div
+        aria-live="polite"
+        aria-atomic="true"
+        role="status"
+        className="sr-only"
+      >
+        {liveRainWhy}
       </div>
 
       <button
