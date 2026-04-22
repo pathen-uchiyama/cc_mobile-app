@@ -18,6 +18,7 @@ import {
 import CapacityMeter from '@/components/lightning-lane/CapacityMeter';
 import { useHaptics } from '@/hooks/useHaptics';
 import PageHeader from '@/components/layout/PageHeader';
+import EmptyState from '@/components/layout/EmptyState';
 
 // Mocked Must-Do state — in production this comes from the same store
 // that drives the MustDoRibbon on /park.
