@@ -308,20 +308,53 @@ interface RideRowProps {
   disabled: boolean;
   lockReason?: string;
   onBook: () => void;
+  /** Park-time used by the Sellout chip and the Watch button countdown. */
+  nowMinutes: number;
+  /** Whether this lane is on the watchlist — drives the heart-toggle icon. */
+  isWatching: boolean;
+  onToggleWatch: () => void;
+  /**
+   * When provided and the lane is currently locked, replaces the "Locked"
+   * primary CTA with a Watch CTA. Returns the openAtMin to seed the watch.
+   * Optional so ILL rows (which can be locked by daily cap, where watching
+   * doesn't help) can omit it.
+   */
+  watchOpensAtMin?: number;
 }
 
-const RideRow = ({ attraction, held, ridden, mustDo, dim, disabled, lockReason, onBook }: RideRowProps) => {
+const RideRow = ({
+  attraction,
+  held,
+  ridden,
+  mustDo,
+  dim,
+  disabled,
+  lockReason,
+  onBook,
+  nowMinutes,
+  isWatching,
+  onToggleWatch,
+  watchOpensAtMin,
+}: RideRowProps) => {
   const isILL = attraction.type === 'ill';
+  // The Watch CTA replaces the "Locked" primary button only when the lane is
+  // genuinely watchable (i.e. the user isn't already holding it and the page
+  // owner passed a future open-time). Held lanes never show Watch.
+  const showWatchCTA = !!watchOpensAtMin && disabled && !held;
   return (
     <li
       className="rounded-2xl p-4 bg-card transition-opacity"
       style={{
-        border: mustDo ? '1.5px solid hsl(var(--gold) / 0.6)' : '1px solid hsl(var(--obsidian) / 0.05)',
+        border: isWatching
+          ? '1.5px solid hsl(var(--gold) / 0.45)'
+          : mustDo
+            ? '1.5px solid hsl(var(--gold) / 0.6)'
+            : '1px solid hsl(var(--obsidian) / 0.05)',
         boxShadow: mustDo ? '0 4px 14px hsl(var(--gold) / 0.10)' : '0 4px 12px hsl(var(--obsidian) / 0.03)',
         opacity: dim ? 0.55 : 1,
       }}
     >
-      <div className="flex items-start justify-between gap-3 mb-1.5">
+      <div className="flex items-start justify-between gap-2 mb-1.5">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
             {mustDo && (
@@ -355,9 +388,26 @@ const RideRow = ({ attraction, held, ridden, mustDo, dim, disabled, lockReason, 
             <span className="font-sans text-[10px] text-muted-foreground flex items-center gap-1 tabular-nums">
               <Clock size={9} /> {attraction.standbyMin}m standby
             </span>
-            <SelloutChip selloutMin={attraction.typicalSelloutMin} />
+            <SelloutChip selloutMin={attraction.typicalSelloutMin} nowMinutes={nowMinutes} />
           </div>
         </div>
+        {/* Heart toggle — pre-select this lane to be alerted (or auto-booked,
+            depending on tier) the moment its booking window opens. Always
+            visible, including for held lanes (so the guest can re-watch
+            after a hold expires) and ridden lanes (low cost, future-proof). */}
+        <button
+          type="button"
+          onClick={onToggleWatch}
+          aria-pressed={isWatching}
+          aria-label={isWatching ? `Stop watching ${attraction.name}` : `Watch ${attraction.name} for opening`}
+          title={isWatching ? 'Watching — tap to remove' : 'Pre-select to alert at open'}
+          className="shrink-0 rounded-full p-2 bg-transparent border-none cursor-pointer flex items-center justify-center min-h-[36px] min-w-[36px] outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-primary/40"
+          style={{
+            color: isWatching ? 'hsl(var(--gold))' : 'hsl(var(--slate-plaid))',
+          }}
+        >
+          <Heart size={16} fill={isWatching ? 'currentColor' : 'none'} />
+        </button>
       </div>
 
       <p className="font-sans italic text-[11px] text-foreground/65 leading-snug mb-3">
@@ -373,21 +423,38 @@ const RideRow = ({ attraction, held, ridden, mustDo, dim, disabled, lockReason, 
             {attraction.nextWindow}
           </span>
         </div>
-        <motion.button
-          whileTap={disabled ? undefined : { scale: 0.97 }}
-          onClick={onBook}
-          disabled={disabled}
-          aria-label={held ? 'Already held' : `Book ${attraction.name}`}
-          title={lockReason}
-          className="rounded-xl px-4 py-2.5 border-none font-sans text-[12px] font-semibold flex items-center gap-1.5 min-h-[40px]"
-          style={{
-            backgroundColor: held ? 'hsl(var(--accent) / 0.15)' : disabled ? 'hsl(var(--obsidian) / 0.06)' : 'hsl(var(--primary))',
-            color: held ? 'hsl(var(--accent))' : disabled ? 'hsl(var(--slate-plaid))' : 'hsl(var(--primary-foreground))',
-            cursor: disabled ? 'not-allowed' : 'pointer',
-          }}
-        >
-          {held ? (<><Check size={12} /> Held</>) : disabled ? (<><Lock size={12} /> Locked</>) : 'Book'}
-        </motion.button>
+        {showWatchCTA ? (
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            onClick={onToggleWatch}
+            aria-pressed={isWatching}
+            aria-label={isWatching ? `Stop watching ${attraction.name}` : `Watch ${attraction.name}`}
+            className="rounded-xl px-4 py-2.5 border cursor-pointer font-sans text-[12px] font-semibold flex items-center gap-1.5 min-h-[40px]"
+            style={{
+              backgroundColor: isWatching ? 'hsl(var(--gold) / 0.18)' : 'transparent',
+              color: 'hsl(var(--gold))',
+              borderColor: 'hsl(var(--gold) / 0.55)',
+            }}
+          >
+            {isWatching ? (<><Check size={12} /> Watching</>) : (<><Bell size={12} /> Watch</>)}
+          </motion.button>
+        ) : (
+          <motion.button
+            whileTap={disabled ? undefined : { scale: 0.97 }}
+            onClick={onBook}
+            disabled={disabled}
+            aria-label={held ? 'Already held' : `Book ${attraction.name}`}
+            title={lockReason}
+            className="rounded-xl px-4 py-2.5 border-none font-sans text-[12px] font-semibold flex items-center gap-1.5 min-h-[40px]"
+            style={{
+              backgroundColor: held ? 'hsl(var(--accent) / 0.15)' : disabled ? 'hsl(var(--obsidian) / 0.06)' : 'hsl(var(--primary))',
+              color: held ? 'hsl(var(--accent))' : disabled ? 'hsl(var(--slate-plaid))' : 'hsl(var(--primary-foreground))',
+              cursor: disabled ? 'not-allowed' : 'pointer',
+            }}
+          >
+            {held ? (<><Check size={12} /> Held</>) : disabled ? (<><Lock size={12} /> Locked</>) : 'Book'}
+          </motion.button>
+        )}
       </div>
       {lockReason && !held && (
         <p className="font-sans text-[9px] mt-1.5 tabular-nums text-right" style={{ color: 'hsl(var(--slate-plaid))' }}>
