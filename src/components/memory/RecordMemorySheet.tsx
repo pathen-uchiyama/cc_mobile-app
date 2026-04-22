@@ -159,11 +159,18 @@ const RecordMemorySheet = ({ open, onClose, contextHint }: RecordMemorySheetProp
     const tags: MemoryTag[] = [];
     if (contextHint?.attraction) tags.push({ label: contextHint.attraction, kind: 'place' });
     selectedFeelings.forEach((f) => tags.push({ label: f, kind: 'feeling' }));
+    // For video, fold the chosen trim window into the saved metadata so
+    // playback respects it everywhere (Detail sheet, Editor, Joy Report).
+    const isVideo = captured.kind === 'video';
+    const trimmedDurationMs =
+      isVideo && trim ? Math.round((trim.end - trim.start) * 1000) : captured.durationMs;
     saveMemory({
       kind: captured.kind,
       payload: captured.payload,
       mime: captured.mime,
-      durationMs: captured.durationMs,
+      durationMs: trimmedDurationMs,
+      trimStart: isVideo && trim ? trim.start : undefined,
+      trimEnd: isVideo && trim ? trim.end : undefined,
       caption: caption.trim() || `A ${captured.kind} memory.`,
       tags,
     });
