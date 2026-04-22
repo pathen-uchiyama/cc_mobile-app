@@ -171,10 +171,15 @@ const SwapSuggestionsSheet = ({ open, onClose, skipped, reason }: SwapSuggestion
           const badge = KIND_BADGE[opt.kind];
           const BadgeIcon = badge.Icon;
           const showRainWhy = isRain && !!opt.rainWhy;
-          // When a rain-specific rationale exists, it supersedes the generic
-          // reason — hide the generic line from screen readers to avoid
-          // announcing two overlapping justifications for the same option.
-          const ariaLabel = `${opt.ride}, ${opt.wait} wait, in ${opt.area}`;
+          // The button owns the SINGLE accessible name for this option.
+          // When a rain-specific rationale exists, fold it into the button's
+          // aria-label so screen readers announce the option + rationale as
+          // one utterance. The visual rationale block below is marked
+          // aria-hidden so it can never produce a second announcement when
+          // the active rain pivot changes.
+          const ariaLabel = showRainWhy
+            ? `${opt.ride}, ${opt.wait} wait, in ${opt.area}. Why now: ${opt.rainWhy}`
+            : `${opt.ride}, ${opt.wait} wait, in ${opt.area}. ${opt.reason}`;
           return (
           <motion.button
             key={opt.id}
@@ -213,21 +218,19 @@ const SwapSuggestionsSheet = ({ open, onClose, skipped, reason }: SwapSuggestion
               {opt.reason}
             </p>
             {showRainWhy && (
-              <p
+              <div
                 className="mt-1.5 flex items-start gap-1.5"
-                role="note"
-                aria-label={`Why now: ${opt.rainWhy}`}
+                aria-hidden
               >
                 <CloudRain
                   size={10}
                   className="text-primary shrink-0 mt-[2px] w-3"
                   aria-hidden
                 />
-                {/* Children are purely visual — the parent <p> owns the
-                    single accessible announcement via aria-label above.
-                    This guarantees the eyebrow + body can never be read
-                    twice, even if a future edit drops aria-hidden. */}
-                <span className="min-w-0 flex-1 break-words hyphens-auto" aria-hidden>
+                {/* Entirely decorative. The button's aria-label is the
+                    single source of truth for the rain rationale, so this
+                    subtree is fully aria-hidden and cannot be announced. */}
+                <span className="min-w-0 flex-1 break-words hyphens-auto">
                   {/* Visible decorative eyebrow — block-level so it never
                       collides with the body text on narrow screens. */}
                   <span
@@ -239,7 +242,7 @@ const SwapSuggestionsSheet = ({ open, onClose, skipped, reason }: SwapSuggestion
                     {opt.rainWhy}
                   </span>
                 </span>
-              </p>
+              </div>
             )}
           </motion.button>
           );
