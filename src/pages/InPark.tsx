@@ -5,6 +5,7 @@ import BottomGlassNav from '@/components/BottomGlassNav';
 import SovereignAnchor from '@/components/priority-stack/SovereignAnchor';
 import HeroHorizonStack, { type PlanItem, type WalkingPrompt } from '@/components/priority-stack/HeroHorizonStack';
 import PivotShimmer from '@/components/priority-stack/PivotShimmer';
+import ParkEmptyState, { type ParkEmptyVariant } from '@/components/priority-stack/ParkEmptyState';
 import AssistedDrawer from '@/components/priority-stack/AssistedDrawer';
 import AudibleMenu from '@/components/priority-stack/AudibleMenu';
 import StrategicDashboard from '@/components/priority-stack/StrategicDashboard';
@@ -208,6 +209,35 @@ const InPark = () => {
     pivotWith(label, after);
   };
 
+  // ── Empty-state derivation ────────────────────────────────────────────
+  // The /park page can legitimately have nothing to show. We pick ONE
+  // calm placard based on the planning machinery's current state, and
+  // the masthead voice softens to match so the eyebrow, title, and
+  // placard read as a single composition.
+  const hasPlan = plan.length > 0;
+  const hasMustDos = mustDos.some((m) => m.desired > 0);
+  const completedAny = mustDos.some((m) => m.done > 0);
+
+  let emptyVariant: ParkEmptyVariant | null = null;
+  let masthead = {
+    eyebrow: 'Today',
+    line1: 'The Active',
+    line2: 'Journey.',
+  };
+
+  if (!hasPlan) {
+    if (completedAny && !hasMustDos) {
+      emptyVariant = 'day-complete';
+      masthead = { eyebrow: 'Today', line1: 'A complete', line2: 'voyage.' };
+    } else if (hasMustDos) {
+      emptyVariant = 'pivot-pending';
+      masthead = { eyebrow: 'Composing', line1: 'A new line', line2: 'is forming.' };
+    } else {
+      emptyVariant = 'no-plan';
+      masthead = { eyebrow: 'A Quiet Slate', line1: 'A blank', line2: 'page.' };
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background digital-plaid-bg max-w-[480px] mx-auto relative flex flex-col">
       {useQuietView ? (
@@ -225,11 +255,11 @@ const InPark = () => {
                   className="font-sans text-[10px] uppercase font-bold text-tertiary-on-fixed-variant"
                   style={{ letterSpacing: '0.18em' }}
                 >
-                  Today
+                  {masthead.eyebrow}
                 </span>
               </div>
               <h1 className="text-masthead text-primary">
-                The Active<br /><span className="text-secondary">Journey.</span>
+                {masthead.line1}<br /><span className="text-secondary">{masthead.line2}</span>
               </h1>
             </header>
 
@@ -239,6 +269,37 @@ const InPark = () => {
                 {pivotLabel ? (
                   <motion.div key="shimmer">
                     <PivotShimmer audibleLabel={pivotLabel} />
+                  </motion.div>
+                ) : emptyVariant ? (
+                  <motion.div
+                    key={`empty-${emptyVariant}`}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.35 }}
+                  >
+                    <ParkEmptyState
+                      variant={emptyVariant}
+                      action={
+                        emptyVariant === 'no-plan'
+                          ? {
+                              label: 'Sketch your day',
+                              onPress: () => navigate('/edit-itinerary'),
+                            }
+                          : emptyVariant === 'day-complete'
+                            ? {
+                                label: 'Open your Joy Report',
+                                onPress: () => navigate('/joy-report'),
+                              }
+                            : undefined
+                      }
+                      secondary={
+                        emptyVariant === 'pivot-pending'
+                          ? { label: 'Call an audible', onPress: () => setAudibleOpen(true) }
+                          : emptyVariant === 'no-plan'
+                            ? { label: 'Or call an audible', onPress: () => setAudibleOpen(true) }
+                            : undefined
+                      }
+                    />
                   </motion.div>
                 ) : (
                   <motion.div
