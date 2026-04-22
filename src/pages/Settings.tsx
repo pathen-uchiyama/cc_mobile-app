@@ -1,7 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Eye, Zap, Heart, Sparkles, Vibrate, FlaskConical } from 'lucide-react';
+import { Eye, Zap, Sparkles, Vibrate, FlaskConical } from 'lucide-react';
 import { useCompanion, type ServiceTier } from '@/contexts/CompanionContext';
+import PageHeader from '@/components/layout/PageHeader';
 
 const TIERS: { id: ServiceTier; label: string; tagline: string }[] = [
   { id: 'explorer', label: 'Explorer', tagline: 'See the plan, walk the park.' },
@@ -59,22 +60,12 @@ const Settings = () => {
 
   return (
     <div className="min-h-screen bg-background max-w-[480px] mx-auto pb-32">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-parchment/95 backdrop-blur-md border-b border-border">
-        <div className="flex items-center gap-3 px-4 py-4">
-          <button
-            onClick={() => navigate(-1)}
-            className="w-9 h-9 flex items-center justify-center bg-transparent border-none cursor-pointer rounded-full hover:bg-muted transition-colors"
-            aria-label="Back"
-          >
-            <ArrowLeft size={18} className="text-foreground" />
-          </button>
-          <div className="flex-1">
-            <p className="font-sans text-[8px] uppercase tracking-sovereign text-muted-foreground">Companion</p>
-            <h1 className="font-display text-xl text-foreground leading-tight">Settings</h1>
-          </div>
-        </div>
-      </header>
+      <PageHeader
+        backTo="/park"
+        backLabel="Your day"
+        eyebrow="Companion"
+        title="Settings"
+      />
 
       <div className="px-5 pt-6 space-y-8">
         {/* Service tier */}

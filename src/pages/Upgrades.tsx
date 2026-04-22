@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Zap, Crown, Sparkles, Check } from 'lucide-react';
+import { Zap, Crown, Sparkles, Check } from 'lucide-react';
+import PageHeader from '@/components/layout/PageHeader';
 
 const tiers = [
   {
@@ -33,31 +33,15 @@ const tiers = [
 ];
 
 const Upgrades = () => {
-  const navigate = useNavigate();
-
   return (
     <div className="min-h-screen bg-background max-w-[480px] mx-auto relative">
-      <motion.header
-        initial={{ y: -60 }}
-        animate={{ y: 0 }}
-        className="sticky top-0 z-50 bg-background border-b border-border px-6 py-4"
-      >
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => navigate(-1)}
-            className="w-11 h-11 flex items-center justify-center bg-transparent border-none cursor-pointer"
-            aria-label="Go back"
-          >
-            <ArrowLeft size={20} className="text-foreground" />
-          </button>
-          <div>
-            <h1 className="font-display text-lg text-foreground">Upgrade Your Experience</h1>
-            <p className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground">
-              Unlock automation & intelligence
-            </p>
-          </div>
-        </div>
-      </motion.header>
+      <PageHeader
+        backTo="/settings"
+        backLabel="Settings"
+        eyebrow="Tier & Pricing"
+        title="Upgrade your experience"
+        subtitle="Unlock automation, AI strategy, and concierge-grade pivots."
+      />
 
       <div className="px-6 py-8 space-y-4">
         {tiers.map((tier, i) => {

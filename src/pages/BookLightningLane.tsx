@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ChevronLeft, Zap, MapPin, Clock, Check, Star, Lock, ArrowRight } from 'lucide-react';
+import { Zap, MapPin, Clock, Check, Star, Lock, ArrowRight, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   LL_INVENTORY,
@@ -17,6 +17,7 @@ import {
 } from '@/data/lightningLanes';
 import CapacityMeter from '@/components/lightning-lane/CapacityMeter';
 import { useHaptics } from '@/hooks/useHaptics';
+import PageHeader from '@/components/layout/PageHeader';
 
 // Mocked Must-Do state — in production this comes from the same store
 // that drives the MustDoRibbon on /park.
@@ -103,28 +104,14 @@ const BookLightningLane = () => {
 
   return (
     <div className="min-h-screen bg-background max-w-[480px] mx-auto pb-32">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm px-5 pt-5 pb-3" style={{ borderBottom: '1px solid hsl(var(--obsidian) / 0.06)' }}>
-        <button
-          type="button"
-          onClick={() => navigate('/park')}
-          className="flex items-center gap-1 bg-transparent border-none cursor-pointer p-1 -ml-1 mb-2 text-muted-foreground"
-          aria-label="Back to your day"
-        >
-          <ChevronLeft size={16} />
-          <span className="font-sans text-[11px]">Your day</span>
-        </button>
-        <span
-          className="font-sans text-[9px] uppercase tracking-sovereign font-bold"
-          style={{ color: 'hsl(var(--gold))', letterSpacing: '0.16em' }}
-        >
-          Browse & Book
-        </span>
-        <h1 className="font-display text-[26px] leading-tight text-foreground mt-1 mb-3">
-          Lightning Lane
-        </h1>
+      <PageHeader
+        backTo="/park"
+        backLabel="Your day"
+        eyebrow="Browse & Book"
+        title="Lightning Lane"
+      >
         <CapacityMeter summary={summary} />
-      </header>
+      </PageHeader>
 
       <main className="px-5 pt-5 space-y-6">
         {/* Standard LL section */}
@@ -137,6 +124,13 @@ const BookLightningLane = () => {
               {llOrdered.length} options
             </span>
           </div>
+          {llOrdered.length === 0 ? (
+            <EmptyState
+              eyebrow="All caught up"
+              title="No standard lanes left to grab."
+              hint="Tap Refresh on your day to recheck the inventory."
+            />
+          ) : (
           <ul className="list-none p-0 m-0 space-y-2">
             {llOrdered.map((a) => {
               const held = heldIds.has(a.id);
@@ -159,6 +153,7 @@ const BookLightningLane = () => {
               );
             })}
           </ul>
+          )}
         </section>
 
         {/* ILL section */}
@@ -171,6 +166,13 @@ const BookLightningLane = () => {
               {summary.illUsedCount} / {summary.illCapTotal} used
             </span>
           </div>
+          {illOrdered.length === 0 ? (
+            <EmptyState
+              eyebrow="None today"
+              title="No headliners on the menu."
+              hint="Individual lanes refresh nightly."
+            />
+          ) : (
           <ul className="list-none p-0 m-0 space-y-2">
             {illOrdered.map((a) => {
               const held = heldIds.has(a.id);
@@ -190,6 +192,7 @@ const BookLightningLane = () => {
               );
             })}
           </ul>
+          )}
         </section>
       </main>
 

@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Star, Heart, Camera, Clock, MapPin, Sparkles, Zap, RefreshCw, Mic } from 'lucide-react';
+import { Star, Heart, Camera, Clock, MapPin, Sparkles, Zap, RefreshCw } from 'lucide-react';
 import { useJoyEvents, formatEventTime, type JoyEvent } from '@/contexts/JoyEventsContext';
+import PageHeader from '@/components/layout/PageHeader';
 
 const ICON_BY_TYPE: Record<JoyEvent['type'], typeof Star> = {
   arrival: MapPin,
@@ -25,7 +25,6 @@ const COLOR_BY_TYPE: Record<JoyEvent['type'], string> = {
 };
 
 const JoyReport = () => {
-  const navigate = useNavigate();
   const { events } = useJoyEvents();
 
   const sorted = useMemo(
@@ -62,27 +61,12 @@ const JoyReport = () => {
 
   return (
     <div className="min-h-screen bg-background max-w-[480px] mx-auto relative pb-24">
-      <motion.header
-        initial={{ y: -60 }}
-        animate={{ y: 0 }}
-        className="sticky top-0 z-50 bg-parchment/95 backdrop-blur-md border-b border-border px-4 py-4"
-      >
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate(-1)}
-            className="w-9 h-9 flex items-center justify-center bg-transparent border-none cursor-pointer rounded-full hover:bg-muted transition-colors"
-            aria-label="Go back"
-          >
-            <ArrowLeft size={18} className="text-foreground" />
-          </button>
-          <div>
-            <p className="font-sans text-[8px] uppercase tracking-sovereign text-muted-foreground">
-              {new Date().toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })} · Magic Kingdom
-            </p>
-            <h1 className="font-display text-xl text-foreground leading-tight">Joy Report</h1>
-          </div>
-        </div>
-      </motion.header>
+      <PageHeader
+        backTo="/park"
+        backLabel="Your day"
+        eyebrow={`${new Date().toLocaleDateString(undefined, { month: 'long', day: 'numeric' })} · Magic Kingdom`}
+        title="Joy Report"
+      />
 
       {/* Hero stat */}
       <motion.div
