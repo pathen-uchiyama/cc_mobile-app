@@ -380,6 +380,7 @@ const InPark = () => {
           if (tab === 'today') return;
           if (tab === 'mustdo') setMustDoOpen(true);
           if (tab === 'pivot') setAudibleOpen(true);
+          if (tab === 'lightning') navigate('/book-ll');
           if (tab === 'details') setDashboardOpen(true);
         }}
       />
