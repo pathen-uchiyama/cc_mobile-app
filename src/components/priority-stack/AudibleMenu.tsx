@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Coffee, Utensils, CloudRain, RefreshCw, Bath, ChevronRight } from 'lucide-react';
+import { Coffee, Utensils, CloudRain, RefreshCw, Bath, ChevronRight, Snowflake } from 'lucide-react';
 
 interface AudibleMenuProps {
   open: boolean;
@@ -9,17 +9,19 @@ interface AudibleMenuProps {
   onClosure: () => void;
   onReset: () => void;
   onRestroom?: () => void;
+  onCooldown?: () => void;
   /**
    * Per-action attention flags. When true, the matching row gets a magenta
    * dot to mirror the nav-level "needs attention" treatment.
-   * Keys match item ids: 'restroom' | 'refuel' | 'break' | 'closure' | 'reset'.
+   * Keys match item ids: 'restroom' | 'refuel' | 'break' | 'closure' | 'reset' | 'cooldown'.
    */
-  attention?: Partial<Record<'restroom' | 'refuel' | 'break' | 'closure' | 'reset', boolean>>;
+  attention?: Partial<Record<'restroom' | 'refuel' | 'break' | 'closure' | 'reset' | 'cooldown', boolean>>;
 }
 
 const items = [
   { id: 'restroom', label: 'Restroom',     hint: 'Nearest quiet stall',          icon: Bath },
   { id: 'refuel',   label: 'Meals',        hint: 'Snack or sit-down nearby',     icon: Utensils },
+  { id: 'cooldown', label: 'Cool Down',    hint: 'A/C rides, lounges, shaded spots', icon: Snowflake },
   { id: 'break',    label: 'Need a Break', hint: 'Find shade and a calm spot',   icon: Coffee },
   { id: 'closure',  label: 'Rain Pivot',   hint: 'Indoor swap suggestions',      icon: CloudRain },
   { id: 'reset',    label: 'Reset Strategy', hint: 'Re-rank the day from scratch', icon: RefreshCw },
@@ -41,6 +43,7 @@ const AudibleMenu = ({
   onClosure,
   onReset,
   onRestroom,
+  onCooldown,
   attention,
 }: AudibleMenuProps) => {
   const handlers: Record<string, (() => void) | undefined> = {
@@ -49,6 +52,7 @@ const AudibleMenu = ({
     closure: onClosure,
     reset: onReset,
     restroom: onRestroom,
+    cooldown: onCooldown,
   };
 
   return (
