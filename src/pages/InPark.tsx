@@ -133,6 +133,7 @@ const InPark = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerHandled, setDrawerHandled] = useState(false);
   const [findAndSeekOpen, setFindAndSeekOpen] = useState(false);
+  const [mustDoOpen, setMustDoOpen] = useState(false);
   const [memoryOpen, setMemoryOpen] = useState(false);
   const [memoryContext, setMemoryContext] = useState<{ attraction?: string; location?: string } | undefined>(undefined);
   const [preInterviewOpen, setPreInterviewOpen] = useState(false);
@@ -201,8 +202,10 @@ const InPark = () => {
   };
 
   const handleSovereignTap = () => {
-    if (isTypeA) setDashboardOpen(true);
-    else setAudibleOpen(true);
+    // The golden anchor always opens the Strategic Dashboard —
+    // Lightning Lane inventory + standing reservations in one place.
+    // The "Pivot" tab is the dedicated entry for audibles.
+    setDashboardOpen(true);
   };
 
   const runPivot = (label: string, after: () => void) => {
