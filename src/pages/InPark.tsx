@@ -16,7 +16,7 @@ import RecalibrateSheet from '@/components/RecalibrateSheet';
 import SwapSuggestionsSheet, { type SwapReason } from '@/components/SwapSuggestionsSheet';
 import BottomSheet from '@/components/BottomSheet';
 import FindAndSeekWidget from '@/components/FindAndSeekWidget';
-import PriorityRides from '@/components/priority-stack/PriorityRides';
+import MustDoFan from '@/components/priority-stack/MustDoFan';
 import DevPanel from '@/components/DevPanel';
 import { useCompanion } from '@/contexts/CompanionContext';
 import { useCelebrate, WHISPERS } from '@/contexts/CelebrationContext';
@@ -423,16 +423,12 @@ const InPark = () => {
         <FindAndSeekWidget />
       </BottomSheet>
 
-      <BottomSheet
+      <MustDoFan
         open={mustDoOpen}
         onClose={() => setMustDoOpen(false)}
-        snap="full"
-        eyebrow="The Crowd's Voice"
-        title="Must-Do Rides"
-        subtitle="Voted by guests in the park today."
-      >
-        <PriorityRides />
-      </BottomSheet>
+        mustDos={mustDos}
+        onPromote={promoteMustDoToHero}
+      />
 
       <RecordMemorySheet
         open={memoryOpen}
