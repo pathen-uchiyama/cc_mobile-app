@@ -216,24 +216,25 @@ const SwapSuggestionsSheet = ({ open, onClose, skipped, reason }: SwapSuggestion
               <p
                 className="mt-1.5 flex items-start gap-1.5"
                 role="note"
+                aria-label={`Why now: ${opt.rainWhy}`}
               >
                 <CloudRain
                   size={10}
                   className="text-primary shrink-0 mt-[2px] w-3"
                   aria-hidden
                 />
-                <span className="min-w-0 flex-1 break-words hyphens-auto">
+                {/* Children are purely visual — the parent <p> owns the
+                    single accessible announcement via aria-label above.
+                    This guarantees the eyebrow + body can never be read
+                    twice, even if a future edit drops aria-hidden. */}
+                <span className="min-w-0 flex-1 break-words hyphens-auto" aria-hidden>
                   {/* Visible decorative eyebrow — block-level so it never
                       collides with the body text on narrow screens. */}
                   <span
-                    aria-hidden
                     className="rain-why-eyebrow"
                   >
                     Why now
                   </span>
-                  {/* SR-only semantic prefix so the announcement reads naturally
-                      ("Why now: ...") without duplicating the visual eyebrow. */}
-                  <span className="sr-only">Why now: </span>
                   <span className="rain-why-body">
                     {opt.rainWhy}
                   </span>
