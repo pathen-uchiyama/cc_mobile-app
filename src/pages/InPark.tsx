@@ -17,6 +17,7 @@ import SwapSuggestionsSheet, { type SwapReason } from '@/components/SwapSuggesti
 import BottomSheet from '@/components/BottomSheet';
 import FindAndSeekWidget from '@/components/FindAndSeekWidget';
 import MustDoFan from '@/components/priority-stack/MustDoFan';
+import LockScreenNotice from '@/components/LockScreenNotice';
 import DevPanel from '@/components/DevPanel';
 import { useCompanion } from '@/contexts/CompanionContext';
 import { useCelebrate, WHISPERS } from '@/contexts/CelebrationContext';
