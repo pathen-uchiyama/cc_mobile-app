@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Clock, MapPin, Sparkles, CloudRain, Home, Coffee, Zap, Theater, AlertTriangle } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Clock, MapPin, Sparkles, CloudRain, Home, Coffee, Zap, Theater, AlertTriangle, ChevronRight } from 'lucide-react';
 import BottomSheet from './BottomSheet';
 import { useCelebrate, WHISPERS } from '@/contexts/CelebrationContext';
 
@@ -76,6 +76,14 @@ const SwapSuggestionsSheet = ({ open, onClose, skipped, reason }: SwapSuggestion
   // Visual ordering: 'Do now' first, then indoor/show/break, outdoor last.
   const options = [...roster].sort((a, b) => KIND_ORDER[a.kind] - KIND_ORDER[b.kind]);
 
+  // Bump a counter every time the sheet opens so the rationale header
+  // re-animates on reopen even when React keeps this instance mounted.
+  const openCountRef = useRef(0);
+  useEffect(() => {
+    if (open) openCountRef.current += 1;
+  }, [open]);
+  const headerKey = `${safeReason}-${openCountRef.current}`;
+
   const pick = (opt: SwapOption) => {
     onClose();
     const tip = WHISPERS.swap[Math.floor(Math.random() * WHISPERS.swap.length)];
@@ -93,6 +101,47 @@ const SwapSuggestionsSheet = ({ open, onClose, skipped, reason }: SwapSuggestion
         ? 'Stay dry — indoor rides, covered shows, breaks, or get an outdoor pick done now.'
         : 'Three nearby alternatives, ranked by signal.'}
     >
+      {/* Dedicated header / breadcrumb area — always renders for rain pivots,
+          persists across reopens (keyed on open-count so it re-animates). */}
+      <AnimatePresence mode="wait" initial={false}>
+        {isRain && (
+          <motion.header
+            key={headerKey}
+            role="region"
+            aria-label="Weather pivot rationale"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.25 }}
+            className="mb-3 rounded-xl border border-primary/30 bg-primary/10 overflow-hidden"
+          >
+            {/* Breadcrumb strip */}
+            <nav
+              aria-label="Pivot context"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 border-b border-primary/20 font-sans text-[9px] uppercase tracking-sovereign text-primary/80 font-semibold"
+            >
+              <span>Today\u2019s Plan</span>
+              <ChevronRight size={10} className="opacity-60" />
+              <span>Pivot</span>
+              <ChevronRight size={10} className="opacity-60" />
+              <span className="text-primary">Weather</span>
+            </nav>
+            {/* Rationale body */}
+            <div className="flex items-start gap-2.5 p-3">
+              <CloudRain size={16} className="text-primary shrink-0 mt-0.5" aria-hidden />
+              <div className="flex-1 space-y-1">
+                <p className="font-display text-[13px] text-foreground leading-snug">
+                  Rain band moving in \u2014 ~20 min out
+                </p>
+                <p className="font-sans text-[11px] text-muted-foreground leading-snug">
+                  We\u2019re prioritizing <strong className="text-foreground">indoor rides</strong> and <strong className="text-foreground">covered shows</strong>, with one outdoor pick to ride <em>before</em> it starts.
+                </p>
+              </div>
+            </div>
+          </motion.header>
+        )}
+      </AnimatePresence>
+
       {(reasonMissing || reasonInvalid) && (
         <motion.div
           role="status"
@@ -105,21 +154,6 @@ const SwapSuggestionsSheet = ({ open, onClose, skipped, reason }: SwapSuggestion
             <p className="font-sans text-[11px] text-foreground leading-snug">
               <span className="font-semibold">Heads up:</span> we couldn\u2019t determine why this pivot was suggested
               {reasonInvalid ? ` (got "${String(reason)}")` : ''}. Showing your standard nearby alternatives.
-            </p>
-          </div>
-        </motion.div>
-      )}
-
-      {isRain && (
-        <motion.div
-          initial={{ opacity: 0, y: -6 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-3 flex items-start gap-2.5 rounded-xl border border-primary/30 bg-primary/10 p-3"
-        >
-          <CloudRain size={16} className="text-primary shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <p className="font-sans text-[11px] text-foreground leading-snug">
-              <span className="font-semibold">Why this pivot:</span> radar shows a band moving in. We\u2019re prioritizing indoor rides and covered shows, with one outdoor pick to ride <em>before</em> it starts.
             </p>
           </div>
         </motion.div>
