@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Star, Heart, Camera, Clock, MapPin, Sparkles, Zap, RefreshCw } from 'lucide-react';
 import { useJoyEvents, formatEventTime, type JoyEvent } from '@/contexts/JoyEventsContext';
 import PageHeader from '@/components/layout/PageHeader';
+import EmptyState from '@/components/layout/EmptyState';
 
 const ICON_BY_TYPE: Record<JoyEvent['type'], typeof Star> = {
   arrival: MapPin,
@@ -131,9 +132,11 @@ const JoyReport = () => {
         </div>
 
         {sorted.length === 0 ? (
-          <p className="text-center font-sans text-[11px] text-muted-foreground italic py-8">
-            No moments captured yet. The day is still young.
-          </p>
+          <EmptyState
+            eyebrow="Quiet so far"
+            title="No moments captured yet."
+            hint="The day is still young — your whispers will land here."
+          />
         ) : (
           <div className="relative pl-8">
             <div className="absolute left-[11px] top-2 bottom-2 w-[2px] bg-border rounded-full" />
