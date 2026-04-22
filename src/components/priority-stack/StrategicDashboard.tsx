@@ -1,18 +1,73 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Zap, TrendingDown, Clock, Users } from 'lucide-react';
+import { X, Zap, TrendingDown, Clock, Users, Utensils, Sparkles } from 'lucide-react';
+import { RESERVATIONS, formatTime, type Reservation } from '@/data/reservations';
 
 interface StrategicDashboardProps {
   open: boolean;
   onClose: () => void;
 }
 
+const STATUS_TONE: Record<Reservation['status'], { bg: string; fg: string; label: string }> = {
+  'open-now': { bg: 'hsl(var(--accent) / 0.15)', fg: 'hsl(var(--accent))', label: 'open now' },
+  'checked-in': { bg: 'hsl(var(--accent) / 0.15)', fg: 'hsl(var(--accent))', label: 'checked in' },
+  upcoming: { bg: 'hsl(var(--gold) / 0.12)', fg: 'hsl(var(--gold))', label: 'upcoming' },
+  used: { bg: 'hsl(var(--obsidian) / 0.06)', fg: 'hsl(var(--muted-foreground))', label: 'redeemed' },
+};
+
+/** Renders a single reservation row — shared by both Standing Reservations and LL Inventory. */
+const ReservationRow = ({ r }: { r: Reservation }) => {
+  const tone = STATUS_TONE[r.status];
+  const Icon =
+    r.kind === 'dining' ? Utensils : r.kind === 'experience' ? Sparkles : Zap;
+  const window = r.endsAt
+    ? `${formatTime(r.startsAt)} – ${formatTime(r.endsAt)}`
+    : formatTime(r.startsAt);
+  return (
+    <li
+      className="flex items-center justify-between px-4 py-3 rounded-xl bg-background/60"
+      style={{ border: '1px solid hsl(var(--obsidian) / 0.04)' }}
+    >
+      <div className="flex items-center gap-3 min-w-0">
+        <Icon size={14} className="shrink-0" style={{ color: 'hsl(var(--gold))' }} />
+        <div className="min-w-0">
+          <p className="font-display text-[14px] text-foreground truncate">{r.name}</p>
+          <p className="font-sans text-[10px] tabular-nums" style={{ color: 'hsl(var(--slate-plaid))' }}>
+            {window}
+            {r.location ? ` · ${r.location}` : ''}
+            {r.partySize ? ` · party of ${r.partySize}` : ''}
+          </p>
+        </div>
+      </div>
+      <span
+        className="shrink-0 font-sans text-[8px] uppercase tracking-sovereign font-bold px-2 py-1 rounded-full"
+        style={{ backgroundColor: tone.bg, color: tone.fg }}
+      >
+        {tone.label}
+      </span>
+    </li>
+  );
+};
+
 /**
  * Strategic Dashboard — opened from the Sovereign Key (Type A view).
  *
- * Surfaces the "plumbing" — LL inventory, time saved, ride efficiency,
- * route deltas. The control room without leaving the park view.
+ * Surfaces the "plumbing" — Standing Reservations (dining + experiences),
+ * Lightning Lane inventory, time saved, ride efficiency, crowd pulse.
+ * The control room without leaving the park view.
  */
 const StrategicDashboard = ({ open, onClose }: StrategicDashboardProps) => {
+  const standing = RESERVATIONS
+    .filter((r) => r.kind === 'dining' || r.kind === 'experience')
+    .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
+  const lightning = RESERVATIONS
+    .filter((r) => r.kind === 'll' || r.kind === 'ill')
+    .sort((a, b) => {
+      // Open-now first, then by start time.
+      if (a.status === 'open-now' && b.status !== 'open-now') return -1;
+      if (b.status === 'open-now' && a.status !== 'open-now') return 1;
+      return a.startsAt.localeCompare(b.startsAt);
+    });
+
   return (
     <AnimatePresence>
       {open && (
@@ -88,41 +143,33 @@ const StrategicDashboard = ({ open, onClose }: StrategicDashboardProps) => {
                 })}
               </div>
 
-              {/* LL inventory */}
-              <section>
-                <p className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold mb-2 px-1">
-                  Lightning Lane inventory
-                </p>
-                <ul className="list-none p-0 m-0 space-y-1.5">
-                  {[
-                    { ride: 'Haunted Mansion', window: '11:00 – 12:00', status: 'secured' as const },
-                    { ride: 'Space Mountain', window: '12:30 – 1:30', status: 'available' as const },
-                    { ride: 'Big Thunder', window: '2:45 – 3:45', status: 'queued' as const },
-                  ].map((ll) => (
-                    <li
-                      key={ll.ride}
-                      className="flex items-center justify-between px-4 py-3 rounded-xl bg-background/60"
-                      style={{ border: '1px solid hsl(var(--obsidian) / 0.04)' }}
-                    >
-                      <div className="min-w-0">
-                        <p className="font-display text-[14px] text-foreground truncate">{ll.ride}</p>
-                        <p className="font-sans text-[10px] tabular-nums" style={{ color: 'hsl(var(--slate-plaid))' }}>
-                          {ll.window}
-                        </p>
-                      </div>
-                      <span
-                        className="shrink-0 font-sans text-[8px] uppercase tracking-sovereign font-bold px-2 py-1 rounded-full"
-                        style={{
-                          backgroundColor: ll.status === 'secured' ? 'hsl(var(--accent) / 0.15)' : 'hsl(var(--gold) / 0.12)',
-                          color: ll.status === 'secured' ? 'hsl(var(--accent))' : 'hsl(var(--gold))',
-                        }}
-                      >
-                        {ll.status}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </section>
+              {/* Standing Reservations — dining + experiences (table holds, character meals, tours) */}
+              {standing.length > 0 && (
+                <section>
+                  <p className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold mb-2 px-1">
+                    The Standing Reservations
+                  </p>
+                  <ul className="list-none p-0 m-0 space-y-1.5">
+                    {standing.map((r) => (
+                      <ReservationRow key={r.id} r={r} />
+                    ))}
+                  </ul>
+                </section>
+              )}
+
+              {/* Lightning Lane inventory — LL + ILL holds */}
+              {lightning.length > 0 && (
+                <section>
+                  <p className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold mb-2 px-1">
+                    Lightning Lane inventory
+                  </p>
+                  <ul className="list-none p-0 m-0 space-y-1.5">
+                    {lightning.map((r) => (
+                      <ReservationRow key={r.id} r={r} />
+                    ))}
+                  </ul>
+                </section>
+              )}
 
               {/* Crowd pulse */}
               <section>
