@@ -54,6 +54,8 @@ const RecordMemorySheet = ({ open, onClose, contextHint }: RecordMemorySheetProp
   const [noteBody, setNoteBody] = useState('');
   const [selectedFeelings, setSelectedFeelings] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
+  /** Which interview phase is currently open, if any. */
+  const [interviewPhase, setInterviewPhase] = useState<InterviewPhase | null>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
