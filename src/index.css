@@ -55,6 +55,17 @@
     --tertiary-foreground: 0 0% 100%;
     --tertiary-container: 316 60% 92%;
     --on-tertiary-container: var(--magenta);
+    /* Magenta soft accents — used for "Delayed" / info ribbons. */
+    --tertiary-fixed: 322 100% 92%;        /* #ffd8ec */
+    --on-tertiary-fixed-variant: 313 100% 27%; /* #88006a */
+
+    /* Gold soft accents — chip ink. */
+    --on-secondary-container: 48 100% 23%; /* #745c00 — same family as gold */
+
+    /* Error container — soft red surface for "Action Needed" callouts. */
+    --error: 0 75% 42%;                    /* #ba1a1a */
+    --error-container: 7 100% 92%;         /* #ffdad6 */
+    --on-error-container: 4 100% 29%;      /* #93000a */
 
     --muted: var(--surface-container-low);
     --muted-foreground: var(--slate-plaid);
@@ -168,6 +179,18 @@
   /* Primary CTA gradient — jewel-like depth from navy → primary-container. */
   .bg-gradient-primary {
     background: var(--gradient-primary);
+  }
+
+  /* ── Digital Plaid grid ─────────────────────────────────────────────
+   * A whisper-faint 40px grid using outline-variant at 5% opacity.
+   * Apply to page roots that should feel like a planner page. Never use
+   * as a card surface — it competes with content.
+   */
+  .digital-plaid-bg {
+    background-image:
+      linear-gradient(90deg, hsl(var(--outline-variant) / 0.05) 1px, transparent 1px),
+      linear-gradient(hsl(var(--outline-variant) / 0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
   }
 
   .vellum-filter {

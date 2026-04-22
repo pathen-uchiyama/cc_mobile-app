@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import { Eye, Map, Compass, Lock } from 'lucide-react';
 
 type TabId = 'horizon' | 'canvas' | 'guide' | 'vault';
@@ -15,10 +14,17 @@ const tabs: { id: TabId; label: string; icon: typeof Eye }[] = [
   { id: 'vault', label: 'Vault', icon: Lock },
 ];
 
+/**
+ * Digital Plaid bottom nav.
+ *
+ * Active tab is a gold chip (`bg-secondary-container` + navy ink), the
+ * editorial "park stamp" treatment. Inactive items render with
+ * on-surface-variant ink, no underline, no spring dot.
+ */
 const BottomGlassNav = ({ activeTab, onTabChange }: BottomGlassNavProps) => {
   return (
-    <nav className="fixed bottom-4 left-4 right-4 z-[9998] glass-nav mx-auto max-w-[448px]">
-      <div className="flex items-center justify-around py-3 px-2">
+    <nav className="fixed bottom-4 left-4 right-4 z-[9998] glass-nav mx-auto max-w-[448px] rounded-xl">
+      <div className="flex items-center justify-around py-2 px-2 gap-1">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -26,23 +32,19 @@ const BottomGlassNav = ({ activeTab, onTabChange }: BottomGlassNavProps) => {
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className="relative flex flex-col items-center gap-1 min-w-[56px] min-h-[44px] justify-center bg-transparent border-none cursor-pointer"
+              className={[
+                'flex flex-col items-center justify-center gap-1 min-w-[56px] min-h-[44px] px-3 py-1 cursor-pointer border-none rounded-md transition-colors duration-200',
+                isActive
+                  ? 'bg-secondary-container text-primary'
+                  : 'bg-transparent text-on-surface-variant hover:opacity-80',
+              ].join(' ')}
               aria-label={tab.label}
+              aria-current={isActive ? 'page' : undefined}
             >
-              <Icon
-                size={22}
-                className={`transition-colors duration-300 ${isActive ? 'text-obsidian' : 'text-slate-plaid'}`}
-              />
-              <span className={`font-sans text-[9px] uppercase tracking-sovereign transition-colors duration-300 ${isActive ? 'text-obsidian' : 'text-slate-plaid'}`}>
+              <Icon size={20} strokeWidth={isActive ? 2.25 : 1.75} />
+              <span className="font-sans text-[10px] font-bold uppercase tracking-widest">
                 {tab.label}
               </span>
-              {isActive && (
-                <motion.div
-                  layoutId="activeTab"
-                  className="absolute -bottom-1 w-1 h-1 bg-gold"
-                  transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                />
-              )}
             </button>
           );
         })}

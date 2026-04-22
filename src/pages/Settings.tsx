@@ -59,7 +59,7 @@ const Settings = () => {
   } = useCompanion();
 
   return (
-    <div className="min-h-screen bg-background max-w-[480px] mx-auto pb-32">
+    <div className="min-h-screen bg-background digital-plaid-bg max-w-[480px] mx-auto pb-32">
       <PageHeader
         backTo="/park"
         backLabel="Your day"

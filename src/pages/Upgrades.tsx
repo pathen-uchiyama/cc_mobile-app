@@ -34,7 +34,7 @@ const tiers = [
 
 const Upgrades = () => {
   return (
-    <div className="min-h-screen bg-background max-w-[480px] mx-auto relative">
+    <div className="min-h-screen bg-background digital-plaid-bg max-w-[480px] mx-auto relative">
       <PageHeader
         backTo="/settings"
         backLabel="Settings"

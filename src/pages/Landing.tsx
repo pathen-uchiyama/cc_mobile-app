@@ -6,7 +6,7 @@ const Landing = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background max-w-[480px] mx-auto flex flex-col px-6 pt-16 pb-12">
+    <div className="min-h-screen bg-background digital-plaid-bg max-w-[480px] mx-auto flex flex-col px-6 pt-16 pb-12">
       {/* Brand */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}

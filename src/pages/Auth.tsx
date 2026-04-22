@@ -17,7 +17,7 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background max-w-[480px] mx-auto flex flex-col justify-center px-8">
+    <div className="min-h-screen bg-background digital-plaid-bg max-w-[480px] mx-auto flex flex-col justify-center px-8">
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}

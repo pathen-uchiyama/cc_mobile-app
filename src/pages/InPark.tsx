@@ -240,7 +240,7 @@ const InPark = () => {
     preInterviewOpen;
 
   return (
-    <div className="min-h-screen bg-background max-w-[480px] mx-auto relative flex flex-col">
+    <div className="min-h-screen bg-background digital-plaid-bg max-w-[480px] mx-auto relative flex flex-col">
       {useQuietView ? (
         minimalist
           ? <MinimalistView parkName="Magic Kingdom" />

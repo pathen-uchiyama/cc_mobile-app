@@ -58,42 +58,42 @@ const PageHeader = ({
       transition={{ duration: 0.3, ease: 'easeOut' }}
       className={
         sticky
-          ? 'sticky top-0 z-10 bg-background/95 backdrop-blur-sm px-5 pt-5 pb-3'
-          : 'px-5 pt-5 pb-3'
+          ? 'sticky top-0 z-10 bg-background/95 backdrop-blur-sm px-6 pt-5 pb-5'
+          : 'px-6 pt-5 pb-5'
       }
-      style={{ borderBottom: '1px solid hsl(var(--obsidian) / 0.06)' }}
+      // No-line rule: separation comes from the surface-tone shift of the
+      // section beneath, not a drawn 1px border.
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <button
             type="button"
             onClick={handleBack}
-            className="flex items-center gap-1 bg-transparent border-none cursor-pointer p-1 -ml-1 mb-2 text-muted-foreground hover:text-foreground transition-colors min-h-[32px]"
+            className="flex items-center gap-1 bg-transparent border-none cursor-pointer p-1 -ml-1 mb-3 text-on-surface-variant hover:text-primary transition-colors min-h-[32px]"
             aria-label={`Back to ${backLabel.toLowerCase()}`}
           >
             <ChevronLeft size={16} />
-            <span className="font-sans text-[11px]">{backLabel}</span>
+            <span className="font-sans text-[11px] font-medium">{backLabel}</span>
           </button>
           {eyebrow && (
-            <span
-              className="font-sans text-[9px] uppercase tracking-sovereign font-bold block"
-              style={{ color: 'hsl(var(--gold))', letterSpacing: '0.16em' }}
+            <p className="font-sans text-[11px] font-bold uppercase text-secondary mb-2"
+               style={{ letterSpacing: '0.2em' }}
             >
               {eyebrow}
-            </span>
+            </p>
           )}
-          <h1 className="font-display text-[26px] leading-tight text-foreground mt-1">
+          <h1 className="font-display font-black text-[34px] leading-[1.05] tracking-tight text-primary">
             {title}
           </h1>
           {subtitle && (
-            <p className="font-sans text-[11px] text-muted-foreground mt-1.5 leading-snug">
+            <p className="font-sans text-[13px] text-on-surface-variant mt-3 leading-relaxed">
               {subtitle}
             </p>
           )}
         </div>
         {rightSlot && <div className="shrink-0 mt-7">{rightSlot}</div>}
       </div>
-      {children && <div className="mt-3">{children}</div>}
+      {children && <div className="mt-4">{children}</div>}
     </motion.header>
   );
 };
