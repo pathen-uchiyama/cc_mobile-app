@@ -161,22 +161,9 @@ const InPark = () => {
   // Type A = manager tier with LL tracking on. They get the Strategic Dashboard.
   const isTypeA = tier === 'manager' && llTrackerVisible;
 
-  // Mark Must-Dos as in-stack if their attraction matches one of the 3 visible cards.
-  const stackAttractions = new Set(plan.slice(0, 3).map((p) => p.attraction));
-  const mustDoIcons: MustDoIcon[] = mustDos.map((m) => ({
-    id: m.id,
-    label: m.attraction,
-    inStack: stackAttractions.has(m.attraction),
-    desired: m.desired,
-    done: m.done,
-  }));
-  const mustDoEntries: MustDoEntry[] = mustDos.map((m) => ({
-    id: m.id,
-    attraction: m.attraction,
-    inStack: stackAttractions.has(m.attraction),
-    desired: m.desired,
-    done: m.done,
-  }));
+  // Must-Do data is no longer surfaced on /park — it lives inside the
+  // Audible menu / itinerary editor. Keep `mustDos` available to other
+  // hooks but avoid building per-render view-models here.
 
   // Fire a one-time celebration whisper the moment the unlock window opens.
   useEffect(() => {
