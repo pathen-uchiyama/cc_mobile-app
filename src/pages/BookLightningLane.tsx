@@ -52,6 +52,10 @@ const BookLightningLane = () => {
   // Track holds added in this session so we can offer a "see it on your stack"
   // ribbon — keeps the user oriented after a booking instead of stranding them.
   const [sessionAdds, setSessionAdds] = useState(0);
+  // Urgency filter — narrows the LL list by typical sell-out window so a guest
+  // racing the clock can focus on what's actually slipping away. `all` is the
+  // default so nothing is hidden until the guest opts in.
+  const [urgency, setUrgency] = useState<'all' | '1h' | '2h' | 'later'>('all');
 
   const summary = useMemo(
     () => summarizeCapacity(holds, NOW_MINUTES, DEFAULT_CAPACITY),
@@ -68,6 +72,15 @@ const BookLightningLane = () => {
   // ridden rows sink. Within each bucket, earlier sellout wins.
   const llOrdered = useMemo(() => {
     const ll = LL_INVENTORY.filter((a) => a.type === 'll');
+    // Apply the urgency filter first so bucket counts reflect what the guest
+    // is actually seeing.
+    const filtered = ll.filter((a) => {
+      if (urgency === 'all') return true;
+      const minsUntil = a.typicalSelloutMin - NOW_MINUTES;
+      if (urgency === '1h') return minsUntil <= 60;          // includes already-past
+      if (urgency === '2h') return minsUntil > 60 && minsUntil <= 120;
+      return minsUntil > 120;                                // 'later'
+    });
     const bucket = (a: LLAttraction) => {
       const held = heldIds.has(a.id);
       const ridden = isRidden(a.name, MOCK_MUST_DOS);
@@ -77,7 +90,7 @@ const BookLightningLane = () => {
       if (ridden) return 3;
       return 1; // standard inventory
     };
-    return ll
+    return filtered
       .slice()
       .sort((a, b) => {
         const ba = bucket(a);
@@ -85,7 +98,7 @@ const BookLightningLane = () => {
         if (ba !== bb) return ba - bb;
         return a.typicalSelloutMin - b.typicalSelloutMin;
       });
-  }, [heldIds]);
+  }, [heldIds, urgency]);
 
   // ILLs always sort by earliest sellout — these go fastest.
   const illOrdered = useMemo(
@@ -147,11 +160,15 @@ const BookLightningLane = () => {
               guests learn the urgency mapping without needing to hover each
               chip. Mirrors the exact thresholds used inside SelloutChip. */}
           <SelloutLegend />
+          {/* Urgency filter — chip row that narrows the list by typical
+              sell-out window. Sits between the legend (which teaches the
+              color scale) and the list (which uses it). */}
+          <UrgencyFilter value={urgency} onChange={setUrgency} />
           {llOrdered.length === 0 ? (
             <EmptyState
               eyebrow="All caught up"
-              title="No standard lanes left to grab."
-              hint="Tap Refresh on your day to recheck the inventory."
+              title={urgency === 'all' ? 'No standard lanes left to grab.' : 'Nothing in this window.'}
+              hint={urgency === 'all' ? 'Tap Refresh on your day to recheck the inventory.' : 'Try a different urgency filter above.'}
             />
           ) : (
           <ul className="list-none p-0 m-0 space-y-2">
@@ -386,6 +403,57 @@ const SelloutLegend = () => {
           {it.label}
         </span>
       ))}
+    </div>
+  );
+};
+
+/**
+ * Urgency filter chip row. Each chip narrows the LL list to a sell-out
+ * window so a guest can focus on what's actually slipping. The active chip
+ * uses the same HSL token as its corresponding SelloutChip color, reinforcing
+ * the legend → filter → list color story.
+ */
+type UrgencyValue = 'all' | '1h' | '2h' | 'later';
+const UrgencyFilter = ({ value, onChange }: { value: UrgencyValue; onChange: (v: UrgencyValue) => void }) => {
+  const chips: { value: UrgencyValue; label: string; color: string }[] = [
+    { value: 'all',   label: 'All',         color: 'hsl(var(--obsidian))' },
+    { value: '1h',    label: 'Within 1h',   color: 'hsl(316 95% 35%)' },
+    { value: '2h',    label: 'Within 2h',   color: 'hsl(var(--gold))' },
+    { value: 'later', label: 'Later',       color: 'hsl(var(--slate-plaid))' },
+  ];
+  return (
+    <div
+      className="flex items-center gap-1.5 mb-3 flex-wrap"
+      role="radiogroup"
+      aria-label="Filter by typical sell-out urgency"
+    >
+      {chips.map((c) => {
+        const active = value === c.value;
+        return (
+          <button
+            key={c.value}
+            type="button"
+            role="radio"
+            aria-checked={active}
+            onClick={() => onChange(c.value)}
+            className="font-sans text-[10px] font-semibold px-2.5 py-1.5 rounded-full border transition-colors min-h-[28px] flex items-center gap-1.5"
+            style={{
+              backgroundColor: active ? `${c.color.replace(')', ' / 0.12)')}` : 'transparent',
+              borderColor: active ? c.color : 'hsl(var(--obsidian) / 0.10)',
+              color: active ? c.color : 'hsl(var(--slate-plaid))',
+            }}
+          >
+            {c.value !== 'all' && (
+              <span
+                aria-hidden="true"
+                className="inline-block rounded-full"
+                style={{ width: 5, height: 5, backgroundColor: c.color }}
+              />
+            )}
+            {c.label}
+          </button>
+        );
+      })}
     </div>
   );
 };
