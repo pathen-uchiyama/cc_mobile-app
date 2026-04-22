@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, Video, Mic, FileText, Square, Check, Upload, X, Loader2 } from 'lucide-react';
+import { Camera, Video, Mic, FileText, Square, Check, Upload, X, Loader2, ShieldCheck, AlertCircle, Settings } from 'lucide-react';
 import BottomSheet from '@/components/BottomSheet';
 import { useMediaCapture, type CaptureMode } from '@/hooks/memory/useMediaCapture';
 import { useMemoryVault, type MemoryKind, type MemoryTag } from '@/contexts/MemoryContext';
@@ -13,7 +13,7 @@ interface RecordMemorySheetProps {
   contextHint?: { attraction?: string; location?: string };
 }
 
-type Step = 'pick' | 'capture' | 'review' | 'caption' | 'note';
+type Step = 'pick' | 'permission' | 'capture' | 'review' | 'caption' | 'note';
 
 const MODES: { id: CaptureMode | 'note'; label: string; icon: typeof Camera; hint: string }[] = [
   { id: 'photo', label: 'Photo', icon: Camera, hint: 'A single still moment.' },
@@ -66,15 +66,25 @@ const RecordMemorySheet = ({ open, onClose, contextHint }: RecordMemorySheetProp
     }
   }, [capture.stream]);
 
-  const choose = async (id: CaptureMode | 'note') => {
+  const choose = (id: CaptureMode | 'note') => {
     if (id === 'note') {
       setStep('note');
       return;
     }
     setMode(id);
-    setStep('capture');
-    await capture.start();
+    // Always prime first — we never call getUserMedia without an explicit user gesture
+    // on the priming screen, so the OS prompt feels expected, not abrupt.
+    setStep('permission');
   };
+
+  const requestAccess = async () => {
+    const stream = await capture.start();
+    if (stream) setStep('capture');
+    // If denied / unsupported, we stay on the 'permission' step and the UI swaps
+    // to a denial state driven by `capture.permission`.
+  };
+
+  const openLibrary = () => fileInputRef.current?.click();
 
   const handlePhotoCapture = async () => {
     if (!videoRef.current) return;
@@ -118,6 +128,8 @@ const RecordMemorySheet = ({ open, onClose, contextHint }: RecordMemorySheetProp
       setStep('review');
     };
     reader.readAsDataURL(file);
+    // Reset so picking the same file twice still triggers onChange
+    e.target.value = '';
   };
 
   const toggleFeeling = (f: string) => {
@@ -164,10 +176,20 @@ const RecordMemorySheet = ({ open, onClose, contextHint }: RecordMemorySheetProp
       open={open}
       onClose={onClose}
       snap="full"
-      eyebrow={step === 'pick' ? 'The Vault' : step === 'review' || step === 'caption' ? 'Tell us about it' : 'Recording'}
+      eyebrow={
+        step === 'pick' ? 'The Vault' :
+        step === 'permission' ? 'One quick ask' :
+        step === 'review' || step === 'caption' ? 'Tell us about it' :
+        'Recording'
+      }
       title={
         step === 'pick' ? 'Record a Memory' :
         step === 'note' ? 'A typed thought' :
+        step === 'permission' ? (
+          capture.permission === 'denied' ? 'Access blocked' :
+          capture.permission === 'unsupported' ? 'Capture unavailable' :
+          mode === 'voice' ? 'Microphone access' : 'Camera access'
+        ) :
         step === 'capture' ? `Capture ${mode === 'voice' ? 'voice' : mode}` :
         'Caption & context'
       }
@@ -219,6 +241,34 @@ const RecordMemorySheet = ({ open, onClose, contextHint }: RecordMemorySheetProp
           </motion.div>
         )}
 
+        {/* ─────────────────────────────────── STEP 1.5: PERMISSION PRIMING / DENIAL */}
+        {step === 'permission' && (
+          <motion.div
+            key="permission"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="flex flex-col"
+          >
+            <PermissionPanel
+              mode={mode}
+              status={capture.permission}
+              error={capture.error}
+              busy={capture.permission === 'prompting'}
+              onRequest={requestAccess}
+              onUpload={openLibrary}
+              onBack={() => { capture.stop(); setStep('pick'); }}
+            />
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,video/*,audio/*"
+              hidden
+              onChange={handleFileUpload}
+            />
+          </motion.div>
+        )}
+
         {/* ─────────────────────────────────── STEP 2A: CAPTURE (camera/voice) */}
         {step === 'capture' && (
           <motion.div
@@ -228,22 +278,11 @@ const RecordMemorySheet = ({ open, onClose, contextHint }: RecordMemorySheetProp
             exit={{ opacity: 0 }}
             className="flex flex-col"
           >
-            {capture.error && (
-              <div className="bg-destructive/10 text-destructive rounded-xl p-4 mb-4 text-[12px] font-sans">
-                {capture.error}
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="block mt-2 underline cursor-pointer bg-transparent border-none text-destructive font-sans text-[11px]"
-                >
-                  Upload from library instead
-                </button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*,video/*,audio/*"
-                  hidden
-                  onChange={handleFileUpload}
-                />
+            {/* Inline soft-error if device dropped mid-session (rare) */}
+            {capture.error && capture.permission === 'granted' && (
+              <div className="bg-destructive/10 text-destructive rounded-xl p-3 mb-4 text-[12px] font-sans flex items-start gap-2">
+                <AlertCircle size={14} className="flex-shrink-0 mt-0.5" />
+                <span>{capture.error}</span>
               </div>
             )}
 
@@ -455,6 +494,123 @@ const RecordMemorySheet = ({ open, onClose, contextHint }: RecordMemorySheetProp
         )}
       </AnimatePresence>
     </BottomSheet>
+  );
+};
+
+/**
+ * PermissionPanel — primes the OS prompt or, on denial, becomes a graceful
+ * library-only fallback with browser-specific recovery hints.
+ */
+const PermissionPanel = ({
+  mode,
+  status,
+  error,
+  busy,
+  onRequest,
+  onUpload,
+  onBack,
+}: {
+  mode: CaptureMode;
+  status: 'idle' | 'prompting' | 'granted' | 'denied' | 'unsupported';
+  error: string | null;
+  busy: boolean;
+  onRequest: () => void;
+  onUpload: () => void;
+  onBack: () => void;
+}) => {
+  const device = mode === 'voice' ? 'microphone' : mode === 'video' ? 'camera and microphone' : 'camera';
+  const blocked = status === 'denied' || status === 'unsupported';
+  const Icon = blocked ? AlertCircle : ShieldCheck;
+
+  return (
+    <div className="flex flex-col">
+      {/* Hero */}
+      <div className="bg-card rounded-2xl p-6 shadow-boutique flex flex-col items-center text-center">
+        <div
+          className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 ${
+            blocked ? 'bg-destructive/12' : 'bg-accent/15'
+          }`}
+        >
+          <Icon size={26} className={blocked ? 'text-destructive' : 'text-accent'} />
+        </div>
+
+        {status === 'denied' && (
+          <>
+            <h3 className="font-display text-[18px] text-foreground leading-tight mb-2">
+              Your {device} is blocked
+            </h3>
+            <p className="font-sans text-[12px] text-muted-foreground leading-relaxed max-w-[28ch]">
+              No problem — you can still preserve this moment by uploading from your library, or re-enable access in your browser settings.
+            </p>
+          </>
+        )}
+
+        {status === 'unsupported' && (
+          <>
+            <h3 className="font-display text-[18px] text-foreground leading-tight mb-2">
+              Capture isn't available
+            </h3>
+            <p className="font-sans text-[12px] text-muted-foreground leading-relaxed max-w-[28ch]">
+              {error ?? 'This browser or device can\u2019t reach the camera or mic right now. The library is always open.'}
+            </p>
+          </>
+        )}
+
+        {(status === 'idle' || status === 'prompting' || status === 'granted') && (
+          <>
+            <h3 className="font-display text-[18px] text-foreground leading-tight mb-2">
+              We need your {device}
+            </h3>
+            <p className="font-sans text-[12px] text-muted-foreground leading-relaxed max-w-[30ch]">
+              The next prompt is from your browser. Nothing leaves this device — your moments stay in the Vault, just for you.
+            </p>
+          </>
+        )}
+      </div>
+
+      {/* Recovery hint for denial */}
+      {status === 'denied' && (
+        <div className="mt-3 bg-transparent border border-border rounded-xl p-3 flex items-start gap-2.5">
+          <Settings size={14} className="text-muted-foreground flex-shrink-0 mt-0.5" />
+          <p className="font-sans text-[11px] text-muted-foreground leading-relaxed">
+            To re-enable: tap the lock or info icon in your browser's address bar, then allow {device} access for this site and reload.
+          </p>
+        </div>
+      )}
+
+      {/* Actions */}
+      <div className="flex flex-col gap-2.5 mt-5">
+        {!blocked && (
+          <button
+            onClick={onRequest}
+            disabled={busy}
+            className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-sans text-[12px] uppercase tracking-sovereign font-semibold cursor-pointer border-none disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {busy ? <Loader2 size={14} className="animate-spin" /> : <ShieldCheck size={14} />}
+            {busy ? 'Waiting for permission\u2026' : `Allow ${device} access`}
+          </button>
+        )}
+
+        <button
+          onClick={onUpload}
+          className={`w-full py-3.5 rounded-2xl font-sans text-[12px] uppercase tracking-sovereign cursor-pointer border flex items-center justify-center gap-2 ${
+            blocked
+              ? 'bg-primary text-primary-foreground border-none font-semibold'
+              : 'bg-transparent text-foreground border-border'
+          }`}
+        >
+          <Upload size={14} />
+          Upload from library
+        </button>
+
+        <button
+          onClick={onBack}
+          className="w-full py-2.5 rounded-2xl bg-transparent text-muted-foreground font-sans text-[11px] uppercase tracking-sovereign cursor-pointer border-none"
+        >
+          Back
+        </button>
+      </div>
+    </div>
   );
 };
 
