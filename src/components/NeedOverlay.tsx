@@ -33,15 +33,19 @@ interface FoodItem {
   note: string;
   rating: number;
   yelpUrl: string;
+  cuisine: string;
+  signature: string;
+  priceTier: '$' | '$$' | '$$$';
+  dietary: string[];
 }
 
 const FOOD: FoodItem[] = [
-  { name: 'Skipper Canteen', land: 'Adventureland', walkMinutes: 3, waitMinutes: 10, service: 'sit-down', note: 'Sit-down, mobile order open', rating: 4.2, yelpUrl: 'https://www.yelp.com/search?find_desc=Jungle+Navigation+Co+Skipper+Canteen&find_loc=Walt+Disney+World' },
-  { name: 'Be Our Guest', land: 'Fantasyland', walkMinutes: 7, waitMinutes: 25, service: 'sit-down', note: 'Reservation-only, French menu', rating: 4.0, yelpUrl: 'https://www.yelp.com/search?find_desc=Be+Our+Guest+Restaurant&find_loc=Walt+Disney+World' },
-  { name: 'Pecos Bill Tall Tale Inn', land: 'Frontierland', walkMinutes: 4, waitMinutes: 5, service: 'quick-service', note: 'Quick service, fixings bar', rating: 3.8, yelpUrl: 'https://www.yelp.com/search?find_desc=Pecos+Bill+Tall+Tale+Inn&find_loc=Walt+Disney+World' },
-  { name: 'Cosmic Ray\u2019s Starlight Cafe', land: 'Tomorrowland', walkMinutes: 6, waitMinutes: 6, service: 'quick-service', note: 'Mobile order, three bays', rating: 3.9, yelpUrl: 'https://www.yelp.com/search?find_desc=Cosmic+Rays+Starlight+Cafe&find_loc=Walt+Disney+World' },
-  { name: 'Sleepy Hollow Refreshments', land: 'Liberty Square', walkMinutes: 6, waitMinutes: 3, service: 'snack', note: 'Fresh waffles, walk-up window', rating: 4.4, yelpUrl: 'https://www.yelp.com/search?find_desc=Sleepy+Hollow+Refreshments&find_loc=Walt+Disney+World' },
-  { name: 'Aloha Isle (Dole Whip)', land: 'Adventureland', walkMinutes: 2, waitMinutes: 8, service: 'snack', note: 'Iconic pineapple soft serve', rating: 4.6, yelpUrl: 'https://www.yelp.com/search?find_desc=Aloha+Isle&find_loc=Walt+Disney+World' },
+  { name: 'Skipper Canteen', land: 'Adventureland', walkMinutes: 3, waitMinutes: 10, service: 'sit-down', note: 'Sit-down, mobile order open', rating: 4.2, yelpUrl: 'https://www.yelp.com/search?find_desc=Jungle+Navigation+Co+Skipper+Canteen&find_loc=Walt+Disney+World', cuisine: 'Pan-Asian / Latin', signature: 'Falls Family Falafel · Char Siu Pork', priceTier: '$$', dietary: ['Veg', 'GF'] },
+  { name: 'Be Our Guest', land: 'Fantasyland', walkMinutes: 7, waitMinutes: 25, service: 'sit-down', note: 'Reservation-only, French menu', rating: 4.0, yelpUrl: 'https://www.yelp.com/search?find_desc=Be+Our+Guest+Restaurant&find_loc=Walt+Disney+World', cuisine: 'French', signature: 'Filet Mignon · The Grey Stuff', priceTier: '$$$', dietary: ['Veg'] },
+  { name: 'Pecos Bill Tall Tale Inn', land: 'Frontierland', walkMinutes: 4, waitMinutes: 5, service: 'quick-service', note: 'Quick service, fixings bar', rating: 3.8, yelpUrl: 'https://www.yelp.com/search?find_desc=Pecos+Bill+Tall+Tale+Inn&find_loc=Walt+Disney+World', cuisine: 'Tex-Mex', signature: 'Beef Nachos · Burrito Bowl', priceTier: '$', dietary: ['Veg', 'GF'] },
+  { name: 'Cosmic Ray\u2019s Starlight Cafe', land: 'Tomorrowland', walkMinutes: 6, waitMinutes: 6, service: 'quick-service', note: 'Mobile order, three bays', rating: 3.9, yelpUrl: 'https://www.yelp.com/search?find_desc=Cosmic+Rays+Starlight+Cafe&find_loc=Walt+Disney+World', cuisine: 'American', signature: 'Rotisserie Chicken · Bacon Cheeseburger', priceTier: '$', dietary: ['Kids', 'GF'] },
+  { name: 'Sleepy Hollow Refreshments', land: 'Liberty Square', walkMinutes: 6, waitMinutes: 3, service: 'snack', note: 'Fresh waffles, walk-up window', rating: 4.4, yelpUrl: 'https://www.yelp.com/search?find_desc=Sleepy+Hollow+Refreshments&find_loc=Walt+Disney+World', cuisine: 'Sweet & Savory Waffles', signature: 'Nutella-Fruit Waffle · Sweet-Spicy Chicken', priceTier: '$', dietary: ['Veg'] },
+  { name: 'Aloha Isle (Dole Whip)', land: 'Adventureland', walkMinutes: 2, waitMinutes: 8, service: 'snack', note: 'Iconic pineapple soft serve', rating: 4.6, yelpUrl: 'https://www.yelp.com/search?find_desc=Aloha+Isle&find_loc=Walt+Disney+World', cuisine: 'Frozen Treats', signature: 'Pineapple Dole Whip · Float', priceTier: '$', dietary: ['Veg', 'Vegan', 'GF'] },
 ];
 
 /**
@@ -124,7 +128,40 @@ const NeedOverlay = ({ type, onClose, currentLocation, hasKids }: NeedOverlayPro
                   {item.service === 'sit-down' ? 'Sit-Down' : item.service === 'quick-service' ? 'Quick' : 'Snack'}
                 </span>
               </div>
-              {/* Row 2 — land/walk (left), wait time (right) */}
+              {/* Row 2 — cuisine · price · signature dish · dietary tags */}
+              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                <span className="font-sans text-[10px] font-semibold text-foreground">
+                  {item.cuisine}
+                </span>
+                <span className="font-sans text-[10px] text-muted-foreground">·</span>
+                <span
+                  className="font-sans text-[10px] font-bold"
+                  style={{ color: 'hsl(var(--gold))' }}
+                  aria-label={`Price tier ${item.priceTier}`}
+                >
+                  {item.priceTier}
+                </span>
+                <span className="font-sans text-[10px] text-muted-foreground italic truncate min-w-0">
+                  · {item.signature}
+                </span>
+                {item.dietary.length > 0 && (
+                  <div className="flex items-center gap-1 shrink-0">
+                    {item.dietary.map((tag) => (
+                      <span
+                        key={tag}
+                        className="font-sans text-[9px] font-semibold px-1.5 py-0.5 rounded-full"
+                        style={{
+                          color: 'hsl(var(--obsidian))',
+                          background: 'hsl(var(--obsidian) / 0.06)',
+                        }}
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {/* Row 3 — land/walk (left), wait time (right) */}
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-1.5 min-w-0">
                   <MapPin size={11} className="text-muted-foreground" />
