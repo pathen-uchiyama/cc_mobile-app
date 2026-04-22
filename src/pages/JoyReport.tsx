@@ -317,7 +317,7 @@ const MemoryCard = ({ m, onOpen }: { m: Memory; onOpen: () => void }) => {
     <motion.button
       type="button"
       onClick={onOpen}
-      aria-label={`Edit memory: ${m.caption}`}
+      aria-label={`View memory: ${m.caption}`}
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       whileTap={{ scale: 0.98 }}
