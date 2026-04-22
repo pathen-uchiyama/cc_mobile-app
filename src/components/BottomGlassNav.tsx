@@ -120,7 +120,7 @@ const BottomGlassNav = ({
               {needsAttention && (
                 <span
                   aria-hidden
-                  className="absolute -top-1 -left-1 rounded-full"
+                  className="absolute -top-1 -right-1 rounded-full"
                   style={{
                     width: '10px',
                     height: '10px',
