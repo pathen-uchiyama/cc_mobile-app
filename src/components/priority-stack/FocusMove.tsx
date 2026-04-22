@@ -1,6 +1,7 @@
 import { motion, useReducedMotion } from 'framer-motion';
-import { Clock, MapPin, ArrowRight, Users, Check, Utensils, Sparkles, Zap } from 'lucide-react';
+import { Clock, MapPin, ArrowRight, Users, Check } from 'lucide-react';
 import EngagementRibbon from './EngagementRibbon';
+import HeroChips from './HeroChips';
 
 interface FocusMoveProps {
   attraction: string;
