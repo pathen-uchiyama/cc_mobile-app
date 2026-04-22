@@ -246,6 +246,21 @@ const PullRideInSheet = ({
             </header>
 
             <div className="overflow-y-auto px-3 pb-2">
+              {/* ── RECOMMENDED NEXT ── single best cross-tier pick.
+                  Always shown when we have anything at all to recommend, even
+                  if a tier filter is active — the recommendation is the whole
+                  point of opening the sheet. */}
+              {recommendation && (
+                <RecommendedCard
+                  attraction={recommendation.attraction}
+                  location={recommendation.location}
+                  kind={recommendation.kind}
+                  tier={recommendation.tier}
+                  reason={recommendation.reason}
+                  onTap={() => handlePromote(recommendation.sourceId, recommendation.attraction)}
+                />
+              )}
+
               {/* ── MUST-DO ── */}
               {showMust && rankedMustDos.length > 0 && (
                 <Section
@@ -263,6 +278,7 @@ const PullRideInSheet = ({
                         title={m.attraction}
                         meta={`${m.done}/${m.desired} ride${m.desired === 1 ? '' : 's'}`}
                         disabled={isComplete}
+                        recommended={recommendation?.tier === 'must' && recommendation.key === m.id}
                         onTap={() => handlePromote(m.id, m.attraction)}
                       />
                     );
@@ -286,6 +302,7 @@ const PullRideInSheet = ({
                       kind={p.kind}
                       meta={`${p.party.yes} of ${p.party.total} want this`}
                       metaIcon={<Users size={10} />}
+                      recommended={recommendation?.tier === 'party' && recommendation.key === p.id}
                       onTap={() => handlePromote(`party-${p.id}`, p.attraction)}
                     />
                   ))}
@@ -309,6 +326,7 @@ const PullRideInSheet = ({
                       meta={formatVotes(c.votes)}
                       metaIcon={<Users size={10} />}
                       metaTrail={c.trend === 'up' ? <TrendingUp size={9} /> : null}
+                      recommended={recommendation?.tier === 'community' && recommendation.key === c.id}
                       onTap={() => handlePromote(`comm-${c.id}`, c.attraction)}
                     />
                   ))}
