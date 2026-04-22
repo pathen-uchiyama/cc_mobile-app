@@ -41,6 +41,14 @@ interface HeroHorizonStackProps {
   onCompleteHero?: () => void;
   pivotSuggested?: boolean;
   pivotHeadline?: string;
+  /** Pass-through: imminent dining/experience hold for the "On the Books" chip. */
+  upcomingHold?: {
+    kind: 'dining' | 'experience';
+    name: string;
+    minutesAway: number;
+    walkMinutes?: number;
+  };
+  onUpcomingHoldTap?: () => void;
 }
 
 /**
@@ -63,6 +71,8 @@ const HeroHorizonStack = ({
   onCompleteHero,
   pivotSuggested = false,
   pivotHeadline,
+  upcomingHold,
+  onUpcomingHoldTap,
 }: HeroHorizonStackProps) => {
   const hero = items.find((i) => i.rank === 'now') ?? items[0];
   if (!hero) return null;
@@ -115,6 +125,8 @@ const HeroHorizonStack = ({
                 pivotSuggested={pivotSuggested}
                 pivotHeadline={pivotHeadline}
                 mustDo={hero.mustDo}
+                upcomingHold={upcomingHold}
+                onUpcomingHoldTap={onUpcomingHoldTap}
               />
             </motion.div>
           </AnimatePresence>
