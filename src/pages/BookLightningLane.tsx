@@ -143,6 +143,10 @@ const BookLightningLane = () => {
               {llOrdered.length} options
             </span>
           </div>
+          {/* Color legend for the SelloutChip — tiny, persistent affordance so
+              guests learn the urgency mapping without needing to hover each
+              chip. Mirrors the exact thresholds used inside SelloutChip. */}
+          <SelloutLegend />
           {llOrdered.length === 0 ? (
             <EmptyState
               eyebrow="All caught up"
