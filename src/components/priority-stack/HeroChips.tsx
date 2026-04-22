@@ -19,8 +19,8 @@ interface HeroChipsProps {
   onUpcomingHoldTap?: () => void;
   llCapacity?: LLCapacity;
   onLLChipTap?: () => void;
-  /** When the pivot banner is shown above the chips, suppress the lower-priority chip
-   *  so we never stack more than ONE active alert above the title. */
+  /** When the pivot banner is shown above the chips, suppress the lower-priority
+   *  chip so we never stack more than ONE active alert above the title. */
   pivotActive?: boolean;
 }
 
@@ -54,29 +54,19 @@ const HeroChips = ({
           key="ll-open"
           type="button"
           onClick={onLLChipTap}
-          className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl border-none cursor-pointer transition-opacity hover:opacity-85"
-          style={{
-            background: 'hsl(var(--accent) / 0.12)',
-            border: '1px solid hsl(var(--accent) / 0.35)',
-          }}
+          className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl border cursor-pointer transition-opacity hover:opacity-85 bg-accent/12 border-accent/35"
           aria-label="Lightning Lane slot open — tap to browse"
         >
           <div className="flex items-center gap-2 min-w-0">
-            <Zap size={12} style={{ color: 'hsl(var(--accent))' }} />
-            <span
-              className="font-sans text-[9px] uppercase tracking-sovereign font-bold shrink-0 text-accent"
-              style={{ letterSpacing: '0.14em' }}
-            >
+            <Zap size={12} className="text-accent" />
+            <span className="font-sans text-[9px] uppercase tracking-sovereign font-bold shrink-0 text-accent">
               Slot Open
             </span>
             <span className="font-sans text-[11px] text-foreground truncate min-w-0">
               Browse Lightning Lanes
             </span>
           </div>
-          <span
-            className="font-sans text-[10px] tabular-nums shrink-0"
-            style={{ color: 'hsl(var(--slate-plaid))' }}
-          >
+          <span className="font-sans text-[10px] tabular-nums shrink-0 text-slate-plaid">
             {llCapacity.held}/{llCapacity.cap}
           </span>
         </button>
@@ -93,23 +83,16 @@ const HeroChips = ({
           key="on-books"
           type="button"
           onClick={onUpcomingHoldTap}
-          className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl border-none cursor-pointer transition-opacity hover:opacity-85"
-          style={{
-            background: 'hsl(var(--gold) / 0.10)',
-            border: '1px solid hsl(var(--gold) / 0.25)',
-          }}
+          className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl border cursor-pointer transition-opacity hover:opacity-85 bg-gold/10 border-gold/25"
           aria-label={`On the Books: ${upcomingHold.name} in ${upcomingHold.minutesAway} minutes`}
         >
           <div className="flex items-center gap-2 min-w-0">
             {upcomingHold.kind === 'dining' ? (
-              <Utensils size={12} style={{ color: 'hsl(var(--gold))' }} />
+              <Utensils size={12} className="text-gold" />
             ) : (
-              <Sparkles size={12} style={{ color: 'hsl(var(--gold))' }} />
+              <Sparkles size={12} className="text-gold" />
             )}
-            <span
-              className="font-sans text-[9px] uppercase tracking-sovereign font-bold shrink-0"
-              style={{ color: 'hsl(var(--gold))', letterSpacing: '0.14em' }}
-            >
+            <span className="font-sans text-[9px] uppercase tracking-sovereign font-bold shrink-0 text-gold">
               On the Books
             </span>
             <span className="font-sans text-[11px] text-foreground truncate min-w-0">
@@ -134,29 +117,19 @@ const HeroChips = ({
           key="ll-locked"
           type="button"
           onClick={onLLChipTap}
-          className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl border-none cursor-pointer transition-opacity hover:opacity-85"
-          style={{
-            background: 'hsl(var(--obsidian) / 0.04)',
-            border: '1px solid hsl(var(--obsidian) / 0.08)',
-          }}
+          className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl border cursor-pointer transition-opacity hover:opacity-85 bg-obsidian/[0.04] border-obsidian/10"
           aria-label={`Next Lightning Lane unlocks in ${llCapacity.unlocksInMin} minutes`}
         >
           <div className="flex items-center gap-2 min-w-0">
-            <Zap size={12} style={{ color: 'hsl(var(--slate-plaid))' }} />
-            <span
-              className="font-sans text-[9px] uppercase tracking-sovereign font-bold shrink-0"
-              style={{ color: 'hsl(var(--slate-plaid))', letterSpacing: '0.14em' }}
-            >
+            <Zap size={12} className="text-slate-plaid" />
+            <span className="font-sans text-[9px] uppercase tracking-sovereign font-bold shrink-0 text-slate-plaid">
               Next LL
             </span>
             <span className="font-sans text-[11px] text-foreground truncate min-w-0">
               Unlocks in {llCapacity.unlocksInMin}m
             </span>
           </div>
-          <span
-            className="font-sans text-[10px] tabular-nums shrink-0"
-            style={{ color: 'hsl(var(--slate-plaid))' }}
-          >
+          <span className="font-sans text-[10px] tabular-nums shrink-0 text-slate-plaid">
             {llCapacity.held}/{llCapacity.cap}
           </span>
         </button>

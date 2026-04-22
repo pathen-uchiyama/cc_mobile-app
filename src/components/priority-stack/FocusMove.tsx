@@ -180,13 +180,7 @@ const FocusMove = ({
                 onClick={onComplete}
                 aria-label={`Mark ${attraction} as done`}
                 title="Mark done"
-                className="flex items-center justify-center bg-transparent border-none cursor-pointer rounded-full"
-                style={{
-                  width: '32px',
-                  height: '32px',
-                  border: '1px solid hsl(var(--gold) / 0.4)',
-                  color: 'hsl(var(--gold))',
-                }}
+                className="flex items-center justify-center w-8 h-8 bg-transparent border border-gold/40 text-gold cursor-pointer rounded-full"
               >
                 <Check size={14} strokeWidth={2.2} />
               </motion.button>
@@ -203,10 +197,7 @@ const FocusMove = ({
 
         {/* Strategic Logic — the "why this, why now" line.
             Gold left-bar + italic carries the signal; eyebrow removed for density. */}
-        <p
-          className="font-sans italic text-[14px] text-foreground/80 leading-snug mb-4 pl-3"
-          style={{ borderLeft: '2px solid hsl(var(--gold) / 0.5)' }}
-        >
+        <p className="font-sans italic text-[14px] text-foreground/80 leading-snug mb-4 pl-3 border-l-2 border-gold/50">
           {logic}
         </p>
 
@@ -219,15 +210,11 @@ const FocusMove = ({
           </div>
           {party !== undefined && (
             <div
-              className="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full"
-              style={{ backgroundColor: 'hsl(var(--gold) / 0.12)' }}
+              className="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full bg-gold/12"
               title={`${party.yes} of ${party.total} in your party flagged this a must-do`}
             >
-              <Users size={10} style={{ color: 'hsl(var(--gold))' }} />
-              <span
-                className="font-sans text-[10px] font-bold tabular-nums"
-                style={{ color: 'hsl(var(--gold))' }}
-              >
+              <Users size={10} className="text-gold" />
+              <span className="font-sans text-[10px] font-bold tabular-nums text-gold">
                 {party.yes} of {party.total} want this
               </span>
             </div>
@@ -248,10 +235,7 @@ const FocusMove = ({
         </motion.button>
 
         {questPrompt && (
-          <p
-            className="font-sans italic text-[12px] leading-snug mt-3 text-center"
-            style={{ color: 'hsl(36 47% 35% / 0.85)' }}
-          >
+          <p className="font-sans italic text-[12px] leading-snug mt-3 text-center text-gold/85">
             <span
               className="font-sans not-italic text-[8px] uppercase tracking-sovereign font-bold mr-1.5"
               style={{ letterSpacing: '0.14em' }}
