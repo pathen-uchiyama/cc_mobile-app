@@ -162,6 +162,41 @@ const BookLightningLane = () => {
     return true;
   };
 
+  // Watchlist — pre-selected lanes the guest wants alerted/auto-booked when
+  // their slot opens. The hook decides per-tier whether to auto-book or just
+  // surface a tap-to-book alert. We mark the booked entry once handleBook
+  // succeeds so the strip can show the success state.
+  const watchlist = useLLWatchlist({
+    nowMinutes,
+    canBookNow: summary.canBookLLNow,
+    onAutoBook: (attraction) => handleBook(attraction),
+    onAlert: (attraction, mode) => {
+      if (mode === 'auto-book') {
+        toast.success(`Auto-booked ${attraction.name}`, {
+          description: 'Your held stack just grew. Tap to view it.',
+        });
+      } else {
+        toast(`${attraction.name} is open!`, {
+          description: 'Tap Book in your watchlist to grab it.',
+        });
+      }
+    },
+  });
+
+  // When the guest taps "Book" on an alerted entry, run the standard
+  // booking flow and reflect the outcome on the watchlist row.
+  const handleWatchlistBookNow = useCallback(
+    (attraction: LLAttraction) => {
+      const ok = handleBook(attraction);
+      if (ok) watchlist.markBooked(attraction.id);
+    },
+    // handleBook closes over nowMinutes/summary which are already reactive
+    // through the parent render. Keeping deps minimal to avoid stale closures
+    // on watchlist methods.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [watchlist.markBooked, nowMinutes, summary.canBookLLNow, summary.canBookILL],
+  );
+
   return (
     <div className="min-h-screen bg-background digital-plaid-bg max-w-[480px] mx-auto pb-32">
       <PageHeader
@@ -174,6 +209,15 @@ const BookLightningLane = () => {
       </PageHeader>
 
       <main className="px-5 pt-5 space-y-6">
+        <WatchlistStrip
+          entries={watchlist.entries}
+          nowMinutes={nowMinutes}
+          tier={tier}
+          onUnwatch={watchlist.unwatch}
+          onBookNow={handleWatchlistBookNow}
+          onRearm={watchlist.rearm}
+        />
+
         {/* Standard LL section */}
         <section>
           <div className="flex items-center justify-between mb-2 px-1">
@@ -217,6 +261,18 @@ const BookLightningLane = () => {
                   disabled={disabled}
                   lockReason={!summary.canBookLLNow && !held ? `Unlocks in ${formatCountdown(summary.llUnlocksInMin)}` : undefined}
                   onBook={() => handleBook(a)}
+                  nowMinutes={nowMinutes}
+                  isWatching={watchlist.isWatching(a.id)}
+                  onToggleWatch={() =>
+                    watchlist.isWatching(a.id)
+                      ? watchlist.unwatch(a.id)
+                      : watchlist.watch(a.id, nowMinutes + Math.max(1, summary.llUnlocksInMin))
+                  }
+                  watchOpensAtMin={
+                    !summary.canBookLLNow && !held
+                      ? nowMinutes + Math.max(1, summary.llUnlocksInMin)
+                      : undefined
+                  }
                 />
               );
             })}
@@ -256,6 +312,13 @@ const BookLightningLane = () => {
                   disabled={disabled}
                   lockReason={!summary.canBookILL && !held ? 'Daily cap reached' : undefined}
                   onBook={() => handleBook(a)}
+                  nowMinutes={nowMinutes}
+                  isWatching={watchlist.isWatching(a.id)}
+                  onToggleWatch={() =>
+                    watchlist.isWatching(a.id)
+                      ? watchlist.unwatch(a.id)
+                      : watchlist.watch(a.id, nowMinutes)
+                  }
                 />
               );
             })}
