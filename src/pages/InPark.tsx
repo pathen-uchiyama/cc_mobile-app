@@ -376,6 +376,10 @@ const InPark = () => {
           // Details glows when an LL slot has just opened.
           details: llSummary.canBookLLNow,
         }}
+        hiddenTabs={{
+          // Lightning Lane tab only appears once the guest holds at least one LL.
+          lightning: llSummary.llHeldCount === 0,
+        }}
         onTabChange={(tab) => {
           if (tab === 'today') return;
           if (tab === 'mustdo') setMustDoOpen(true);
