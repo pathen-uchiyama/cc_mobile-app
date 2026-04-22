@@ -159,8 +159,8 @@ const PivotButton = ({ action }: { action: PivotAction }) => {
           style={{
             width: '7px',
             height: '7px',
-            background: 'hsl(var(--gold))',
-            boxShadow: '0 0 0 2px hsl(var(--obsidian)), 0 0 8px hsl(var(--gold) / 0.7)',
+            background: 'hsl(var(--tertiary))',
+            boxShadow: '0 0 0 2px hsl(var(--obsidian)), 0 0 8px hsl(var(--tertiary) / 0.8)',
           }}
           {...(reduce
             ? {}
