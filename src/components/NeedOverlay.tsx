@@ -128,7 +128,40 @@ const NeedOverlay = ({ type, onClose, currentLocation, hasKids }: NeedOverlayPro
                   {item.service === 'sit-down' ? 'Sit-Down' : item.service === 'quick-service' ? 'Quick' : 'Snack'}
                 </span>
               </div>
-              {/* Row 2 — land/walk (left), wait time (right) */}
+              {/* Row 2 — cuisine · price · signature dish · dietary tags */}
+              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                <span className="font-sans text-[10px] font-semibold text-foreground">
+                  {item.cuisine}
+                </span>
+                <span className="font-sans text-[10px] text-muted-foreground">·</span>
+                <span
+                  className="font-sans text-[10px] font-bold"
+                  style={{ color: 'hsl(var(--gold))' }}
+                  aria-label={`Price tier ${item.priceTier}`}
+                >
+                  {item.priceTier}
+                </span>
+                <span className="font-sans text-[10px] text-muted-foreground italic truncate min-w-0">
+                  · {item.signature}
+                </span>
+                {item.dietary.length > 0 && (
+                  <div className="flex items-center gap-1 shrink-0">
+                    {item.dietary.map((tag) => (
+                      <span
+                        key={tag}
+                        className="font-sans text-[9px] font-semibold px-1.5 py-0.5 rounded-full"
+                        style={{
+                          color: 'hsl(var(--obsidian))',
+                          background: 'hsl(var(--obsidian) / 0.06)',
+                        }}
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {/* Row 3 — land/walk (left), wait time (right) */}
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-1.5 min-w-0">
                   <MapPin size={11} className="text-muted-foreground" />
