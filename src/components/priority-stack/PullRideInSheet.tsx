@@ -1,0 +1,375 @@
+import { useMemo, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Check, ChevronRight, Star, Users, TrendingUp } from 'lucide-react';
+import type { MustDo } from '@/hooks/park/usePlanStack';
+import type { PartyWant, CommunityPick } from '@/data/wantToDos';
+
+type Tier = 'all' | 'must' | 'party' | 'community';
+
+interface PullRideInSheetProps {
+  open: boolean;
+  onClose: () => void;
+  mustDos: MustDo[];
+  partyWants: PartyWant[];
+  communityPicks: CommunityPick[];
+  /** Names of attractions already locked in the active plan — filtered out. */
+  excludedAttractions?: string[];
+  /**
+   * Inject any attraction onto the active stack as the new "Now" card.
+   * The id is a synthetic key (e.g. `must-m1`, `party-w1`, `comm-c3`) — usePlanStack
+   * already handles the case where the attraction is brand new.
+   */
+  onPromote: (sourceId: string, attraction: string) => void;
+}
+
+const formatVotes = (n: number) =>
+  n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, '')}k` : n.toString();
+
+/**
+ * "Pull a ride in" — the unified injection sheet. Replaces the older
+ * MustDoFan with three ranked tiers:
+ *
+ *   1. Must-Do (gold)        — pre-locked priorities, ranked by remaining rides.
+ *   2. Party Wants (magenta) — survey wishlist, ranked by yes/total ratio.
+ *   3. Community Picks (slate) — park-wide votes for today, ranked by votes.
+ *
+ * Tapping any row promotes that attraction to the Hero "Right Now" slot via
+ * the existing `promoteMustDoToHero` plumbing in usePlanStack.
+ */
+const PullRideInSheet = ({
+  open,
+  onClose,
+  mustDos,
+  partyWants,
+  communityPicks,
+  excludedAttractions = [],
+  onPromote,
+}: PullRideInSheetProps) => {
+  const [tier, setTier] = useState<Tier>('all');
+
+  const excluded = useMemo(
+    () => new Set(excludedAttractions.map((a) => a.toLowerCase())),
+    [excludedAttractions],
+  );
+
+  const rankedMustDos = useMemo(() => {
+    const score = (m: MustDo) => {
+      const remaining = Math.max(0, m.desired - m.done);
+      if (remaining === 0) return -1;
+      return remaining * 100 + m.desired;
+    };
+    return [...mustDos].sort((a, b) => score(b) - score(a));
+  }, [mustDos]);
+
+  const rankedParty = useMemo(() => {
+    const mustNames = new Set(mustDos.map((m) => m.attraction.toLowerCase()));
+    return [...partyWants]
+      .filter(
+        (p) =>
+          !mustNames.has(p.attraction.toLowerCase()) &&
+          !excluded.has(p.attraction.toLowerCase()),
+      )
+      .sort((a, b) => b.party.yes / b.party.total - a.party.yes / a.party.total);
+  }, [partyWants, mustDos, excluded]);
+
+  const rankedCommunity = useMemo(() => {
+    const mustNames = new Set(mustDos.map((m) => m.attraction.toLowerCase()));
+    const partyNames = new Set(partyWants.map((p) => p.attraction.toLowerCase()));
+    return [...communityPicks]
+      .filter(
+        (c) =>
+          !mustNames.has(c.attraction.toLowerCase()) &&
+          !partyNames.has(c.attraction.toLowerCase()) &&
+          !excluded.has(c.attraction.toLowerCase()),
+      )
+      .sort((a, b) => b.votes - a.votes);
+  }, [communityPicks, mustDos, partyWants, excluded]);
+
+  const showMust = tier === 'all' || tier === 'must';
+  const showParty = tier === 'all' || tier === 'party';
+  const showCommunity = tier === 'all' || tier === 'community';
+
+  const handlePromote = (sourceId: string, attraction: string) => {
+    onClose();
+    onPromote(sourceId, attraction);
+  };
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 z-[9995]"
+            style={{
+              background: 'hsl(var(--parchment) / 0.78)',
+              backdropFilter: 'blur(6px) saturate(120%)',
+              WebkitBackdropFilter: 'blur(6px) saturate(120%)',
+            }}
+          />
+
+          <motion.aside
+            role="dialog"
+            aria-label="Pull a ride into your active journey"
+            initial={{ opacity: 0, y: 24, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 24, scale: 0.97 }}
+            transition={{ type: 'spring', damping: 24, stiffness: 280 }}
+            className="fixed bottom-[100px] left-1/2 -translate-x-1/2 w-[calc(100%-32px)] max-w-[400px] bg-card rounded-2xl flex flex-col z-[9999]"
+            style={{
+              maxHeight: '78vh',
+              boxShadow:
+                '0 24px 60px hsl(var(--obsidian) / 0.22), 0 0 0 1px hsl(var(--gold) / 0.2)',
+            }}
+          >
+            <header className="px-5 pt-5 pb-3 shrink-0">
+              <p
+                className="font-sans text-[8px] uppercase tracking-sovereign font-bold mb-1"
+                style={{ color: 'hsl(var(--gold))' }}
+              >
+                Pull a Ride In
+              </p>
+              <h3 className="font-display text-[18px] text-foreground leading-tight">
+                What goes on the active card next?
+              </h3>
+
+              {/* Filter chips */}
+              <div className="flex items-center gap-1.5 mt-3 -mx-1 overflow-x-auto">
+                {([
+                  { id: 'all', label: 'All' },
+                  { id: 'must', label: 'Must-Do' },
+                  { id: 'party', label: 'Party' },
+                  { id: 'community', label: 'Community' },
+                ] as { id: Tier; label: string }[]).map((chip) => {
+                  const active = tier === chip.id;
+                  return (
+                    <button
+                      key={chip.id}
+                      type="button"
+                      onClick={() => setTier(chip.id)}
+                      className="shrink-0 px-3 py-1 rounded-full font-sans text-[10px] uppercase tracking-sovereign font-bold cursor-pointer border"
+                      style={{
+                        background: active ? 'hsl(var(--primary))' : 'transparent',
+                        color: active
+                          ? 'hsl(var(--highlighter))'
+                          : 'hsl(var(--slate-plaid))',
+                        borderColor: active
+                          ? 'hsl(var(--primary))'
+                          : 'hsl(var(--obsidian) / 0.12)',
+                      }}
+                    >
+                      {chip.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </header>
+
+            <div className="overflow-y-auto px-3 pb-2">
+              {/* ── MUST-DO ── */}
+              {showMust && rankedMustDos.length > 0 && (
+                <Section
+                  label="Must-Do · Locked priorities"
+                  accent="gold"
+                >
+                  {rankedMustDos.map((m, i) => {
+                    const remaining = Math.max(0, m.desired - m.done);
+                    const isComplete = remaining === 0;
+                    return (
+                      <Row
+                        key={m.id}
+                        rank={i + 1}
+                        accent="gold"
+                        title={m.attraction}
+                        meta={`${m.done}/${m.desired} ride${m.desired === 1 ? '' : 's'}`}
+                        disabled={isComplete}
+                        onTap={() => handlePromote(m.id, m.attraction)}
+                      />
+                    );
+                  })}
+                </Section>
+              )}
+
+              {/* ── PARTY WANTS ── */}
+              {showParty && rankedParty.length > 0 && (
+                <Section
+                  label="Party Wants · From your pre-trip survey"
+                  accent="magenta"
+                >
+                  {rankedParty.map((p, i) => (
+                    <Row
+                      key={p.id}
+                      rank={i + 1}
+                      accent="magenta"
+                      title={p.attraction}
+                      sub={p.location}
+                      meta={`${p.party.yes} of ${p.party.total} want this`}
+                      metaIcon={<Users size={10} />}
+                      onTap={() => handlePromote(`party-${p.id}`, p.attraction)}
+                    />
+                  ))}
+                </Section>
+              )}
+
+              {/* ── COMMUNITY ── */}
+              {showCommunity && rankedCommunity.length > 0 && (
+                <Section
+                  label="Community Picks · Voted today"
+                  accent="slate"
+                >
+                  {rankedCommunity.map((c, i) => (
+                    <Row
+                      key={c.id}
+                      rank={i + 1}
+                      accent="slate"
+                      title={c.attraction}
+                      sub={c.location}
+                      meta={formatVotes(c.votes)}
+                      metaIcon={<Users size={10} />}
+                      metaTrail={c.trend === 'up' ? <TrendingUp size={9} /> : null}
+                      onTap={() => handlePromote(`comm-${c.id}`, c.attraction)}
+                    />
+                  ))}
+                </Section>
+              )}
+
+              {showMust &&
+                showParty &&
+                showCommunity &&
+                rankedMustDos.length === 0 &&
+                rankedParty.length === 0 &&
+                rankedCommunity.length === 0 && (
+                  <p className="font-sans text-[12px] text-center py-8" style={{ color: 'hsl(var(--slate-plaid))' }}>
+                    Nothing left to pull in. You\u2019re flying clean.
+                  </p>
+                )}
+            </div>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="shrink-0 m-3 mt-1 rounded-xl py-2.5 bg-transparent border cursor-pointer font-sans text-[10px] uppercase tracking-sovereign font-bold"
+              style={{
+                borderColor: 'hsl(var(--obsidian) / 0.1)',
+                color: 'hsl(var(--slate-plaid))',
+              }}
+            >
+              Close
+            </button>
+          </motion.aside>
+        </>
+      )}
+    </AnimatePresence>
+  );
+};
+
+/* ─── Internal building blocks ─────────────────────────────────── */
+
+type Accent = 'gold' | 'magenta' | 'slate';
+
+const accentColor = (a: Accent) =>
+  a === 'gold'
+    ? 'hsl(var(--gold))'
+    : a === 'magenta'
+      ? 'hsl(316 95% 35%)'
+      : 'hsl(var(--slate-plaid))';
+
+const Section = ({
+  label,
+  accent,
+  children,
+}: {
+  label: string;
+  accent: Accent;
+  children: React.ReactNode;
+}) => (
+  <section className="mt-2 mb-1">
+    <p
+      className="font-sans text-[8px] uppercase tracking-sovereign font-bold px-3 pb-1.5"
+      style={{ color: accentColor(accent), letterSpacing: '0.16em' }}
+    >
+      {label}
+    </p>
+    <ul className="list-none p-0 m-0 space-y-1">{children}</ul>
+  </section>
+);
+
+interface RowProps {
+  rank: number;
+  accent: Accent;
+  title: string;
+  sub?: string;
+  meta?: string;
+  metaIcon?: React.ReactNode;
+  metaTrail?: React.ReactNode;
+  disabled?: boolean;
+  onTap: () => void;
+}
+
+const Row = ({ rank, accent, title, sub, meta, metaIcon, metaTrail, disabled, onTap }: RowProps) => {
+  const color = accentColor(accent);
+  return (
+    <li>
+      <motion.button
+        whileTap={disabled ? undefined : { scale: 0.98 }}
+        onClick={onTap}
+        disabled={disabled}
+        aria-label={`${title}${disabled ? ' — complete' : ' — pull onto active card'}`}
+        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-transparent border-none cursor-pointer text-left transition-colors hover:bg-accent/5 disabled:cursor-not-allowed"
+        style={{ minHeight: '52px', opacity: disabled ? 0.5 : 1 }}
+      >
+        <span
+          className="shrink-0 flex items-center justify-center rounded-full font-display text-[13px] tabular-nums font-bold"
+          style={{
+            width: '26px',
+            height: '26px',
+            background: disabled ? 'hsl(var(--slate-plaid) / 0.15)' : `${color.replace(')', ' / 0.15)')}`,
+            color: disabled ? 'hsl(var(--slate-plaid))' : color,
+          }}
+        >
+          {disabled ? <Check size={13} /> : rank}
+        </span>
+
+        <div className="flex-1 min-w-0">
+          <p
+            className="font-display text-[14px] leading-tight text-foreground truncate"
+            style={{ textDecoration: disabled ? 'line-through' : 'none' }}
+          >
+            {title}
+          </p>
+          <div className="flex items-center gap-2 mt-0.5">
+            {sub && (
+              <span
+                className="font-sans text-[10px]"
+                style={{ color: 'hsl(var(--slate-plaid))' }}
+              >
+                {sub}
+              </span>
+            )}
+            {meta && (
+              <span
+                className="font-sans text-[10px] tabular-nums flex items-center gap-1"
+                style={{ color }}
+              >
+                {metaIcon}
+                {meta}
+                {metaTrail}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {!disabled ? (
+          <ChevronRight size={16} className="shrink-0" style={{ color }} />
+        ) : (
+          <Star size={14} className="shrink-0" style={{ color: 'hsl(var(--slate-plaid))' }} fill="currentColor" />
+        )}
+      </motion.button>
+    </li>
+  );
+};
+
+export default PullRideInSheet;
