@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Clock, MapPin, ArrowRight, Users, Check } from 'lucide-react';
+import { Clock, MapPin, ArrowRight, Users, Check, Utensils, Sparkles } from 'lucide-react';
 import EngagementRibbon from './EngagementRibbon';
 
 interface FocusMoveProps {
@@ -26,6 +26,17 @@ interface FocusMoveProps {
   mustDo?: boolean;
   /** Mark this Hero as completed/seen — removes it from the stack. */
   onComplete?: () => void;
+  /**
+   * "On the Books" — the next dining or experience hold within the hour.
+   * Surfaces a thin gold chip above Right Now. Tap opens the Strategic Dashboard.
+   */
+  upcomingHold?: {
+    kind: 'dining' | 'experience';
+    name: string;
+    minutesAway: number;
+    walkMinutes?: number;
+  };
+  onUpcomingHoldTap?: () => void;
 }
 
 /**
@@ -58,6 +69,8 @@ const FocusMove = ({
   pivotHeadline = 'A New Path is Available',
   mustDo = false,
   onComplete,
+  upcomingHold,
+  onUpcomingHoldTap,
 }: FocusMoveProps) => {
   // Boutique Shadow — heavy Deep Obsidian at 10% opacity per spec.
   // Must-Do cards add a Burnished Gold border ring.
