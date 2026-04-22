@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ChevronLeft, Zap, MapPin, Clock, Check, Star, Lock } from 'lucide-react';
+import { ChevronLeft, Zap, MapPin, Clock, Check, Star, Lock, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   LL_INVENTORY,
@@ -45,6 +45,9 @@ const BookLightningLane = () => {
   const navigate = useNavigate();
   const { fire } = useHaptics();
   const [holds, setHolds] = useState<HeldLL[]>(INITIAL_HOLDS);
+  // Track holds added in this session so we can offer a "see it on your stack"
+  // ribbon — keeps the user oriented after a booking instead of stranding them.
+  const [sessionAdds, setSessionAdds] = useState(0);
 
   const summary = useMemo(
     () => summarizeCapacity(holds, NOW_MINUTES, DEFAULT_CAPACITY),
@@ -94,6 +97,7 @@ const BookLightningLane = () => {
       status: 'held',
     };
     setHolds((prev) => [...prev, newHold]);
+    setSessionAdds((n) => n + 1);
     toast.success(`${a.name} secured for ${a.nextWindow}.`);
   };
 
