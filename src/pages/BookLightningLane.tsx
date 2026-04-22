@@ -408,6 +408,57 @@ const SelloutLegend = () => {
 };
 
 /**
+ * Urgency filter chip row. Each chip narrows the LL list to a sell-out
+ * window so a guest can focus on what's actually slipping. The active chip
+ * uses the same HSL token as its corresponding SelloutChip color, reinforcing
+ * the legend → filter → list color story.
+ */
+type UrgencyValue = 'all' | '1h' | '2h' | 'later';
+const UrgencyFilter = ({ value, onChange }: { value: UrgencyValue; onChange: (v: UrgencyValue) => void }) => {
+  const chips: { value: UrgencyValue; label: string; color: string }[] = [
+    { value: 'all',   label: 'All',         color: 'hsl(var(--obsidian))' },
+    { value: '1h',    label: 'Within 1h',   color: 'hsl(316 95% 35%)' },
+    { value: '2h',    label: 'Within 2h',   color: 'hsl(var(--gold))' },
+    { value: 'later', label: 'Later',       color: 'hsl(var(--slate-plaid))' },
+  ];
+  return (
+    <div
+      className="flex items-center gap-1.5 mb-3 flex-wrap"
+      role="radiogroup"
+      aria-label="Filter by typical sell-out urgency"
+    >
+      {chips.map((c) => {
+        const active = value === c.value;
+        return (
+          <button
+            key={c.value}
+            type="button"
+            role="radio"
+            aria-checked={active}
+            onClick={() => onChange(c.value)}
+            className="font-sans text-[10px] font-semibold px-2.5 py-1.5 rounded-full border transition-colors min-h-[28px] flex items-center gap-1.5"
+            style={{
+              backgroundColor: active ? `${c.color.replace(')', ' / 0.12)')}` : 'transparent',
+              borderColor: active ? c.color : 'hsl(var(--obsidian) / 0.10)',
+              color: active ? c.color : 'hsl(var(--slate-plaid))',
+            }}
+          >
+            {c.value !== 'all' && (
+              <span
+                aria-hidden="true"
+                className="inline-block rounded-full"
+                style={{ width: 5, height: 5, backgroundColor: c.color }}
+              />
+            )}
+            {c.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+};
+
+/**
  * "Usually gone by …" chip — colors itself by urgency:
  *   • Magenta when sellout is within the next 60 minutes (or already past).
  *   • Gold for the next 2 hours.
