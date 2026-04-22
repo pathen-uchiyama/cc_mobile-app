@@ -98,22 +98,11 @@ const SwapSuggestionsSheet = ({ open, onClose, skipped, reason }: SwapSuggestion
   // through a single polite live region, and is associated to each
   // button via aria-describedby so AT users still hear it on focus.
   const [liveRainWhy, setLiveRainWhy] = useState('');
-  const lastRainSigRef = useRef<string>('');
-  useEffect(() => {
-    if (!open || !isRain) {
-      lastRainSigRef.current = '';
-      setLiveRainWhy('');
-      return;
-    }
-    // Signature = ordered rain rationales. Only announce when it actually
-    // changes — never on focus, never on re-renders.
-    const sig = options.map((o) => `${o.id}:${o.rainWhy ?? ''}`).join('|');
-    if (sig === lastRainSigRef.current) return;
-    lastRainSigRef.current = sig;
-    // Announce a compact summary of what changed, not every option.
-    const focused = options.find((o) => !!o.rainWhy);
-    setLiveRainWhy(focused?.rainWhy ? `Updated rationale: ${focused.rainWhy}` : '');
-  }, [open, isRain, options]);
+  // The deterministic diff effect below is the SINGLE writer for
+  // `liveRainWhy`. (We previously also had a signature-based effect
+  // here that overlapped this one and clobbered "removed" announcements
+  // when reason flipped rain → manual; it has been removed in favor of
+  // the diff-based approach.)
 
   // ── Deterministic aria-label / describedby toggle ────────────────────
   // Track which option ids currently have a rain rationale shown. When
