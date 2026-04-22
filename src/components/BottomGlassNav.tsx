@@ -1,6 +1,6 @@
-import { Eye, Star, Shuffle } from 'lucide-react';
+import { Eye, Star, Shuffle, LayoutDashboard } from 'lucide-react';
 
-type TabId = 'today' | 'mustdo' | 'pivot';
+type TabId = 'today' | 'mustdo' | 'pivot' | 'dashboard';
 
 interface BottomGlassNavProps {
   activeTab: TabId;
@@ -14,9 +14,10 @@ interface BottomGlassNavProps {
 }
 
 const tabs: { id: TabId; label: string; icon: typeof Eye }[] = [
-  { id: 'today',  label: 'Today',    icon: Eye },
-  { id: 'mustdo', label: 'Must-Do',  icon: Star },
-  { id: 'pivot',  label: 'Pivot',    icon: Shuffle },
+  { id: 'today',     label: 'Today',     icon: Eye },
+  { id: 'mustdo',    label: 'Must-Do',   icon: Star },
+  { id: 'pivot',     label: 'Pivot',     icon: Shuffle },
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
 ];
 
 /**
