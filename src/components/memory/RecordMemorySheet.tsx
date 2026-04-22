@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, Video, Mic, FileText, Square, Check, Upload, X, Loader2, ShieldCheck, AlertCircle, Settings } from 'lucide-react';
+import { Camera, Video, Mic, FileText, Square, Check, Upload, X, Loader2, ShieldCheck, AlertCircle, Settings, Sunrise, Moon } from 'lucide-react';
 import BottomSheet from '@/components/BottomSheet';
 import { useMediaCapture, type CaptureMode } from '@/hooks/memory/useMediaCapture';
-import { useMemoryVault, type MemoryKind, type MemoryTag } from '@/contexts/MemoryContext';
+import { useMemoryVault, type MemoryKind, type MemoryTag, type InterviewPhase } from '@/contexts/MemoryContext';
 import { useCelebrate } from '@/contexts/CelebrationContext';
 import VideoTrimmer from '@/components/memory/VideoTrimmer';
+import InterviewSheet from '@/components/memory/InterviewSheet';
 
 interface RecordMemorySheetProps {
   open: boolean;
