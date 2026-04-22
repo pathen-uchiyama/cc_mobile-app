@@ -152,9 +152,9 @@ const SwapSuggestionsSheet = ({ open, onClose, skipped, reason }: SwapSuggestion
               className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 border-b border-primary/20 font-sans text-[9px] uppercase tracking-sovereign text-primary/80 font-semibold"
             >
               <span>Today\u2019s Plan</span>
-              <ChevronRight size={10} className="opacity-60" />
+              <ChevronRight size={10} className="opacity-60" aria-hidden />
               <span>Pivot</span>
-              <ChevronRight size={10} className="opacity-60" />
+              <ChevronRight size={10} className="opacity-60" aria-hidden />
               <span className="text-primary">Weather</span>
             </nav>
             {/* Rationale body */}
