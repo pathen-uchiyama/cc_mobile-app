@@ -298,6 +298,31 @@ const InterviewSheet = ({ open, onClose, phase }: InterviewSheetProps) => {
         )}
       </AnimatePresence>
 
+      {/* Transcript review — only when we have one from voice mode */}
+      {mode === 'voice' && hasTranscript && (
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-4"
+        >
+          <div className="flex items-center gap-1.5 mb-2">
+            <Sparkles size={11} className="text-accent" />
+            <span className="font-sans text-[9px] uppercase tracking-sovereign text-accent font-bold">
+              Your words, transcribed
+            </span>
+          </div>
+          <textarea
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            rows={5}
+            className="w-full bg-card border border-border rounded-2xl p-4 font-display italic text-[15px] text-foreground leading-relaxed focus:outline-none focus:ring-2 focus:ring-accent/40 resize-none"
+          />
+          <p className="font-sans text-[10px] text-muted-foreground mt-1.5 leading-snug">
+            Editing here saves the text instead of the audio clip.
+          </p>
+        </motion.div>
+      )}
+
       {/* Action row */}
       <div className="flex gap-3 mt-6">
         <button
