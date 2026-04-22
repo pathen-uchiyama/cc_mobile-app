@@ -326,7 +326,7 @@ const InPark = () => {
         onRestroom={() => { clearBadge('restroom'); runPivot('Restroom', () => setNeedType('bathroom')); }}
         onRefuel={() => { clearBadge('refuel'); runPivot('Refuel', () => setNeedType('food')); }}
         onBreak={() => { clearBadge('break'); runPivot('Need a Break', () => setNeedType('quiet')); }}
-        onRain={() => { clearBadge('rain'); runPivot('Rain Pivot', () => setSwapFor(hero?.attraction ?? 'current ride')); }}
+        onRain={() => { clearBadge('rain'); runPivot('Rain Pivot', () => { setSwapReason('rain'); setSwapFor(hero?.attraction ?? 'current ride'); }); }}
         onReset={() => { clearBadge('reset'); runPivot('Reset Strategy', () => { setPivotSuggested(false); setShowRecalibrate(true); }); }}
       />
 
@@ -335,7 +335,7 @@ const InPark = () => {
         onClose={() => setAudibleOpen(false)}
         onBreak={() => runPivot('Need a Break', () => setNeedType('quiet'))}
         onRefuel={() => runPivot('Refuel', () => setNeedType('food'))}
-        onClosure={() => runPivot('Rain Pivot', () => setSwapFor(hero?.attraction ?? 'current ride'))}
+        onClosure={() => runPivot('Rain Pivot', () => { setSwapReason('rain'); setSwapFor(hero?.attraction ?? 'current ride'); })}
         onReset={() => runPivot('Reset Strategy', () => { setPivotSuggested(false); setShowRecalibrate(true); })}
       />
 
@@ -361,8 +361,9 @@ const InPark = () => {
       </AnimatePresence>
       <SwapSuggestionsSheet
         open={swapFor !== null}
-        onClose={() => setSwapFor(null)}
+        onClose={() => { setSwapFor(null); setSwapReason('manual'); }}
         skipped={swapFor ?? undefined}
+        reason={swapReason}
       />
 
       <BottomSheet
