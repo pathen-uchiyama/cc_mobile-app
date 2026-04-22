@@ -200,6 +200,7 @@ const MemoryDetailSheet = ({ open, onClose, memory, onEdit }: MemoryDetailSheetP
               <button
                 type="button"
                 onClick={() => setDetailsExpanded((v) => !v)}
+                onPointerDown={(e) => e.stopPropagation()}
                 aria-expanded={detailsExpanded}
                 aria-label={detailsExpanded ? 'Hide details' : 'Show details'}
                 className="self-center inline-flex items-center gap-1.5 bg-muted/60 hover:bg-muted rounded-full px-3.5 py-1.5 mb-3 cursor-pointer border-none transition-colors"
@@ -210,7 +211,7 @@ const MemoryDetailSheet = ({ open, onClose, memory, onEdit }: MemoryDetailSheetP
                   <ChevronUp size={12} className="text-muted-foreground" />
                 )}
                 <span className="font-sans text-[10px] uppercase tracking-sovereign text-muted-foreground font-semibold">
-                  {detailsExpanded ? 'Swipe down to hide' : 'Swipe up for details'}
+                  {detailsExpanded ? 'Tap or swipe down to hide' : 'Tap or swipe up for details'}
                 </span>
               </button>
 
