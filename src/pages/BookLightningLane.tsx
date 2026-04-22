@@ -107,12 +107,12 @@ const BookLightningLane = () => {
       <header className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm px-5 pt-5 pb-3" style={{ borderBottom: '1px solid hsl(var(--obsidian) / 0.06)' }}>
         <button
           type="button"
-          onClick={() => navigate(-1)}
+          onClick={() => navigate('/park')}
           className="flex items-center gap-1 bg-transparent border-none cursor-pointer p-1 -ml-1 mb-2 text-muted-foreground"
-          aria-label="Go back"
+          aria-label="Back to your day"
         >
           <ChevronLeft size={16} />
-          <span className="font-sans text-[11px]">Back</span>
+          <span className="font-sans text-[11px]">Your day</span>
         </button>
         <span
           className="font-sans text-[9px] uppercase tracking-sovereign font-bold"
