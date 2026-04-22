@@ -231,39 +231,24 @@ const InPark = () => {
           : <SovereignView parkName="Magic Kingdom" />
       ) : (
         <>
-          <LoomingHorizon parkName="Magic Kingdom" pulseStatus="Strategy is Active" />
-
-          <main className="flex-1 pt-[72px] pb-[140px] px-5 flex flex-col">
-            {/* Editorial title */}
-            <header className="mb-3 shrink-0">
-              <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold">
-                Today
-              </span>
-              <h1 className="text-masthead text-primary mt-2">
+          <main className="flex-1 pt-12 pb-[140px] px-6 flex flex-col">
+            {/* Editorial title — generous whitespace, no chrome above. */}
+            <header className="mb-10 shrink-0">
+              <div className="inline-flex items-center gap-2 mb-4 px-3 py-1.5 rounded-full bg-tertiary-fixed/40">
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-tertiary" />
+                <span
+                  className="font-sans text-[10px] uppercase font-bold text-tertiary-on-fixed-variant"
+                  style={{ letterSpacing: '0.18em' }}
+                >
+                  Today
+                </span>
+              </div>
+              <h1 className="text-masthead text-primary">
                 The Active<br /><span className="text-secondary">Journey.</span>
               </h1>
             </header>
 
-            {/* Sovereign Progress Bar — Must-Dos with gold glow on stack matches */}
-            <div className="mb-2">
-              <MustDoRibbon items={mustDoIcons} />
-            </div>
-
-            {/* Dropdown of remaining Must-Dos not yet in the stack */}
-            <div className="mb-3">
-              <MustDoDropdown
-                items={mustDoEntries}
-                onPromote={promoteMustDoToHero}
-                onAdjustDesired={adjustDesired}
-              />
-            </div>
-
-            {/* Whisper ticker */}
-            <div className="mb-4 -mx-5">
-              <WhisperStrip paused={whisperPaused} />
-            </div>
-
-            {/* The Sovereign Stack OR Pivot Shimmer */}
+            {/* The Sovereign Stack OR Pivot Shimmer — the only thing on screen. */}
             <section aria-label="Today's plan" className="shrink-0">
               <AnimatePresence mode="wait">
                 {pivotLabel ? (
@@ -322,15 +307,23 @@ const InPark = () => {
         onDismiss={dismissDrawer}
       />
 
-      <HearthDock
-        onSovereignTap={handleSovereignTap}
+      {/* Single bottom nav — 4 tabs. The pivot/audible actions all live one
+          tap deep, inside the floating Sovereign Key. */}
+      <BottomGlassNav
+        activeTab="horizon"
+        onTabChange={(tab) => {
+          if (tab === 'horizon') return;
+          if (tab === 'canvas') navigate('/edit-itinerary');
+          if (tab === 'guide') navigate('/upgrades');
+          if (tab === 'vault') navigate('/joy-report');
+        }}
+      />
+
+      {/* Single floating FAB — opens the Audible menu (rain pivot, refuel,
+          break, reset). Replaces the 5-icon HearthDock entirely. */}
+      <SovereignAnchor
         active={audibleOpen || dashboardOpen}
-        badges={pivotBadges}
-        onRestroom={() => { clearBadge('restroom'); runPivot('Restroom', () => setNeedType('bathroom')); }}
-        onRefuel={() => { clearBadge('refuel'); runPivot('Refuel', () => setNeedType('food')); }}
-        onBreak={() => { clearBadge('break'); runPivot('Need a Break', () => setNeedType('quiet')); }}
-        onRain={() => { clearBadge('rain'); runPivot('Rain Pivot', () => openSwap('rain', hero?.attraction ?? 'current ride')); }}
-        onReset={() => { clearBadge('reset'); runPivot('Reset Strategy', () => { setPivotSuggested(false); setShowRecalibrate(true); }); }}
+        onTap={handleSovereignTap}
       />
 
       <AudibleMenu
