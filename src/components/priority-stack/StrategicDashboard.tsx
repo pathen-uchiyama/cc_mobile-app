@@ -7,13 +7,6 @@ interface StrategicDashboardProps {
   onClose: () => void;
 }
 
-const KIND_LABEL: Record<Reservation['kind'], string> = {
-  dining: 'Dining',
-  experience: 'Experience',
-  ll: 'Lightning Lane',
-  ill: 'Individual LL',
-};
-
 const STATUS_TONE: Record<Reservation['status'], { bg: string; fg: string; label: string }> = {
   'open-now': { bg: 'hsl(var(--accent) / 0.15)', fg: 'hsl(var(--accent))', label: 'open now' },
   'checked-in': { bg: 'hsl(var(--accent) / 0.15)', fg: 'hsl(var(--accent))', label: 'checked in' },
