@@ -18,6 +18,7 @@ import BookLightningLane from "./pages/BookLightningLane";
 import { CompanionProvider } from "./contexts/CompanionContext";
 import { JoyEventsProvider } from "./contexts/JoyEventsContext";
 import { CelebrationProvider } from "./contexts/CelebrationContext";
+import { MemoryProvider } from "./contexts/MemoryContext";
 import RouteTransition from "./components/layout/RouteTransition";
 
 const queryClient = new QueryClient();
@@ -56,9 +57,11 @@ const App = () => (
       <CompanionProvider>
         <JoyEventsProvider>
           <CelebrationProvider>
-            <BrowserRouter>
-              <AnimatedRoutes />
-            </BrowserRouter>
+            <MemoryProvider>
+              <BrowserRouter>
+                <AnimatedRoutes />
+              </BrowserRouter>
+            </MemoryProvider>
           </CelebrationProvider>
         </JoyEventsProvider>
       </CompanionProvider>

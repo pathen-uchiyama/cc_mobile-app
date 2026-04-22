@@ -21,6 +21,9 @@ import DevPanel from '@/components/DevPanel';
 import WhisperStrip from '@/components/WhisperStrip';
 import { useCompanion } from '@/contexts/CompanionContext';
 import { useCelebrate, WHISPERS } from '@/contexts/CelebrationContext';
+import { useMemoryVault } from '@/contexts/MemoryContext';
+import RecordMemorySheet from '@/components/memory/RecordMemorySheet';
+import InterviewSheet from '@/components/memory/InterviewSheet';
 import { RESERVATIONS, nextHospitalityReservation, minutesUntil } from '@/data/reservations';
 import { INITIAL_HOLDS, DEFAULT_CAPACITY, summarizeCapacity } from '@/data/lightningLanes';
 import { usePlanStack, type MustDo } from '@/hooks/park/usePlanStack';
@@ -113,6 +116,17 @@ const InPark = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerHandled, setDrawerHandled] = useState(false);
   const [findAndSeekOpen, setFindAndSeekOpen] = useState(false);
+  const [memoryOpen, setMemoryOpen] = useState(false);
+  const [memoryContext, setMemoryContext] = useState<{ attraction?: string; location?: string } | undefined>(undefined);
+  const [preInterviewOpen, setPreInterviewOpen] = useState(false);
+  const { preCompleted } = useMemoryVault();
+
+  // Surface the pre-park interview once, on first arrival.
+  useEffect(() => {
+    if (preCompleted || useQuietView) return;
+    const t = setTimeout(() => setPreInterviewOpen(true), 1200);
+    return () => clearTimeout(t);
+  }, [preCompleted, useQuietView]);
 
   // ── Derived data ──────────────────────────────────────────────────────
   const nextHold = nextHospitalityReservation(RESERVATIONS, NOW_MINUTES, 60);
@@ -207,7 +221,9 @@ const InPark = () => {
     needType !== null ||
     showRecalibrate ||
     swapFor !== null ||
-    findAndSeekOpen;
+    findAndSeekOpen ||
+    memoryOpen ||
+    preInterviewOpen;
 
   return (
     <div className="min-h-screen bg-background max-w-[480px] mx-auto relative flex flex-col">
@@ -267,7 +283,11 @@ const InPark = () => {
                       items={plan}
                       walkingPrompts={WALKING_PROMPTS}
                       onCommitHero={commitHero}
-                      onCaptureMemory={(id) => celebrate('Memory tucked into the Vault.', `Captured · ${id}`)}
+                      onCaptureMemory={(id) => {
+                        const item = plan.find((p) => p.id === id);
+                        setMemoryContext(item ? { attraction: item.attraction, location: item.location } : undefined);
+                        setMemoryOpen(true);
+                      }}
                       onFindAndSeek={() => setFindAndSeekOpen(true)}
                       onPromote={promoteToHero}
                       onCompleteHero={completeHero}
@@ -354,6 +374,18 @@ const InPark = () => {
       >
         <FindAndSeekWidget />
       </BottomSheet>
+
+      <RecordMemorySheet
+        open={memoryOpen}
+        onClose={() => setMemoryOpen(false)}
+        contextHint={memoryContext}
+      />
+
+      <InterviewSheet
+        open={preInterviewOpen}
+        onClose={() => setPreInterviewOpen(false)}
+        phase="pre"
+      />
     </div>
   );
 };
