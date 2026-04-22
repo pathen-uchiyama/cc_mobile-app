@@ -364,7 +364,18 @@ const InPark = () => {
 
             {/* Whisper ticker */}
             <div className="mb-4 -mx-5">
-              <WhisperStrip />
+              <WhisperStrip
+                paused={
+                  pivotSuggested ||
+                  audibleOpen ||
+                  dashboardOpen ||
+                  drawerOpen ||
+                  needType !== null ||
+                  showRecalibrate ||
+                  swapFor !== null ||
+                  findAndSeekOpen
+                }
+              />
             </div>
 
             {/* ── The Sovereign Stack (max 3 cards) OR Pivot Shimmer ── */}

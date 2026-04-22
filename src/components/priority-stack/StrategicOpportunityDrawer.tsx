@@ -32,8 +32,11 @@ const StrategicOpportunityDrawer = ({
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 120, opacity: 0 }}
           transition={{ type: 'spring', damping: 22, stiffness: 220 }}
-          className="fixed bottom-[110px] left-1/2 -translate-x-1/2 z-[9960] w-[min(440px,calc(100vw-24px))] bg-card rounded-2xl px-5 py-4"
-          style={{ boxShadow: '0 24px 60px hsl(var(--obsidian) / 0.18)' }}
+          className="fixed bottom-[110px] left-1/2 -translate-x-1/2 w-[min(440px,calc(100vw-24px))] bg-card rounded-2xl px-5 py-4"
+          style={{
+            boxShadow: '0 24px 60px hsl(var(--obsidian) / 0.18)',
+            zIndex: 'var(--z-sheet)' as unknown as number,
+          }}
         >
           {/* Header — Burnished Gold */}
           <div className="flex items-center gap-2 mb-2">

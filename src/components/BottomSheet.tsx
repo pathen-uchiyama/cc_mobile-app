@@ -42,7 +42,7 @@ const BottomSheet = ({
   title,
   subtitle,
   children,
-  zIndex = 9990,
+  zIndex,
 }: BottomSheetProps) => {
   // Lock body scroll while open
   useEffect(() => {
@@ -68,7 +68,7 @@ const BottomSheet = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0"
-          style={{ zIndex }}
+          style={{ zIndex: zIndex ?? 'var(--z-sheet)' as unknown as number }}
         >
           {/* Vellum-blur backdrop */}
           <motion.div
