@@ -143,88 +143,14 @@ const FocusMove = ({
       {/* ─── TOP HALF · TACTICAL ─── (24px no-bleed padding) — flex-1 so the
           card fills its slot and the Engagement Ribbon hugs the bottom. */}
       <div className="flex-1 p-6 pb-5" style={{ padding: '24px', paddingBottom: '20px' }}>
-        {/* On the Books — next dining/experience hold within the hour */}
-        {upcomingHold && (
-          <button
-            type="button"
-            onClick={onUpcomingHoldTap}
-            className="w-full flex items-center justify-between gap-2 mb-4 px-3 py-2 rounded-xl border-none cursor-pointer transition-opacity hover:opacity-85"
-            style={{
-              background: 'hsl(var(--gold) / 0.10)',
-              border: '1px solid hsl(var(--gold) / 0.25)',
-            }}
-            aria-label={`On the Books: ${upcomingHold.name} in ${upcomingHold.minutesAway} minutes`}
-          >
-            <div className="flex items-center gap-2 min-w-0">
-              {upcomingHold.kind === 'dining' ? (
-                <Utensils size={12} style={{ color: 'hsl(var(--gold))' }} />
-              ) : (
-                <Sparkles size={12} style={{ color: 'hsl(var(--gold))' }} />
-              )}
-              <span
-                className="font-sans text-[9px] uppercase tracking-sovereign font-bold shrink-0"
-                style={{ color: 'hsl(var(--gold))', letterSpacing: '0.14em' }}
-              >
-                On the Books
-              </span>
-              <span className="font-sans text-[11px] text-foreground truncate min-w-0">
-                {upcomingHold.name}
-              </span>
-            </div>
-            <span className="font-sans text-[10px] text-muted-foreground tabular-nums shrink-0">
-              {upcomingHold.minutesAway}m
-              {upcomingHold.walkMinutes !== undefined ? ` · ${upcomingHold.walkMinutes}m walk` : ''}
-            </span>
-          </button>
-        )}
-
-        {/* Next-LL countdown chip — passive when locked, accent when open */}
-        {llCapacity && (
-          <button
-            type="button"
-            onClick={onLLChipTap}
-            className="w-full flex items-center justify-between gap-2 mb-4 px-3 py-2 rounded-xl border-none cursor-pointer transition-opacity hover:opacity-85"
-            style={{
-              background: llCapacity.canBookNow
-                ? 'hsl(var(--accent) / 0.12)'
-                : 'hsl(var(--obsidian) / 0.04)',
-              border: llCapacity.canBookNow
-                ? '1px solid hsl(var(--accent) / 0.35)'
-                : '1px solid hsl(var(--obsidian) / 0.08)',
-            }}
-            aria-label={
-              llCapacity.canBookNow
-                ? 'Lightning Lane slot open — tap to browse'
-                : `Next Lightning Lane unlocks in ${llCapacity.unlocksInMin} minutes`
-            }
-          >
-            <div className="flex items-center gap-2 min-w-0">
-              <Zap
-                size={12}
-                style={{
-                  color: llCapacity.canBookNow ? 'hsl(var(--accent))' : 'hsl(var(--slate-plaid))',
-                }}
-              />
-              <span
-                className="font-sans text-[9px] uppercase tracking-sovereign font-bold shrink-0"
-                style={{
-                  color: llCapacity.canBookNow ? 'hsl(var(--accent))' : 'hsl(var(--slate-plaid))',
-                  letterSpacing: '0.14em',
-                }}
-              >
-                {llCapacity.canBookNow ? 'Slot Open' : 'Next LL'}
-              </span>
-              <span className="font-sans text-[11px] text-foreground truncate min-w-0">
-                {llCapacity.canBookNow
-                  ? 'Browse & book a Lightning Lane'
-                  : `Unlocks in ${llCapacity.unlocksInMin}m`}
-              </span>
-            </div>
-            <span className="font-sans text-[10px] tabular-nums shrink-0" style={{ color: 'hsl(var(--slate-plaid))' }}>
-              {llCapacity.held} / {llCapacity.cap} held
-            </span>
-          </button>
-        )}
+        {/* Above-title chip rail — strict priority, max 2 (or 1 if pivot active) */}
+        <HeroChips
+          upcomingHold={upcomingHold}
+          onUpcomingHoldTap={onUpcomingHoldTap}
+          llCapacity={llCapacity}
+          onLLChipTap={onLLChipTap}
+          pivotActive={pivotSuggested}
+        />
 
         <div className="flex items-start justify-between mb-4 gap-2">
           <span className="font-sans text-[9px] uppercase tracking-sovereign text-accent font-bold flex items-center gap-1.5">
