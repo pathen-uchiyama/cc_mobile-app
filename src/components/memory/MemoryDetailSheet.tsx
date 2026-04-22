@@ -39,9 +39,25 @@ const formatDuration = (ms: number) => {
   return s < 60 ? `${s}s` : `${Math.floor(s / 60)}m ${s % 60}s`;
 };
 
-// Gesture thresholds — distance OR velocity wins, so a flick works as well as a drag.
-const SWIPE_DISTANCE = 80;
-const SWIPE_VELOCITY = 500;
+// Gesture thresholds — tuned to prevent accidental dismiss/collapse from a stray drag.
+//
+// Two-tier model:
+//  • REVEAL  (swipe up to expand details) — easiest, low-stakes action.
+//  • COLLAPSE (swipe down while expanded) — medium effort, reversible.
+//  • DISMISS (swipe left, or swipe down while already collapsed) — hardest,
+//    because it tears the sheet down entirely.
+//
+// A gesture only counts when EITHER distance ≥ threshold AND velocity ≥ a small
+// floor (so a slow long drag still works), OR velocity alone is high enough to
+// register as a deliberate flick. Pure tiny drags are ignored.
+const REVEAL_DISTANCE = 70;     // swipe up → show details
+const COLLAPSE_DISTANCE = 110;  // swipe down → hide details
+const DISMISS_DISTANCE = 160;   // swipe left/down-to-close → tear down
+const FLICK_VELOCITY = 700;     // velocity-only "flick" trigger
+const MIN_CONFIRM_VELOCITY = 120; // must be moving, not a settle
+// Axis must dominate by this ratio before we treat the gesture as horizontal
+// or vertical — prevents diagonal scrolls from being misclassified.
+const AXIS_DOMINANCE = 1.4;
 
 /**
  * MemoryDetailSheet — gesture-driven playback view for a saved Vault entry.
@@ -75,26 +91,65 @@ const MemoryDetailSheet = ({ open, onClose, memory, onEdit }: MemoryDetailSheetP
   const feelingTags = memory.tags.filter((t) => t.kind === 'feeling');
   const whoTags = memory.tags.filter((t) => t.kind === 'who');
 
-  // Sheet-level gesture handler: routes left/up/down based on dominant axis.
+  // Sheet-level gesture handler: routes left/up/down based on dominant axis,
+  // with per-action thresholds so small drags don't dismiss or collapse.
   const handleSheetDragEnd = (_: unknown, info: PanInfo) => {
     const { offset, velocity } = info;
-    const horizontal = Math.abs(offset.x) > Math.abs(offset.y);
+    const absX = Math.abs(offset.x);
+    const absY = Math.abs(offset.y);
 
-    if (horizontal) {
-      // Swipe left to dismiss. Right swipes are ignored (no inbox-style action).
-      if (offset.x < -SWIPE_DISTANCE || velocity.x < -SWIPE_VELOCITY) {
+    // Require one axis to clearly dominate; otherwise treat as a wobble and
+    // let the spring snap us back to rest.
+    const horizontalDominant = absX > absY * AXIS_DOMINANCE;
+    const verticalDominant = absY > absX * AXIS_DOMINANCE;
+
+    // Helper: a directional gesture passes if it's a deliberate flick OR a
+    // long-enough drag that's still actively moving (not a slow settle).
+    const passes = (
+      offsetVal: number,
+      velocityVal: number,
+      distanceThreshold: number,
+      direction: 1 | -1,
+    ) => {
+      const movedFar = direction === -1
+        ? offsetVal <= -distanceThreshold
+        : offsetVal >= distanceThreshold;
+      const movingWithIntent = direction === -1
+        ? velocityVal <= -MIN_CONFIRM_VELOCITY
+        : velocityVal >= MIN_CONFIRM_VELOCITY;
+      const flicked = direction === -1
+        ? velocityVal <= -FLICK_VELOCITY
+        : velocityVal >= FLICK_VELOCITY;
+      return flicked || (movedFar && movingWithIntent);
+    };
+
+    if (horizontalDominant) {
+      // Swipe left to dismiss — needs a firm, deliberate drag.
+      if (passes(offset.x, velocity.x, DISMISS_DISTANCE, -1)) {
         onClose();
       }
       return;
     }
 
-    // Vertical: up reveals, down collapses (or dismisses if already collapsed).
-    if (offset.y < -SWIPE_DISTANCE || velocity.y < -SWIPE_VELOCITY) {
+    if (!verticalDominant) {
+      // Ambiguous diagonal — ignore, sheet springs back.
+      return;
+    }
+
+    // Vertical: up reveals (cheap), down collapses or dismisses (expensive).
+    if (passes(offset.y, velocity.y, REVEAL_DISTANCE, -1)) {
       setDetailsExpanded(true);
-    } else if (offset.y > SWIPE_DISTANCE || velocity.y > SWIPE_VELOCITY) {
-      if (detailsExpanded) {
+      return;
+    }
+
+    if (detailsExpanded) {
+      // Collapse: medium threshold so accidental jitter doesn't hide details.
+      if (passes(offset.y, velocity.y, COLLAPSE_DISTANCE, 1)) {
         setDetailsExpanded(false);
-      } else {
+      }
+    } else {
+      // Dismiss-by-swipe-down: hardest threshold to clear.
+      if (passes(offset.y, velocity.y, DISMISS_DISTANCE, 1)) {
         onClose();
       }
     }
