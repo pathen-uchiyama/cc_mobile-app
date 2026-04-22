@@ -247,6 +247,31 @@ const RecordMemorySheet = ({ open, onClose, contextHint }: RecordMemorySheetProp
               );
             })}
 
+            {/* ── Guided interview prompts — bookend the day in the user's own words. */}
+            <div className="col-span-2 mt-1 flex items-center gap-2">
+              <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold">
+                Guided interviews
+              </span>
+              <div className="flex-1 h-px bg-border" />
+            </div>
+            {INTERVIEWS.map((i) => {
+              const Icon = i.icon;
+              return (
+                <motion.button
+                  key={i.id}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => setInterviewPhase(i.id)}
+                  className="bg-card rounded-2xl p-5 shadow-boutique flex flex-col items-start gap-2 border-none cursor-pointer text-left min-h-[120px]"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Icon size={18} className="text-primary" />
+                  </div>
+                  <span className="font-display text-base text-foreground leading-tight">{i.label}</span>
+                  <span className="font-sans text-[11px] text-muted-foreground leading-snug">{i.hint}</span>
+                </motion.button>
+              );
+            })}
+
             {/* Library upload fallback */}
             <button
               onClick={() => fileInputRef.current?.click()}
