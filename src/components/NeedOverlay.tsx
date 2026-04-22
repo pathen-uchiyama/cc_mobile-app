@@ -257,6 +257,84 @@ const NeedOverlay = ({ type, onClose, currentLocation, hasKids }: NeedOverlayPro
     );
   }
 
+  if (type === 'cooldown') {
+    const sorted = sortCooldown(COOLDOWN, currentLocation);
+    const subtitle = currentLocation
+      ? `Closest to ${currentLocation} · A/C first, then misted, then shaded`
+      : 'Air-conditioned indoors first, then misted and shaded outdoor spots';
+
+    return (
+      <BottomSheet
+        open={true}
+        onClose={onClose}
+        snap="half"
+        eyebrow="Cool Down"
+        title="Beat the Heat"
+        subtitle={subtitle}
+      >
+        <div className="space-y-3">
+          {sorted.map((item) => {
+            const Tier = TIER_META[item.coolingTier];
+            const TierIcon = Tier.Icon;
+            return (
+              <div key={item.name} className="bg-card p-4 shadow-boutique rounded-xl">
+                {/* Row 1 — name (left), kind tag (right) */}
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <h3 className="font-sans text-sm font-semibold text-foreground truncate min-w-0">
+                    {item.name}
+                  </h3>
+                  <span
+                    className="font-sans text-[9px] uppercase tracking-sovereign font-bold shrink-0 px-1.5 py-0.5 rounded-full"
+                    style={{
+                      color: 'hsl(var(--gold))',
+                      background: 'hsl(var(--gold) / 0.10)',
+                      letterSpacing: '0.14em',
+                    }}
+                  >
+                    {KIND_LABEL[item.kind]}
+                  </span>
+                </div>
+
+                {/* Row 2 — cooling tier pill + duration; the tier pill is the
+                    primary signal so it leads. */}
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  <span
+                    className="inline-flex items-center gap-1 font-sans text-[10px] font-bold px-2 py-0.5 rounded-full"
+                    style={{
+                      color: 'hsl(210 80% 35%)',
+                      background: 'hsl(210 80% 35% / 0.10)',
+                    }}
+                    aria-label={`Cooling type: ${Tier.label}`}
+                  >
+                    <TierIcon size={11} />
+                    {Tier.label}
+                  </span>
+                  <span className="font-sans text-[10px] text-muted-foreground">·</span>
+                  <span className="font-sans text-[10px] text-muted-foreground tabular-nums">
+                    Stay <span className="text-foreground font-semibold">{item.duration}</span>
+                  </span>
+                </div>
+
+                {/* Row 3 — note */}
+                <p className="font-sans text-[10px] text-muted-foreground italic mb-2 leading-snug">
+                  {item.note}
+                </p>
+
+                {/* Row 4 — land + walk */}
+                <div className="flex items-center gap-1.5">
+                  <MapPin size={11} className="text-muted-foreground" />
+                  <span className="font-sans text-[10px] text-muted-foreground">
+                    {item.land} · {item.walkMinutes}m walk
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </BottomSheet>
+    );
+  }
+
   const items = type === 'bathroom' ? BATHROOMS : QUIET_SPACES;
   const title = type === 'bathroom' ? 'Nearest Restrooms' : 'Quiet Spaces Nearby';
   const subtitle = type === 'bathroom'
