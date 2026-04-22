@@ -77,13 +77,13 @@ const PriorityRides = ({ rides = DEFAULT_RIDES }: PriorityRidesProps) => {
             </div>
 
             {/* Vote count */}
-            <div className="shrink-0 flex items-center gap-1.5 bg-accent/10 px-2.5 py-1 rounded-full">
-              <Users size={10} className="text-accent" />
-              <span className="font-sans text-[11px] font-bold text-accent tabular-nums">
+            <div className="shrink-0 flex items-center gap-1.5 bg-secondary-container px-2.5 py-1 rounded-full">
+              <Users size={10} className="text-primary" />
+              <span className="font-sans text-[11px] font-bold text-primary tabular-nums">
                 {formatVotes(ride.votes)}
               </span>
               {ride.trend === 'up' && (
-                <TrendingUp size={9} className="text-accent" />
+                <TrendingUp size={9} className="text-primary" />
               )}
             </div>
           </motion.li>

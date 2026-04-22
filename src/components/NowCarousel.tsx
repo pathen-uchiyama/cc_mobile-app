@@ -67,7 +67,7 @@ const NowCarousel = ({ onSkip }: NowCarouselProps) => {
     <div>
       {/* Section label */}
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-1.5 h-1.5 bg-accent rounded-full" />
+        <div className="w-1.5 h-1.5 bg-secondary-container rounded-full" />
         <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold">
           Right Now
         </span>

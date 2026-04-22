@@ -57,9 +57,9 @@ const HeroCard = ({
           The Focus
         </span>
         {wait && (
-          <div className="flex items-center gap-1.5 bg-accent/15 px-3 py-1.5 rounded-full">
-            <Clock size={12} className="text-accent" />
-            <span className="font-sans text-sm text-accent font-bold tabular-nums">
+          <div className="flex items-center gap-1.5 bg-secondary-container px-3 py-1.5 rounded-full">
+            <Clock size={12} className="text-primary" />
+            <span className="font-sans text-sm text-primary font-bold tabular-nums">
               {wait}
             </span>
           </div>

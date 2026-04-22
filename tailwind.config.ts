@@ -17,6 +17,10 @@ export default {
         parchment: "hsl(var(--parchment))",
         obsidian: "hsl(var(--obsidian))",
         gold: "hsl(var(--gold))",
+        highlighter: {
+          DEFAULT: "hsl(var(--highlighter))",
+          soft: "hsl(var(--highlighter-soft))",
+        },
         magenta: "hsl(var(--magenta))",
         thistle: "hsl(var(--thistle))",
         "slate-plaid": "hsl(var(--slate-plaid))",
