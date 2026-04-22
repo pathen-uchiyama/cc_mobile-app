@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic, FileText, Square, ArrowRight, Check, SkipForward, Loader2 } from 'lucide-react';
+import { Mic, FileText, Square, ArrowRight, Check, SkipForward, Loader2, Sparkles, AlertCircle } from 'lucide-react';
 import BottomSheet from '@/components/BottomSheet';
 import { useMediaCapture } from '@/hooks/memory/useMediaCapture';
 import { useMemoryVault, type InterviewPhase } from '@/contexts/MemoryContext';
 import { useCelebrate } from '@/contexts/CelebrationContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface InterviewSheetProps {
   open: boolean;
@@ -63,6 +64,12 @@ const InterviewSheet = ({ open, onClose, phase }: InterviewSheetProps) => {
   const [body, setBody] = useState('');
   const [voiceCapture, setVoiceCapture] = useState<{ payload: string; durationMs: number } | null>(null);
   const [busy, setBusy] = useState(false);
+  // Transcription is opt-in: a separate state machine so users can keep the
+  // raw voice memo even if they never tap Transcribe.
+  const [transcribing, setTranscribing] = useState(false);
+  const [transcriptError, setTranscriptError] = useState<string | null>(null);
+  /** True once a transcript has been pulled into `body` for the current voice clip. */
+  const [hasTranscript, setHasTranscript] = useState(false);
 
   const capture = useMediaCapture('voice');
 
@@ -73,6 +80,9 @@ const InterviewSheet = ({ open, onClose, phase }: InterviewSheetProps) => {
       setBody('');
       setVoiceCapture(null);
       capture.stop();
+      setTranscribing(false);
+      setTranscriptError(null);
+      setHasTranscript(false);
     }
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -82,6 +92,9 @@ const InterviewSheet = ({ open, onClose, phase }: InterviewSheetProps) => {
   const startVoice = async () => {
     setMode('voice');
     setVoiceCapture(null);
+    setHasTranscript(false);
+    setTranscriptError(null);
+    setBody('');
     const stream = await capture.start();
     if (!stream) return;
     try {
@@ -91,6 +104,33 @@ const InterviewSheet = ({ open, onClose, phase }: InterviewSheetProps) => {
   };
 
   const stopVoice = () => capture.stop();
+
+  const handleTranscribe = async () => {
+    if (!voiceCapture) return;
+    setTranscribing(true);
+    setTranscriptError(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('transcribe-audio', {
+        body: { audio: voiceCapture.payload },
+      });
+      if (error) throw error;
+      const text = (data as { text?: string; error?: string } | null)?.text?.trim();
+      const apiError = (data as { error?: string } | null)?.error;
+      if (apiError) throw new Error(apiError);
+      if (!text) {
+        setTranscriptError('We couldn\u2019t make out the words. Your voice memo is still saved.');
+      } else {
+        setBody(text);
+        setHasTranscript(true);
+      }
+    } catch (err) {
+      console.error('Transcription failed:', err);
+      const msg = err instanceof Error ? err.message : 'Transcription failed.';
+      setTranscriptError(msg);
+    } finally {
+      setTranscribing(false);
+    }
+  };
 
   const advance = () => {
     if (isLast) {
@@ -106,11 +146,17 @@ const InterviewSheet = ({ open, onClose, phase }: InterviewSheetProps) => {
     setBody('');
     setVoiceCapture(null);
     setMode('note');
+    setHasTranscript(false);
+    setTranscriptError(null);
   };
 
   const saveAndAdvance = () => {
     setBusy(true);
-    if (mode === 'note' && body.trim()) {
+    // If we have a transcript, save it as a note so the user gets their
+    // refined text. Otherwise fall back to the raw voice clip.
+    if (mode === 'voice' && voiceCapture && hasTranscript && body.trim()) {
+      saveInterview({ phase, question: q.title, kind: 'note', payload: body.trim() });
+    } else if (mode === 'note' && body.trim()) {
       saveInterview({ phase, question: q.title, kind: 'note', payload: body.trim() });
     } else if (mode === 'voice' && voiceCapture) {
       saveInterview({ phase, question: q.title, kind: 'voice', payload: voiceCapture.payload, durationMs: voiceCapture.durationMs });
@@ -121,7 +167,9 @@ const InterviewSheet = ({ open, onClose, phase }: InterviewSheetProps) => {
 
   const skip = () => advance();
 
-  const canSave = (mode === 'note' && body.trim().length > 0) || (mode === 'voice' && voiceCapture !== null);
+  const canSave =
+    (mode === 'note' && body.trim().length > 0) ||
+    (mode === 'voice' && voiceCapture !== null);
 
   return (
     <BottomSheet
@@ -179,17 +227,49 @@ const InterviewSheet = ({ open, onClose, phase }: InterviewSheetProps) => {
                 {capture.error}
               </p>
             ) : voiceCapture ? (
-              <>
-                <Check size={36} className="text-accent mb-3" />
-                <p className="font-display italic text-[15px] text-background mb-3">Captured · {formatMs(voiceCapture.durationMs)}</p>
-                <audio src={voiceCapture.payload} controls className="w-3/4" />
+              <div className="w-full px-5 py-6 flex flex-col items-center">
+                <Check size={32} className="text-accent mb-2" />
+                <p className="font-display italic text-[14px] text-background mb-3">
+                  Captured · {formatMs(voiceCapture.durationMs)}
+                </p>
+                <audio src={voiceCapture.payload} controls className="w-full max-w-[320px] mb-4" />
+
+                {/* Transcribe CTA — opt-in, surfaces only here */}
+                {!hasTranscript && (
+                  <button
+                    onClick={handleTranscribe}
+                    disabled={transcribing}
+                    className="bg-card text-foreground rounded-xl px-4 py-2.5 font-sans text-[11px] uppercase tracking-sovereign font-semibold cursor-pointer border-none flex items-center gap-2 disabled:opacity-60"
+                  >
+                    {transcribing ? (
+                      <Loader2 size={13} className="animate-spin" />
+                    ) : (
+                      <Sparkles size={13} className="text-accent" />
+                    )}
+                    {transcribing ? 'Listening back\u2026' : 'Transcribe to text'}
+                  </button>
+                )}
+
+                {hasTranscript && (
+                  <span className="font-sans text-[10px] uppercase tracking-sovereign text-accent font-semibold">
+                    Transcript ready below — review &amp; refine
+                  </span>
+                )}
+
+                {transcriptError && (
+                  <div className="mt-3 max-w-[320px] flex items-start gap-2 bg-destructive/15 text-destructive-foreground rounded-lg px-3 py-2">
+                    <AlertCircle size={12} className="flex-shrink-0 mt-0.5" />
+                    <span className="font-sans text-[11px] leading-snug">{transcriptError}</span>
+                  </div>
+                )}
+
                 <button
                   onClick={startVoice}
-                  className="mt-3 underline bg-transparent border-none text-background/70 font-sans text-[11px] cursor-pointer"
+                  className="mt-4 underline bg-transparent border-none text-background/70 font-sans text-[11px] cursor-pointer"
                 >
                   Re-record
                 </button>
-              </>
+              </div>
             ) : capture.isRecording ? (
               <>
                 <motion.div
@@ -217,6 +297,31 @@ const InterviewSheet = ({ open, onClose, phase }: InterviewSheetProps) => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Transcript review — only when we have one from voice mode */}
+      {mode === 'voice' && hasTranscript && (
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-4"
+        >
+          <div className="flex items-center gap-1.5 mb-2">
+            <Sparkles size={11} className="text-accent" />
+            <span className="font-sans text-[9px] uppercase tracking-sovereign text-accent font-bold">
+              Your words, transcribed
+            </span>
+          </div>
+          <textarea
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            rows={5}
+            className="w-full bg-card border border-border rounded-2xl p-4 font-display italic text-[15px] text-foreground leading-relaxed focus:outline-none focus:ring-2 focus:ring-accent/40 resize-none"
+          />
+          <p className="font-sans text-[10px] text-muted-foreground mt-1.5 leading-snug">
+            Editing here saves the text instead of the audio clip.
+          </p>
+        </motion.div>
+      )}
 
       {/* Action row */}
       <div className="flex gap-3 mt-6">
