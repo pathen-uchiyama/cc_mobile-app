@@ -16,6 +16,7 @@ import RecalibrateSheet from '@/components/RecalibrateSheet';
 import SwapSuggestionsSheet, { type SwapReason } from '@/components/SwapSuggestionsSheet';
 import BottomSheet from '@/components/BottomSheet';
 import FindAndSeekWidget from '@/components/FindAndSeekWidget';
+import PriorityRides from '@/components/priority-stack/PriorityRides';
 import DevPanel from '@/components/DevPanel';
 import { useCompanion } from '@/contexts/CompanionContext';
 import { useCelebrate, WHISPERS } from '@/contexts/CelebrationContext';
