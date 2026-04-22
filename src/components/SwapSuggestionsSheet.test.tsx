@@ -252,4 +252,80 @@ describe('SwapSuggestionsSheet — rain rationale announcement', () => {
       observer.disconnect();
     }
   });
+
+  it('handles rapid rain pivot on/off toggling with one coherent announcement per transition (no duplication)', async () => {
+    // Stress: flip reason between 'manual' and 'rain' many times in
+    // quick succession. Each ON transition must produce exactly one
+    // "added" announcement; each OFF transition exactly one "removed";
+    // no transition may emit two announcements, and idempotent re-renders
+    // (same reason twice in a row) must emit zero.
+    const { rerender } = renderSheet('manual');
+    const live = getLiveRegion();
+
+    const updates: string[] = [];
+    const observer = new MutationObserver(() => {
+      updates.push(live.textContent ?? '');
+    });
+    observer.observe(live, {
+      childList: true,
+      characterData: true,
+      subtree: true,
+    });
+
+    // Sequence: rapid alternation, then a couple of idempotent repeats
+    // sprinkled in to prove they don't add noise.
+    const sequence: Array<'rain' | 'manual'> = [
+      'rain', 'manual', 'rain', 'manual', 'rain', 'manual', 'rain', 'manual',
+      'rain', 'rain',     // idempotent — no new announcement
+      'manual', 'manual', // idempotent — no new announcement
+      'rain', 'manual', 'rain', 'manual',
+    ];
+
+    // Compute the expected announcement pattern from the sequence by
+    // diffing the rationale "active" state against the previous step.
+    const expected: Array<'added' | 'removed'> = [];
+    let prevActive = false; // we started in 'manual'
+    for (const step of sequence) {
+      const nextActive = step === 'rain';
+      if (nextActive !== prevActive) {
+        expected.push(nextActive ? 'added' : 'removed');
+      }
+      prevActive = nextActive;
+    }
+
+    try {
+      for (const step of sequence) {
+        await act(async () => {
+          rerender(
+            <Wrapper>
+              <SwapSuggestionsSheet open onClose={() => {}} reason={step} />
+            </Wrapper>
+          );
+        });
+      }
+
+      // Total mutation count must equal the number of REAL transitions —
+      // never more (no duplicates), never fewer (no missed announcements).
+      expect(updates.length).toBe(expected.length);
+
+      // Each announcement must match its expected polarity AND mention
+      // "rationale" so it reads coherently to a screen reader.
+      updates.forEach((text, i) => {
+        expect(text).toMatch(/rationale/i);
+        expect(text.toLowerCase()).toContain(expected[i]);
+      });
+
+      // Independent symmetry check: equal counts of added/removed since
+      // the sequence starts AND ends in 'manual' (rationale-off).
+      const addedCount = updates.filter((t) => /added/i.test(t)).length;
+      const removedCount = updates.filter((t) => /removed/i.test(t)).length;
+      expect(addedCount).toBe(removedCount);
+
+      // Final state is 'manual' → live region's last value must reflect
+      // a "removed" announcement, never a stale "added" one.
+      expect(updates[updates.length - 1]).toMatch(/removed/i);
+    } finally {
+      observer.disconnect();
+    }
+  });
 });
