@@ -210,23 +210,33 @@ const InPark = () => {
   };
 
   // ── Empty-state derivation ────────────────────────────────────────────
-  // The page can legitimately have nothing to show. We pick ONE of four
-  // calm placards based on the current state of the planning machinery.
+  // The /park page can legitimately have nothing to show. We pick ONE
+  // calm placard based on the planning machinery's current state, and
+  // the masthead voice softens to match so the eyebrow, title, and
+  // placard read as a single composition.
   const hasPlan = plan.length > 0;
   const hasMustDos = mustDos.some((m) => m.desired > 0);
-  const emptyVariant: ParkEmptyVariant | null = !hasPlan
-    ? hasMustDos
-      ? 'pivot-pending'   // Plan was emptied (e.g. by a pivot) but Must-Dos remain.
-      : 'no-plan'         // Truly nothing on the books.
-    : null;
-  const dayComplete = !hasPlan && !hasMustDos && completedAtLeastOne;
-  const emptyHeadline = !hasPlan
-    ? dayComplete
-      ? { eyebrow: 'Today', line1: 'A complete', line2: 'voyage.' }
-      : hasMustDos
-        ? { eyebrow: 'Composing', line1: 'A new line', line2: 'is forming.' }
-        : { eyebrow: 'Today', line1: 'A blank', line2: 'page.' }
-    : { eyebrow: 'Today', line1: 'The Active', line2: 'Journey.' };
+  const completedAny = mustDos.some((m) => m.done > 0);
+
+  let emptyVariant: ParkEmptyVariant | null = null;
+  let masthead = {
+    eyebrow: 'Today',
+    line1: 'The Active',
+    line2: 'Journey.',
+  };
+
+  if (!hasPlan) {
+    if (completedAny && !hasMustDos) {
+      emptyVariant = 'day-complete';
+      masthead = { eyebrow: 'Today', line1: 'A complete', line2: 'voyage.' };
+    } else if (hasMustDos) {
+      emptyVariant = 'pivot-pending';
+      masthead = { eyebrow: 'Composing', line1: 'A new line', line2: 'is forming.' };
+    } else {
+      emptyVariant = 'no-plan';
+      masthead = { eyebrow: 'A Quiet Slate', line1: 'A blank', line2: 'page.' };
+    }
+  }
 
   return (
     <div className="min-h-screen bg-background digital-plaid-bg max-w-[480px] mx-auto relative flex flex-col">
