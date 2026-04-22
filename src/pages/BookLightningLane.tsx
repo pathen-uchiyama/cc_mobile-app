@@ -192,6 +192,38 @@ const BookLightningLane = () => {
           </ul>
         </section>
       </main>
+
+      {/* Sticky "Return to your day" ribbon — appears after the user has
+          secured at least one new hold this session. Keeps the booking
+          surface from feeling like a dead-end and pulls the user back to
+          /park where the new hold is reflected on the Hero stack. */}
+      {sessionAdds > 0 && (
+        <motion.div
+          initial={{ y: 24, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="fixed bottom-4 left-1/2 -translate-x-1/2 z-20 w-[min(440px,calc(100vw-24px))]"
+        >
+          <button
+            type="button"
+            onClick={() => navigate('/park')}
+            className="w-full rounded-2xl py-3.5 px-5 flex items-center justify-between gap-2 border-none cursor-pointer min-h-[48px] font-sans text-[12px] font-semibold"
+            style={{
+              backgroundColor: 'hsl(var(--obsidian))',
+              color: 'hsl(var(--parchment))',
+              boxShadow: '0 16px 36px hsl(var(--obsidian) / 0.32)',
+            }}
+          >
+            <span className="flex items-center gap-2">
+              <Check size={14} style={{ color: 'hsl(var(--gold))' }} />
+              {sessionAdds === 1 ? '1 new hold secured' : `${sessionAdds} new holds secured`}
+            </span>
+            <span className="flex items-center gap-1.5" style={{ color: 'hsl(var(--gold))' }}>
+              See it on your stack
+              <ArrowRight size={14} />
+            </span>
+          </button>
+        </motion.div>
+      )}
     </div>
   );
 };
