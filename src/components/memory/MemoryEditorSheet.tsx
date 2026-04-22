@@ -4,6 +4,7 @@ import { Trash2, Check, Loader2, AlertTriangle, X, Camera, Video, Mic, FileText 
 import BottomSheet from '@/components/BottomSheet';
 import { useMemoryVault, formatMemoryTime, type Memory, type MemoryTag } from '@/contexts/MemoryContext';
 import { useCelebrate } from '@/contexts/CelebrationContext';
+import TrimmedVideo from '@/components/memory/TrimmedVideo';
 
 interface MemoryEditorSheetProps {
   open: boolean;
@@ -98,7 +99,7 @@ const MemoryEditorSheet = ({ open, onClose, memory }: MemoryEditorSheetProps) =>
                 <img src={memory.payload} alt={memory.caption} className="w-full aspect-[4/5] object-cover" />
               )}
               {memory.kind === 'video' && (
-                <video src={memory.payload} controls playsInline className="w-full aspect-[4/5] object-cover" />
+                <TrimmedVideo memory={memory} className="w-full aspect-[4/5] object-cover" />
               )}
               {memory.kind === 'voice' && (
                 <div className="aspect-[4/2] flex items-center justify-center p-6">
