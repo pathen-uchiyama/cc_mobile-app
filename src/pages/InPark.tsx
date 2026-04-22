@@ -114,6 +114,23 @@ const InPark = () => {
   const [showRecalibrate, setShowRecalibrate] = useState(false);
   const [swapFor, setSwapFor] = useState<string | null>(null);
   const [swapReason, setSwapReason] = useState<SwapReason>('manual');
+
+  /**
+   * Centralized opener: validates that a SwapReason is set BEFORE the sheet
+   * mounts, so the rain-roster code path can never silently fall back to the
+   * default roster. Logs every transition for QA.
+   */
+  const VALID_REASONS: SwapReason[] = ['rain', 'closure', 'manual'];
+  const openSwap = (nextReason: SwapReason, skipped: string) => {
+    const safeReason: SwapReason = VALID_REASONS.includes(nextReason) ? nextReason : 'manual';
+    if (safeReason !== nextReason) {
+      console.warn('[SwapPivot] invalid reason received, falling back to "manual"', { nextReason });
+    }
+    console.info('[SwapPivot] opening', { reason: safeReason, skipped });
+    setSwapReason(safeReason);
+    // Set skipped LAST so the sheet's `open` flips to true only after reason is committed.
+    setSwapFor(skipped);
+  };
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerHandled, setDrawerHandled] = useState(false);
   const [findAndSeekOpen, setFindAndSeekOpen] = useState(false);
@@ -326,7 +343,7 @@ const InPark = () => {
         onRestroom={() => { clearBadge('restroom'); runPivot('Restroom', () => setNeedType('bathroom')); }}
         onRefuel={() => { clearBadge('refuel'); runPivot('Refuel', () => setNeedType('food')); }}
         onBreak={() => { clearBadge('break'); runPivot('Need a Break', () => setNeedType('quiet')); }}
-        onRain={() => { clearBadge('rain'); runPivot('Rain Pivot', () => { setSwapReason('rain'); setSwapFor(hero?.attraction ?? 'current ride'); }); }}
+        onRain={() => { clearBadge('rain'); runPivot('Rain Pivot', () => openSwap('rain', hero?.attraction ?? 'current ride')); }}
         onReset={() => { clearBadge('reset'); runPivot('Reset Strategy', () => { setPivotSuggested(false); setShowRecalibrate(true); }); }}
       />
 
@@ -335,7 +352,7 @@ const InPark = () => {
         onClose={() => setAudibleOpen(false)}
         onBreak={() => runPivot('Need a Break', () => setNeedType('quiet'))}
         onRefuel={() => runPivot('Refuel', () => setNeedType('food'))}
-        onClosure={() => runPivot('Rain Pivot', () => { setSwapReason('rain'); setSwapFor(hero?.attraction ?? 'current ride'); })}
+        onClosure={() => runPivot('Rain Pivot', () => openSwap('rain', hero?.attraction ?? 'current ride'))}
         onReset={() => runPivot('Reset Strategy', () => { setPivotSuggested(false); setShowRecalibrate(true); })}
       />
 
@@ -361,7 +378,7 @@ const InPark = () => {
       </AnimatePresence>
       <SwapSuggestionsSheet
         open={swapFor !== null}
-        onClose={() => { setSwapFor(null); setSwapReason('manual'); }}
+        onClose={() => { console.info('[SwapPivot] closing'); setSwapFor(null); setSwapReason('manual'); }}
         skipped={swapFor ?? undefined}
         reason={swapReason}
       />
