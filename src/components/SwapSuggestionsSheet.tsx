@@ -219,7 +219,7 @@ const SwapSuggestionsSheet = ({ open, onClose, skipped, reason }: SwapSuggestion
               >
                 <CloudRain
                   size={10}
-                  className="text-primary shrink-0 mt-[2px]"
+                  className="text-primary shrink-0 mt-[2px] w-3"
                   aria-hidden
                 />
                 <span className="min-w-0 flex-1 break-words hyphens-auto">
@@ -227,7 +227,7 @@ const SwapSuggestionsSheet = ({ open, onClose, skipped, reason }: SwapSuggestion
                       collides with the body text on narrow screens. */}
                   <span
                     aria-hidden
-                    className="block font-sans font-semibold uppercase text-[9px] leading-none tracking-sovereign text-primary/80 mb-0.5"
+                    className="block font-sans font-semibold uppercase text-[9px] leading-none tracking-sovereign text-primary/80 mb-0.5 whitespace-nowrap"
                   >
                     Why now
                   </span>
