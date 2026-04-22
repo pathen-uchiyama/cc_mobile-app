@@ -1,8 +1,8 @@
-import { MapPin, Clock, Utensils, Star, ExternalLink } from 'lucide-react';
+import { MapPin, Clock, Utensils, Star, ExternalLink, Snowflake, Wind, Sun } from 'lucide-react';
 import BottomSheet from './BottomSheet';
 
 interface NeedOverlayProps {
-  type: 'bathroom' | 'quiet' | 'food';
+  type: 'bathroom' | 'quiet' | 'food' | 'cooldown';
   onClose: () => void;
   /** Current land/location of the user — drives proximity sort. */
   currentLocation?: string;
@@ -21,6 +21,80 @@ const QUIET_SPACES = [
   { name: 'Columbia Harbour House (upstairs)', distance: '3 min walk', note: 'Air conditioned, rarely crowded', land: 'Liberty Square' },
   { name: 'The Tomorrowland Transit Authority', distance: '4 min walk', note: 'Sit down, gentle breeze, low stimulation', land: 'Tomorrowland' },
 ];
+
+/**
+ * Cool-down inventory — a temperature-first roster the guest can scan when the
+ * heat starts to win. Categories are intentionally varied so the right answer
+ * is on-screen no matter the moment: a long indoor ride for full reset, a
+ * lounge for a sit-down with A/C, a quick-service bay to eat *and* cool, or a
+ * shaded outdoor zone when committing to indoors feels like overkill.
+ *
+ * `coolingTier` drives both the visual icon and the sort order:
+ *   • 'ac'      — fully air-conditioned interior
+ *   • 'shaded'  — covered/shaded outdoor with breeze
+ *   • 'misted'  — outdoor with active misting/water cooling
+ */
+type CoolingTier = 'ac' | 'shaded' | 'misted';
+type CoolKind = 'ride' | 'lounge' | 'restaurant' | 'area' | 'show';
+
+interface CoolDownItem {
+  name: string;
+  land: string;
+  walkMinutes: number;
+  kind: CoolKind;
+  coolingTier: CoolingTier;
+  duration: string;
+  note: string;
+}
+
+const COOLDOWN: CoolDownItem[] = [
+  { name: 'Carousel of Progress',           land: 'Tomorrowland',  walkMinutes: 5, kind: 'ride',       coolingTier: 'ac',     duration: '21 min', note: 'Full A/C, walk-on, four scenes — best long reset in the park' },
+  { name: 'Walt Disney\u2019s Enchanted Tiki Room', land: 'Adventureland', walkMinutes: 4, kind: 'show', coolingTier: 'ac',     duration: '15 min', note: 'Sit down, dim, classic A/C theatre' },
+  { name: 'Country Bear Musical Jamboree',  land: 'Frontierland',  walkMinutes: 6, kind: 'show',       coolingTier: 'ac',     duration: '15 min', note: 'Indoor theatre, low-stim, family-friendly' },
+  { name: 'Pirates of the Caribbean',       land: 'Adventureland', walkMinutes: 3, kind: 'ride',       coolingTier: 'ac',     duration: '10 min', note: 'Indoor boat ride — cool air the whole way' },
+  { name: 'Haunted Mansion (queue + ride)', land: 'Liberty Square', walkMinutes: 5, kind: 'ride',      coolingTier: 'ac',     duration: '12 min', note: 'Stretching room and ride are both indoors' },
+  { name: 'Columbia Harbour House (upstairs)', land: 'Liberty Square', walkMinutes: 3, kind: 'restaurant', coolingTier: 'ac', duration: '20\u201330 min', note: 'A/C, second-floor seating, mobile order' },
+  { name: 'Skipper Canteen Lounge',         land: 'Adventureland', walkMinutes: 3, kind: 'lounge',     coolingTier: 'ac',     duration: '20\u201340 min', note: 'A/C, walk-up bar, light bites' },
+  { name: 'Cosmic Ray\u2019s Starlight Cafe', land: 'Tomorrowland', walkMinutes: 6, kind: 'restaurant', coolingTier: 'ac',    duration: '20 min', note: 'Big A/C dining hall, three menu bays' },
+  { name: 'Sunshine Tree Terrace (covered)', land: 'Adventureland', walkMinutes: 2, kind: 'area',     coolingTier: 'shaded', duration: '5\u201310 min', note: 'Citrus swirl + shaded benches under the canopy' },
+  { name: 'Adventureland Veranda',          land: 'Adventureland', walkMinutes: 3, kind: 'area',       coolingTier: 'shaded', duration: '10 min', note: 'Covered walkway, ceiling fans, breeze off the water' },
+  { name: 'Casey\u2019s Corner Mister Wall', land: 'Main Street, U.S.A.', walkMinutes: 7, kind: 'area', coolingTier: 'misted', duration: '5 min', note: 'Active mist line — fastest temp drop in the park' },
+];
+
+/**
+ * Cool-down sort rules:
+ *   1. Same-land first so the guest doesn't have to march to relief.
+ *   2. Cooling tier — full A/C wins, then misted, then shaded. Misted beats
+ *      shaded because active water cooling drops body temp faster.
+ *   3. Tie-break by walk minutes.
+ */
+const sortCooldown = (items: CoolDownItem[], currentLocation?: string): CoolDownItem[] => {
+  const tierRank: Record<CoolingTier, number> = { ac: 0, misted: 1, shaded: 2 };
+  return [...items].sort((a, b) => {
+    if (currentLocation) {
+      const aLocal = a.land === currentLocation ? 0 : 1;
+      const bLocal = b.land === currentLocation ? 0 : 1;
+      if (aLocal !== bLocal) return aLocal - bLocal;
+    }
+    const tr = tierRank[a.coolingTier] - tierRank[b.coolingTier];
+    if (tr !== 0) return tr;
+    return a.walkMinutes - b.walkMinutes;
+  });
+};
+
+const KIND_LABEL: Record<CoolKind, string> = {
+  ride: 'Ride',
+  show: 'Show',
+  lounge: 'Lounge',
+  restaurant: 'Eat & Cool',
+  area: 'Outdoor Spot',
+};
+
+const TIER_META: Record<CoolingTier, { label: string; Icon: typeof Snowflake }> = {
+  ac:     { label: 'Full A/C',  Icon: Snowflake },
+  misted: { label: 'Misted',    Icon: Wind },
+  shaded: { label: 'Shaded',    Icon: Sun },
+};
 
 type FoodService = 'sit-down' | 'quick-service' | 'snack';
 
@@ -178,6 +252,84 @@ const NeedOverlay = ({ type, onClose, currentLocation, hasKids }: NeedOverlayPro
               </div>
             </div>
           ))}
+        </div>
+      </BottomSheet>
+    );
+  }
+
+  if (type === 'cooldown') {
+    const sorted = sortCooldown(COOLDOWN, currentLocation);
+    const subtitle = currentLocation
+      ? `Closest to ${currentLocation} · A/C first, then misted, then shaded`
+      : 'Air-conditioned indoors first, then misted and shaded outdoor spots';
+
+    return (
+      <BottomSheet
+        open={true}
+        onClose={onClose}
+        snap="half"
+        eyebrow="Cool Down"
+        title="Beat the Heat"
+        subtitle={subtitle}
+      >
+        <div className="space-y-3">
+          {sorted.map((item) => {
+            const Tier = TIER_META[item.coolingTier];
+            const TierIcon = Tier.Icon;
+            return (
+              <div key={item.name} className="bg-card p-4 shadow-boutique rounded-xl">
+                {/* Row 1 — name (left), kind tag (right) */}
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <h3 className="font-sans text-sm font-semibold text-foreground truncate min-w-0">
+                    {item.name}
+                  </h3>
+                  <span
+                    className="font-sans text-[9px] uppercase tracking-sovereign font-bold shrink-0 px-1.5 py-0.5 rounded-full"
+                    style={{
+                      color: 'hsl(var(--gold))',
+                      background: 'hsl(var(--gold) / 0.10)',
+                      letterSpacing: '0.14em',
+                    }}
+                  >
+                    {KIND_LABEL[item.kind]}
+                  </span>
+                </div>
+
+                {/* Row 2 — cooling tier pill + duration; the tier pill is the
+                    primary signal so it leads. */}
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  <span
+                    className="inline-flex items-center gap-1 font-sans text-[10px] font-bold px-2 py-0.5 rounded-full"
+                    style={{
+                      color: 'hsl(210 80% 35%)',
+                      background: 'hsl(210 80% 35% / 0.10)',
+                    }}
+                    aria-label={`Cooling type: ${Tier.label}`}
+                  >
+                    <TierIcon size={11} />
+                    {Tier.label}
+                  </span>
+                  <span className="font-sans text-[10px] text-muted-foreground">·</span>
+                  <span className="font-sans text-[10px] text-muted-foreground tabular-nums">
+                    Stay <span className="text-foreground font-semibold">{item.duration}</span>
+                  </span>
+                </div>
+
+                {/* Row 3 — note */}
+                <p className="font-sans text-[10px] text-muted-foreground italic mb-2 leading-snug">
+                  {item.note}
+                </p>
+
+                {/* Row 4 — land + walk */}
+                <div className="flex items-center gap-1.5">
+                  <MapPin size={11} className="text-muted-foreground" />
+                  <span className="font-sans text-[10px] text-muted-foreground">
+                    {item.land} · {item.walkMinutes}m walk
+                  </span>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </BottomSheet>
     );
