@@ -255,13 +255,22 @@ const SwapSuggestionsSheet = ({ open, onClose, skipped, reason }: SwapSuggestion
                     subtree is fully aria-hidden and cannot be announced. */}
                 <span className="min-w-0 flex-1 break-words hyphens-auto">
                   {/* Visible decorative eyebrow — block-level so it never
-                      collides with the body text on narrow screens. */}
+                      collides with the body text on narrow screens.
+                      Defensive a11y: even though the parent <div> is
+                      aria-hidden, we explicitly mark the eyebrow itself
+                      aria-hidden and force tabIndex={-1} so a future edit
+                      that drops the parent's aria-hidden, or wraps this
+                      <span> in an interactive element, can't accidentally
+                      expose "Why now" as a focusable / separately-
+                      announced node. */}
                   <span
                     className="rain-why-eyebrow"
+                    aria-hidden
+                    tabIndex={-1}
                   >
                     Why now
                   </span>
-                  <span className="rain-why-body">
+                  <span className="rain-why-body" aria-hidden tabIndex={-1}>
                     {opt.rainWhy}
                   </span>
                 </span>
