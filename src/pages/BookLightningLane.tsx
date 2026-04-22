@@ -415,28 +415,63 @@ const SelloutLegend = () => {
  */
 type UrgencyValue = 'all' | '1h' | '2h' | 'later';
 const UrgencyFilter = ({ value, onChange }: { value: UrgencyValue; onChange: (v: UrgencyValue) => void }) => {
-  const chips: { value: UrgencyValue; label: string; color: string }[] = [
-    { value: 'all',   label: 'All',         color: 'hsl(var(--obsidian))' },
-    { value: '1h',    label: 'Within 1h',   color: 'hsl(316 95% 35%)' },
-    { value: '2h',    label: 'Within 2h',   color: 'hsl(var(--gold))' },
-    { value: 'later', label: 'Later',       color: 'hsl(var(--slate-plaid))' },
-  ];
+const URGENCY_CHIPS: { value: UrgencyValue; label: string; color: string; description: string }[] = [
+  { value: 'all',   label: 'All',         color: 'hsl(var(--obsidian))',     description: 'Show every standard Lightning Lane.' },
+  { value: '1h',    label: 'Within 1h',   color: 'hsl(316 95% 35%)',         description: 'Lanes typically sold out within the next hour — going fast.' },
+  { value: '2h',    label: 'Within 2h',   color: 'hsl(var(--gold))',         description: 'Lanes typically sold out within the next two hours — soon.' },
+  { value: 'later', label: 'Later',       color: 'hsl(var(--slate-plaid))',  description: 'Lanes that usually stay available past two hours — plenty of time.' },
+];
+
+const UrgencyFilter = ({ value, onChange }: { value: UrgencyValue; onChange: (v: UrgencyValue) => void }) => {
+  // Roving-tabindex pattern — only the active radio is in the tab order, and
+  // arrow keys move focus + selection across the group. Matches WAI-ARIA
+  // Authoring Practices for radiogroup and the keyboard model used elsewhere.
+  const groupRef = useRef<HTMLDivElement>(null);
+
+  const handleKeyDown = (e: ReactKeyboardEvent<HTMLButtonElement>, idx: number) => {
+    const last = URGENCY_CHIPS.length - 1;
+    let nextIdx: number | null = null;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') nextIdx = idx === last ? 0 : idx + 1;
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   nextIdx = idx === 0 ? last : idx - 1;
+    if (e.key === 'Home') nextIdx = 0;
+    if (e.key === 'End')  nextIdx = last;
+    if (nextIdx === null) return;
+    e.preventDefault();
+    const next = URGENCY_CHIPS[nextIdx];
+    onChange(next.value);
+    // Move DOM focus to the newly-selected chip on the next paint so the
+    // focus-visible ring follows the selection.
+    requestAnimationFrame(() => {
+      const btn = groupRef.current?.querySelector<HTMLButtonElement>(
+        `[data-urgency="${next.value}"]`,
+      );
+      btn?.focus();
+    });
+  };
+
   return (
     <div
+      ref={groupRef}
       className="flex items-center gap-1.5 mb-3 flex-wrap"
       role="radiogroup"
-      aria-label="Filter by typical sell-out urgency"
+      aria-label="Filter Lightning Lanes by typical sell-out urgency"
     >
-      {chips.map((c) => {
+      {URGENCY_CHIPS.map((c, idx) => {
         const active = value === c.value;
+        const descId = `urgency-desc-${c.value}`;
         return (
           <button
             key={c.value}
             type="button"
             role="radio"
+            data-urgency={c.value}
             aria-checked={active}
+            aria-label={`${c.label} urgency filter`}
+            aria-describedby={descId}
+            tabIndex={active ? 0 : -1}
             onClick={() => onChange(c.value)}
-            className="font-sans text-[10px] font-semibold px-2.5 py-1.5 rounded-full border transition-colors min-h-[28px] flex items-center gap-1.5"
+            onKeyDown={(e) => handleKeyDown(e, idx)}
+            className="font-sans text-[10px] font-semibold px-2.5 py-1.5 rounded-full border transition-colors min-h-[28px] flex items-center gap-1.5 outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-primary/40 focus-visible:ring-offset-background cursor-pointer"
             style={{
               backgroundColor: active ? `${c.color.replace(')', ' / 0.12)')}` : 'transparent',
               borderColor: active ? c.color : 'hsl(var(--obsidian) / 0.10)',
@@ -451,6 +486,9 @@ const UrgencyFilter = ({ value, onChange }: { value: UrgencyValue; onChange: (v:
               />
             )}
             {c.label}
+            {/* Visually-hidden description for screen readers — explains what
+                the filter does so the chip label can stay terse. */}
+            <span id={descId} className="sr-only">{c.description}</span>
           </button>
         );
       })}
