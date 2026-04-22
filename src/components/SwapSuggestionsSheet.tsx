@@ -214,22 +214,29 @@ const SwapSuggestionsSheet = ({ open, onClose, skipped, reason }: SwapSuggestion
             </p>
             {showRainWhy && (
               <p
-                className="mt-1.5 font-sans text-[10px] text-primary/90 leading-snug flex items-start gap-1.5"
+                className="mt-1.5 flex items-start gap-1.5"
                 role="note"
               >
-                <CloudRain size={10} className="text-primary shrink-0 mt-[1px]" aria-hidden />
-                <span>
-                  {/* Visible decorative eyebrow */}
+                <CloudRain
+                  size={10}
+                  className="text-primary shrink-0 mt-[2px]"
+                  aria-hidden
+                />
+                <span className="min-w-0 flex-1 break-words hyphens-auto">
+                  {/* Visible decorative eyebrow — block-level so it never
+                      collides with the body text on narrow screens. */}
                   <span
                     aria-hidden
-                    className="font-semibold uppercase tracking-wider text-[8px] text-primary mr-1"
+                    className="block font-sans font-semibold uppercase text-[9px] leading-none tracking-sovereign text-primary/80 mb-0.5"
                   >
                     Why now
                   </span>
                   {/* SR-only semantic prefix so the announcement reads naturally
                       ("Why now: ...") without duplicating the visual eyebrow. */}
                   <span className="sr-only">Why now: </span>
-                  {opt.rainWhy}
+                  <span className="font-sans text-[10px] leading-snug text-primary/90">
+                    {opt.rainWhy}
+                  </span>
                 </span>
               </p>
             )}
