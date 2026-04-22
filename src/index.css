@@ -128,35 +128,49 @@
 
   body {
     @apply bg-background text-foreground;
-    /* Editorial body: Plus Jakarta Sans, optimized for legibility. */
+    /* Editorial body: Plus Jakarta Sans. Default weight nudged from 400
+     * → 500 so non-headline copy carries a faint editorial heft, matching
+     * the reference's "weighted body" texture. */
     font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-weight: 500;
     letter-spacing: -0.005em;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    /* Editorial display: Epilogue, magazine-masthead presence. */
+    /* Editorial display: Epilogue at 900 (Black) — matches the
+     * reference's `font-black` masthead titles. Per-instance overrides
+     * (font-medium, font-bold) still win when a designer needs softer. */
     font-family: 'Epilogue', 'Plus Jakarta Sans', sans-serif;
-    letter-spacing: -0.015em;
-    line-height: 1.1;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
   }
 }
 
 @layer utilities {
   .font-display {
+    /* Default Epilogue weight = 800 (ExtraBold). Use `font-black` (900)
+     * for hero mastheads, `font-bold` (700) for soft sub-headlines. */
     font-family: 'Epilogue', 'Plus Jakarta Sans', sans-serif;
-    letter-spacing: -0.015em;
-    line-height: 1.1;
+    font-weight: 800;
+    letter-spacing: -0.018em;
+    line-height: 1.08;
   }
 
   .font-sans {
     font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-weight: 500;
     letter-spacing: -0.005em;
   }
 
   .tabular-nums {
+    /* Numerics across the app (times, waits, savings, votes) inherit
+     * weight 600 so the data-points read like the reference's bold
+     * "08:15 AM" / "85 mins" stamps. Override per-instance when needed. */
     font-variant-numeric: tabular-nums;
+    font-weight: 600;
   }
 
   /* Ambient, never-pure-black shadows. Tinted with on-surface ink. */
@@ -199,8 +213,11 @@
     filter: sepia(0.3);
   }
 
+  /* Editorial eyebrow / label utility — every uppercase label inherits
+   * 0.2em tracking AND bold weight, matching the reference masthead. */
   .tracking-sovereign {
     letter-spacing: 0.2em;
+    font-weight: 700;
   }
 
   /* ── Rain pivot "Why now" subtitle ──────────────────────────────────
