@@ -5,6 +5,7 @@ import { useJoyEvents, formatEventTime, type JoyEvent } from '@/contexts/JoyEven
 import { useMemoryVault, formatMemoryTime, type Memory } from '@/contexts/MemoryContext';
 import InterviewSheet from '@/components/memory/InterviewSheet';
 import MemoryEditorSheet from '@/components/memory/MemoryEditorSheet';
+import MemoryDetailSheet from '@/components/memory/MemoryDetailSheet';
 import PageHeader from '@/components/layout/PageHeader';
 import EmptyState from '@/components/layout/EmptyState';
 
@@ -32,7 +33,15 @@ const JoyReport = () => {
   const { events } = useJoyEvents();
   const { memories, interviews, postCompleted } = useMemoryVault();
   const [postOpen, setPostOpen] = useState(false);
+  // The Vault has two sheets: detail (read-only playback) → editor (mutations).
+  // We track the open id separately from the active mode so the transition
+  // between them feels intentional, not a flicker.
+  const [viewingId, setViewingId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const viewingMemory = useMemo(
+    () => memories.find((m) => m.id === viewingId) ?? null,
+    [memories, viewingId]
+  );
   const editingMemory = useMemo(
     () => memories.find((m) => m.id === editingId) ?? null,
     [memories, editingId]
@@ -225,7 +234,7 @@ const JoyReport = () => {
         ) : (
           <div className="grid grid-cols-2 gap-3">
             {sortedMemories.map((m) => (
-              <MemoryCard key={m.id} m={m} onOpen={() => setEditingId(m.id)} />
+              <MemoryCard key={m.id} m={m} onOpen={() => setViewingId(m.id)} />
             ))}
           </div>
         )}
@@ -273,6 +282,17 @@ const JoyReport = () => {
       </section>
 
       <InterviewSheet open={postOpen} onClose={() => setPostOpen(false)} phase="post" />
+      <MemoryDetailSheet
+        open={viewingMemory !== null}
+        onClose={() => setViewingId(null)}
+        memory={viewingMemory}
+        onEdit={() => {
+          // Hand off: close detail, open editor on the same memory.
+          const id = viewingId;
+          setViewingId(null);
+          if (id) setEditingId(id);
+        }}
+      />
       <MemoryEditorSheet
         open={editingMemory !== null}
         onClose={() => setEditingId(null)}
@@ -297,7 +317,7 @@ const MemoryCard = ({ m, onOpen }: { m: Memory; onOpen: () => void }) => {
     <motion.button
       type="button"
       onClick={onOpen}
-      aria-label={`Edit memory: ${m.caption}`}
+      aria-label={`View memory: ${m.caption}`}
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       whileTap={{ scale: 0.98 }}
