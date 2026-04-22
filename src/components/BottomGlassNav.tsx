@@ -24,8 +24,8 @@ const tabs: { id: TabId; label: string; icon: typeof Eye }[] = [
   { id: 'today',   label: 'Today',    icon: Eye },
   { id: 'mustdo',  label: 'Must-Do',  icon: Star },
   { id: 'pivot',   label: 'Pivot',    icon: Shuffle },
-  { id: 'lightning', label: 'Lightning', icon: Zap },
-  { id: 'details', label: 'Details',  icon: LayoutDashboard },
+  { id: 'lightning', label: 'Lightning Lane', icon: Zap },
+  { id: 'details', label: 'Reservations', icon: LayoutDashboard },
 ];
 
 /**
