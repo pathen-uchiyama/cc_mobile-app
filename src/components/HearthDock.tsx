@@ -111,16 +111,16 @@ const HearthDock = ({
             className="relative w-[56px] h-[56px] rounded-full border-none cursor-pointer flex items-center justify-center"
             style={{
               background:
-                'radial-gradient(circle at 30% 30%, hsl(var(--gold) / 1) 0%, hsl(var(--gold) / 0.92) 55%, hsl(41 64% 24%) 100%)',
+                'radial-gradient(circle at 30% 30%, hsl(var(--highlighter)) 0%, hsl(var(--highlighter) / 0.95) 55%, hsl(var(--gold)) 100%)',
               boxShadow:
-                '0 12px 28px hsl(var(--obsidian) / 0.45), 0 0 0 3px hsl(var(--obsidian)), 0 0 0 4px hsl(var(--gold) / 0.4)',
+                '0 12px 28px hsl(var(--obsidian) / 0.45), 0 0 0 3px hsl(var(--obsidian)), 0 0 0 4px hsl(var(--highlighter) / 0.5)',
             }}
           >
             {!active && !reduceMotion && (
               <motion.span
                 aria-hidden
                 className="absolute inset-0 rounded-full"
-                style={{ border: '1px solid hsl(var(--gold) / 0.5)' }}
+                style={{ border: '1px solid hsl(var(--highlighter) / 0.6)' }}
                 animate={{ scale: [1, 1.35, 1], opacity: [0.7, 0, 0.7] }}
                 transition={{ repeat: Infinity, duration: 2.6, ease: 'easeOut' }}
               />
