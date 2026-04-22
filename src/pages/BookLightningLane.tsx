@@ -102,7 +102,7 @@ const BookLightningLane = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background max-w-[480px] mx-auto pb-24">
+    <div className="min-h-screen bg-background max-w-[480px] mx-auto pb-32">
       {/* Header */}
       <header className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm px-5 pt-5 pb-3" style={{ borderBottom: '1px solid hsl(var(--obsidian) / 0.06)' }}>
         <button
