@@ -22,6 +22,12 @@ import WhisperStrip from '@/components/WhisperStrip';
 import { useCompanion } from '@/contexts/CompanionContext';
 import { useCelebrate, WHISPERS } from '@/contexts/CelebrationContext';
 import { RESERVATIONS, nextHospitalityReservation, minutesUntil } from '@/data/reservations';
+import {
+  INITIAL_HOLDS,
+  DEFAULT_CAPACITY,
+  summarizeCapacity,
+} from '@/data/lightningLanes';
+import { useNavigate } from 'react-router-dom';
 
 const PLAN: PlanItem[] = [
   {
@@ -86,6 +92,7 @@ const WALKING_PROMPTS: WalkingPrompt[] = [];
 
 
 const InPark = () => {
+  const navigate = useNavigate();
   // The Sovereign Stack lives in state so cards can be promoted, completed,
   // and pulled in from the Must-Do dropdown — all with a shared-layout swap.
   const [plan, setPlan] = useState<PlanItem[]>(PLAN);
@@ -141,6 +148,29 @@ const InPark = () => {
         walkMinutes: nextHold.walkMinutes,
       }
     : undefined;
+
+  // Lightning Lane capacity — drives the Hero countdown chip + dashboard CTA.
+  // Uses the same NOW_MINUTES anchor as upcomingHold so the two surfaces stay
+  // in lockstep. INITIAL_HOLDS mirrors the standard LLs in RESERVATIONS.
+  const llSummary = summarizeCapacity(INITIAL_HOLDS, NOW_MINUTES, DEFAULT_CAPACITY);
+  const llCapacity = {
+    canBookNow: llSummary.canBookLLNow,
+    unlocksInMin: llSummary.llUnlocksInMin,
+    held: llSummary.llHeldCount,
+    cap: llSummary.llCapTotal,
+  };
+
+  // Fire a one-time celebration whisper the moment the unlock window opens.
+  // In production this would tick on a real clock; here we trigger when
+  // canBookNow flips true on mount (simulating the unlock moment).
+  useEffect(() => {
+    if (!llSummary.canBookLLNow) return;
+    const t = setTimeout(() => {
+      celebrate('Your next Lightning Lane is ready to book.', 'Slot Open');
+    }, 1500);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Type A = manager tier with LL tracking on. They get the Strategic Dashboard.
   const isTypeA = tier === 'manager' && llTrackerVisible;
@@ -363,6 +393,8 @@ const InPark = () => {
                       pivotHeadline="A New Path is Available"
                       upcomingHold={upcomingHold}
                       onUpcomingHoldTap={() => setDashboardOpen(true)}
+                      llCapacity={llCapacity}
+                      onLLChipTap={() => navigate('/book-ll')}
                     />
                   </motion.div>
                 )}
