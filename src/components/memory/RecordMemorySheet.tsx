@@ -5,6 +5,7 @@ import BottomSheet from '@/components/BottomSheet';
 import { useMediaCapture, type CaptureMode } from '@/hooks/memory/useMediaCapture';
 import { useMemoryVault, type MemoryKind, type MemoryTag } from '@/contexts/MemoryContext';
 import { useCelebrate } from '@/contexts/CelebrationContext';
+import VideoTrimmer from '@/components/memory/VideoTrimmer';
 
 interface RecordMemorySheetProps {
   open: boolean;
@@ -36,6 +37,9 @@ const RecordMemorySheet = ({ open, onClose, contextHint }: RecordMemorySheetProp
   const [step, setStep] = useState<Step>('pick');
   const [mode, setMode] = useState<CaptureMode>('photo');
   const [captured, setCaptured] = useState<{ kind: MemoryKind; payload: string; mime?: string; durationMs?: number } | null>(null);
+  // Trim window for video memories — seconds, relative to the source clip.
+  // Defaults to the full clip; user confirms (or shortens) before saving.
+  const [trim, setTrim] = useState<{ start: number; end: number } | null>(null);
   const [caption, setCaption] = useState('');
   const [noteBody, setNoteBody] = useState('');
   const [selectedFeelings, setSelectedFeelings] = useState<string[]>([]);
@@ -55,6 +59,7 @@ const RecordMemorySheet = ({ open, onClose, contextHint }: RecordMemorySheetProp
       setNoteBody('');
       setSelectedFeelings([]);
       setBusy(false);
+      setTrim(null);
     }
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
