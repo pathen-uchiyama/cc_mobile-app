@@ -361,6 +361,10 @@ const InPark = () => {
           tap deep, inside the floating Sovereign Key. */}
       <BottomGlassNav
         activeTab="today"
+        mustDoProgress={{
+          done: mustDos.reduce((s, m) => s + Math.min(m.done, m.desired), 0),
+          total: mustDos.reduce((s, m) => s + m.desired, 0),
+        }}
         onTabChange={(tab) => {
           if (tab === 'today') return;
           if (tab === 'mustdo') setMustDoOpen(true);
