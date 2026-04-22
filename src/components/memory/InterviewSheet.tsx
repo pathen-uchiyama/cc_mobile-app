@@ -227,17 +227,49 @@ const InterviewSheet = ({ open, onClose, phase }: InterviewSheetProps) => {
                 {capture.error}
               </p>
             ) : voiceCapture ? (
-              <>
-                <Check size={36} className="text-accent mb-3" />
-                <p className="font-display italic text-[15px] text-background mb-3">Captured · {formatMs(voiceCapture.durationMs)}</p>
-                <audio src={voiceCapture.payload} controls className="w-3/4" />
+              <div className="w-full px-5 py-6 flex flex-col items-center">
+                <Check size={32} className="text-accent mb-2" />
+                <p className="font-display italic text-[14px] text-background mb-3">
+                  Captured · {formatMs(voiceCapture.durationMs)}
+                </p>
+                <audio src={voiceCapture.payload} controls className="w-full max-w-[320px] mb-4" />
+
+                {/* Transcribe CTA — opt-in, surfaces only here */}
+                {!hasTranscript && (
+                  <button
+                    onClick={handleTranscribe}
+                    disabled={transcribing}
+                    className="bg-card text-foreground rounded-xl px-4 py-2.5 font-sans text-[11px] uppercase tracking-sovereign font-semibold cursor-pointer border-none flex items-center gap-2 disabled:opacity-60"
+                  >
+                    {transcribing ? (
+                      <Loader2 size={13} className="animate-spin" />
+                    ) : (
+                      <Sparkles size={13} className="text-accent" />
+                    )}
+                    {transcribing ? 'Listening back\u2026' : 'Transcribe to text'}
+                  </button>
+                )}
+
+                {hasTranscript && (
+                  <span className="font-sans text-[10px] uppercase tracking-sovereign text-accent font-semibold">
+                    Transcript ready below — review &amp; refine
+                  </span>
+                )}
+
+                {transcriptError && (
+                  <div className="mt-3 max-w-[320px] flex items-start gap-2 bg-destructive/15 text-destructive-foreground rounded-lg px-3 py-2">
+                    <AlertCircle size={12} className="flex-shrink-0 mt-0.5" />
+                    <span className="font-sans text-[11px] leading-snug">{transcriptError}</span>
+                  </div>
+                )}
+
                 <button
                   onClick={startVoice}
-                  className="mt-3 underline bg-transparent border-none text-background/70 font-sans text-[11px] cursor-pointer"
+                  className="mt-4 underline bg-transparent border-none text-background/70 font-sans text-[11px] cursor-pointer"
                 >
                   Re-record
                 </button>
-              </>
+              </div>
             ) : capture.isRecording ? (
               <>
                 <motion.div
