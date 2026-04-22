@@ -35,7 +35,20 @@ const MOCK_MUST_DOS: MustDoState[] = [
   { attraction: "Peter Pan\u2019s Flight", desired: 1, done: 0 },        // pinned top
 ];
 
-const NOW_MINUTES = 11 * 60 + 5; // mock 11:05 AM park-time
+/**
+ * Mock park-time anchor — 11:05 AM. The page now ticks `nowMinutes` forward
+ * every few seconds so the watchlist countdown progresses and "open" events
+ * can fire in a session. In production this would be replaced by the device
+ * clock (or a server-issued park-time header).
+ */
+const INITIAL_NOW_MINUTES = 11 * 60 + 5;
+/**
+ * How fast the mocked park clock advances. 1 wall-second = TICK_MIN_PER_SEC
+ * park-minutes. We accelerate it heavily for the prototype so a guest can see
+ * a "watch" mature into an "alert" without waiting hours; real usage would
+ * use a 1:1 ratio (or just `new Date()`).
+ */
+const TICK_MIN_PER_SEC = 0.5; // ~30 park-minutes per real minute
 
 /**
  * /book-ll — the manual Browse & Book surface.
