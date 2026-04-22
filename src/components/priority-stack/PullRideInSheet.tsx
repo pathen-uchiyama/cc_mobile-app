@@ -470,6 +470,21 @@ const Row = ({
                 {kindLabel}
               </span>
             )}
+            {recommended && (
+              <span
+                className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full font-sans text-[8px] uppercase font-bold tracking-sovereign"
+                style={{
+                  background: 'hsl(316 95% 35% / 0.12)',
+                  color: 'hsl(316 95% 35%)',
+                  letterSpacing: '0.12em',
+                }}
+                title="Recommended next"
+                aria-label="Recommended next"
+              >
+                <Wand2 size={9} />
+                Pick
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-2 mt-0.5">
             {sub && (
@@ -504,3 +519,105 @@ const Row = ({
 };
 
 export default PullRideInSheet;
+
+/* ─── Featured "Recommended Next" card ─────────────────────────── */
+
+interface RecommendedCardProps {
+  attraction: string;
+  location?: string;
+  kind?: AttractionKind;
+  tier: 'must' | 'party' | 'community';
+  reason: string;
+  onTap: () => void;
+}
+
+const TIER_LABEL: Record<RecommendedCardProps['tier'], string> = {
+  must: 'From your Must-Do list',
+  party: 'From your party survey',
+  community: 'From the community',
+};
+
+/**
+ * The "what should we do next?" answer.
+ *
+ * Sits above all three tier sections inside the sheet. It's the same data
+ * the row would carry, surfaced as a richer, magenta-trimmed card so the
+ * guest's eye lands on the recommendation before scanning the full list.
+ */
+const RecommendedCard = ({
+  attraction,
+  location,
+  kind,
+  tier,
+  reason,
+  onTap,
+}: RecommendedCardProps) => {
+  const KindIcon = kind ? KIND_META[kind].Icon : null;
+  const kindLabel = kind ? KIND_META[kind].label : null;
+  return (
+    <motion.button
+      type="button"
+      onClick={onTap}
+      whileTap={{ scale: 0.985 }}
+      aria-label={`Recommended next: ${attraction}. ${reason}. Pull onto active card.`}
+      className="w-full text-left rounded-2xl mt-2 mb-3 p-4 cursor-pointer border-none flex items-start gap-3"
+      style={{
+        background:
+          'linear-gradient(180deg, hsl(316 95% 35% / 0.10) 0%, hsl(316 95% 35% / 0.02) 100%)',
+        boxShadow: '0 0 0 1px hsl(316 95% 35% / 0.35), 0 8px 22px hsl(var(--obsidian) / 0.06)',
+      }}
+    >
+      <span
+        className="shrink-0 flex items-center justify-center rounded-full"
+        style={{
+          width: '36px',
+          height: '36px',
+          background: 'hsl(316 95% 35%)',
+          color: 'hsl(var(--card))',
+        }}
+      >
+        <Wand2 size={16} />
+      </span>
+
+      <div className="flex-1 min-w-0">
+        <p
+          className="font-sans text-[8px] uppercase tracking-sovereign font-bold mb-1"
+          style={{ color: 'hsl(316 95% 35%)', letterSpacing: '0.16em' }}
+        >
+          Recommended Next · {TIER_LABEL[tier]}
+        </p>
+        <p className="font-display text-[16px] leading-tight text-foreground">
+          {attraction}
+        </p>
+        <div className="flex items-center gap-2 mt-1 flex-wrap">
+          {KindIcon && kindLabel && (
+            <span
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full font-sans text-[8px] uppercase font-bold tracking-sovereign"
+              style={{
+                background: 'hsl(var(--obsidian) / 0.05)',
+                color: 'hsl(var(--slate-plaid))',
+                letterSpacing: '0.12em',
+              }}
+            >
+              <KindIcon size={9} />
+              {kindLabel}
+            </span>
+          )}
+          {location && (
+            <span className="font-sans text-[10px]" style={{ color: 'hsl(var(--slate-plaid))' }}>
+              {location}
+            </span>
+          )}
+        </div>
+        <p
+          className="font-sans italic text-[11px] leading-snug mt-1.5 pl-2 border-l-2"
+          style={{ color: 'hsl(var(--foreground) / 0.75)', borderColor: 'hsl(316 95% 35% / 0.45)' }}
+        >
+          {reason}
+        </p>
+      </div>
+
+      <ChevronRight size={18} className="shrink-0 mt-1" style={{ color: 'hsl(316 95% 35%)' }} />
+    </motion.button>
+  );
+};
