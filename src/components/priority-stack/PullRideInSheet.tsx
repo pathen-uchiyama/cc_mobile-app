@@ -11,6 +11,7 @@ import {
   Sparkles,
   Flag,
   UtensilsCrossed,
+  Wand2,
 } from 'lucide-react';
 import type { MustDo } from '@/hooks/park/usePlanStack';
 import type { PartyWant, CommunityPick, AttractionKind } from '@/data/wantToDos';
@@ -103,6 +104,63 @@ const PullRideInSheet = ({
       )
       .sort((a, b) => b.votes - a.votes);
   }, [communityPicks, mustDos, partyWants, excluded]);
+
+  /**
+   * Cross-tier recommendation — the single "do this next" pick.
+   *
+   * Strategy: Must-Do beats Party beats Community, but only when there's a
+   * real signal in the higher tier. Each candidate gets a normalized score
+   * 0–1 within its tier; we then bias by tier weight so a strong community
+   * pick can still surface when the user has no live Must-Dos or party data.
+   */
+  const recommendation = useMemo(() => {
+    type Rec = {
+      key: string;            // unique row key matching the rendered list
+      sourceId: string;       // id passed to onPromote
+      attraction: string;
+      location?: string;
+      kind?: AttractionKind;
+      tier: 'must' | 'party' | 'community';
+      reason: string;         // short "why" line
+    };
+
+    const topMust = rankedMustDos.find((m) => m.desired - m.done > 0);
+    if (topMust) {
+      const remaining = topMust.desired - topMust.done;
+      return {
+        key: topMust.id,
+        sourceId: topMust.id,
+        attraction: topMust.attraction,
+        tier: 'must',
+        reason: `Top Must-Do — ${remaining} ride${remaining === 1 ? '' : 's'} still to go`,
+      } as Rec;
+    }
+    const topParty = rankedParty[0];
+    if (topParty && topParty.party.yes / topParty.party.total >= 0.5) {
+      return {
+        key: topParty.id,
+        sourceId: `party-${topParty.id}`,
+        attraction: topParty.attraction,
+        location: topParty.location,
+        kind: topParty.kind,
+        tier: 'party',
+        reason: `${topParty.party.yes} of ${topParty.party.total} in your party want this`,
+      } as Rec;
+    }
+    const topCommunity = rankedCommunity[0];
+    if (topCommunity) {
+      return {
+        key: topCommunity.id,
+        sourceId: `comm-${topCommunity.id}`,
+        attraction: topCommunity.attraction,
+        location: topCommunity.location,
+        kind: topCommunity.kind,
+        tier: 'community',
+        reason: `${formatVotes(topCommunity.votes)} guests voted this today${topCommunity.trend === 'up' ? ' — trending up' : ''}`,
+      } as Rec;
+    }
+    return null;
+  }, [rankedMustDos, rankedParty, rankedCommunity]);
 
   const showMust = tier === 'all' || tier === 'must';
   const showParty = tier === 'all' || tier === 'party';
