@@ -52,6 +52,7 @@ interface MemoryState {
   preCompleted: boolean;
   postCompleted: boolean;
   saveMemory: (m: Omit<Memory, 'id' | 'at'> & { at?: number }) => Memory;
+  updateMemory: (id: string, patch: Partial<Pick<Memory, 'caption' | 'tags'>>) => void;
   deleteMemory: (id: string) => void;
   saveInterview: (a: Omit<InterviewAnswer, 'id' | 'at'> & { at?: number }) => InterviewAnswer;
   markPhaseComplete: (phase: InterviewPhase) => void;
@@ -130,6 +131,20 @@ export const MemoryProvider = ({ children }: { children: ReactNode }) => {
     setMemories((prev) => prev.filter((m) => m.id !== id));
   }, []);
 
+  const updateMemory: MemoryState['updateMemory'] = useCallback((id, patch) => {
+    setMemories((prev) =>
+      prev.map((m) =>
+        m.id === id
+          ? {
+              ...m,
+              caption: patch.caption !== undefined ? patch.caption : m.caption,
+              tags: patch.tags !== undefined ? patch.tags : m.tags,
+            }
+          : m
+      )
+    );
+  }, []);
+
   const saveInterview: MemoryState['saveInterview'] = useCallback((a) => {
     const next: InterviewAnswer = {
       id: `int-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -164,13 +179,14 @@ export const MemoryProvider = ({ children }: { children: ReactNode }) => {
       preCompleted,
       postCompleted,
       saveMemory,
+      updateMemory,
       deleteMemory,
       saveInterview,
       markPhaseComplete,
       resetPhase,
       clearAll,
     }),
-    [memories, interviews, preCompleted, postCompleted, saveMemory, deleteMemory, saveInterview, markPhaseComplete, resetPhase, clearAll]
+    [memories, interviews, preCompleted, postCompleted, saveMemory, updateMemory, deleteMemory, saveInterview, markPhaseComplete, resetPhase, clearAll]
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

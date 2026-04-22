@@ -4,6 +4,7 @@ import { Star, Heart, Camera, Clock, MapPin, Sparkles, Zap, RefreshCw, Mic, File
 import { useJoyEvents, formatEventTime, type JoyEvent } from '@/contexts/JoyEventsContext';
 import { useMemoryVault, formatMemoryTime, type Memory } from '@/contexts/MemoryContext';
 import InterviewSheet from '@/components/memory/InterviewSheet';
+import MemoryEditorSheet from '@/components/memory/MemoryEditorSheet';
 import PageHeader from '@/components/layout/PageHeader';
 import EmptyState from '@/components/layout/EmptyState';
 
@@ -31,6 +32,11 @@ const JoyReport = () => {
   const { events } = useJoyEvents();
   const { memories, interviews, postCompleted } = useMemoryVault();
   const [postOpen, setPostOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const editingMemory = useMemo(
+    () => memories.find((m) => m.id === editingId) ?? null,
+    [memories, editingId]
+  );
 
   const sortedMemories = useMemo(
     () => [...memories].sort((a, b) => a.at - b.at),
@@ -218,7 +224,9 @@ const JoyReport = () => {
           />
         ) : (
           <div className="grid grid-cols-2 gap-3">
-            {sortedMemories.map((m) => <MemoryCard key={m.id} m={m} />)}
+            {sortedMemories.map((m) => (
+              <MemoryCard key={m.id} m={m} onOpen={() => setEditingId(m.id)} />
+            ))}
           </div>
         )}
       </section>
@@ -265,6 +273,11 @@ const JoyReport = () => {
       </section>
 
       <InterviewSheet open={postOpen} onClose={() => setPostOpen(false)} phase="post" />
+      <MemoryEditorSheet
+        open={editingMemory !== null}
+        onClose={() => setEditingId(null)}
+        memory={editingMemory}
+      />
     </div>
   );
 };
@@ -278,13 +291,17 @@ const KIND_ICON: Record<Memory['kind'], typeof Camera> = {
   note: FileText,
 };
 
-const MemoryCard = ({ m }: { m: Memory }) => {
+const MemoryCard = ({ m, onOpen }: { m: Memory; onOpen: () => void }) => {
   const Icon = KIND_ICON[m.kind];
   return (
-    <motion.article
+    <motion.button
+      type="button"
+      onClick={onOpen}
+      aria-label={`Edit memory: ${m.caption}`}
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-card rounded-xl shadow-boutique overflow-hidden flex flex-col"
+      whileTap={{ scale: 0.98 }}
+      className="bg-card rounded-xl shadow-boutique overflow-hidden flex flex-col text-left border-none p-0 cursor-pointer hover:shadow-boutique-hover transition-shadow"
     >
       <div className="relative aspect-square bg-muted flex items-center justify-center overflow-hidden">
         {m.kind === 'photo' && <img src={m.payload} alt={m.caption} className="w-full h-full object-cover" />}
@@ -321,7 +338,7 @@ const MemoryCard = ({ m }: { m: Memory }) => {
           )}
         </div>
       </div>
-    </motion.article>
+    </motion.button>
   );
 };
 
