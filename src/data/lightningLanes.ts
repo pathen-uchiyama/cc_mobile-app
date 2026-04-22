@@ -280,44 +280,21 @@ export const formatClockTime = (
   const parkZone = options.parkZone ?? PARK_TIMEZONE;
   const viewerZone = options.viewerZone ?? getViewerTimezone();
   const totalMin = Math.max(0, Math.min(24 * 60 - 1, Math.round(minutesSinceMidnight)));
-  const hours = Math.floor(totalMin / 60);
-  const mins = totalMin % 60;
+  const h24 = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
 
-  // Anchor to today's park-local midnight, then add the offset. We build the
-  // anchor via `Intl` so DST is handled correctly — naively constructing a
-  // Date with `new Date(y, m, d)` would use the viewer's local zone.
-  const now = new Date();
-  const parkDateParts = new Intl.DateTimeFormat('en-US', {
-    timeZone: parkZone,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }).formatToParts(now);
-  const get = (type: string) => Number(parkDateParts.find((p) => p.type === type)?.value ?? 0);
-  const py = get('year');
-  const pm = get('month');
-  const pd = get('day');
-  // Build an ISO-ish wall-clock string for the requested park-local time and
-  // ask Intl to format it back. Round-tripping through Intl makes this safe
-  // across DST boundaries.
-  const sample = new Date(Date.UTC(py, pm - 1, pd, hours, mins, 0));
-  // The UTC instant above does NOT correspond to the same wall clock in the
-  // park, so we re-format using the park zone — that yields "h:mm AM/PM" in
-  // park-local terms regardless of where the viewer sits.
-  const wallClock = new Intl.DateTimeFormat('en-US', {
-    timeZone: parkZone,
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  }).format(sample);
+  // The input is already a park-local wall clock — minutes since the park's
+  // own midnight. Render it directly so we never accidentally re-shift by an
+  // offset. Intl is used purely for the timezone *label*, never for the time
+  // math, which sidesteps every DST edge case.
+  const period = h24 >= 12 ? 'PM' : 'AM';
+  const h12 = ((h24 + 11) % 12) + 1;
+  const wallClock = `${h12}:${m.toString().padStart(2, '0')} ${period}`;
 
   // Only tag the timezone when the viewer is somewhere else — locals don't
   // need "ET" on every chip.
   if (sameWallClock(parkZone, viewerZone)) return wallClock;
-  return `${wallClock} ${shortZoneLabel(parkZone, sample)}`;
+  return `${wallClock} ${shortZoneLabel(parkZone)}`;
 };
 
 /**
