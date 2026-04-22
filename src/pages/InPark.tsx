@@ -201,13 +201,6 @@ const InPark = () => {
     setDrawerHandled(true);
   };
 
-  const handleSovereignTap = () => {
-    // The golden anchor always opens the Strategic Dashboard —
-    // Lightning Lane inventory + standing reservations in one place.
-    // The "Pivot" tab is the dedicated entry for audibles.
-    setDashboardOpen(true);
-  };
-
   const runPivot = (label: string, after: () => void) => {
     setAudibleOpen(false);
     pivotWith(label, after);
