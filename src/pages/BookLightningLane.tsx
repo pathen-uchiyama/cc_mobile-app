@@ -414,7 +414,6 @@ const SelloutLegend = () => {
  * the legend → filter → list color story.
  */
 type UrgencyValue = 'all' | '1h' | '2h' | 'later';
-const UrgencyFilter = ({ value, onChange }: { value: UrgencyValue; onChange: (v: UrgencyValue) => void }) => {
 const URGENCY_CHIPS: { value: UrgencyValue; label: string; color: string; description: string }[] = [
   { value: 'all',   label: 'All',         color: 'hsl(var(--obsidian))',     description: 'Show every standard Lightning Lane.' },
   { value: '1h',    label: 'Within 1h',   color: 'hsl(316 95% 35%)',         description: 'Lanes typically sold out within the next hour — going fast.' },
