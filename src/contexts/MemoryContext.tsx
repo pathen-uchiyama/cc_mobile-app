@@ -29,6 +29,9 @@ export interface Memory {
   mime?: string;
   /** Optional duration in ms (for video/voice) */
   durationMs?: number;
+  /** Optional trim window (video only). Both in seconds, relative to source. */
+  trimStart?: number;
+  trimEnd?: number;
   /** ISO ms timestamp */
   at: number;
 }
