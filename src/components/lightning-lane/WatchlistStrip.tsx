@@ -7,6 +7,7 @@ import {
 } from '@/data/lightningLanes';
 import type { WatchEntry } from '@/hooks/lightning-lane/useLLWatchlist';
 import type { ServiceTier } from '@/contexts/CompanionContext';
+import { BURNISHED_GOLD } from '@/pages/BookLightningLane';
 
 interface WatchlistStripProps {
   entries: WatchEntry[];
@@ -59,9 +60,13 @@ const WatchlistStrip = ({
   return (
     <section
       className="mb-4 rounded-2xl p-3 bg-card"
+      // Outer "watching collection" surface — consumes the canonical
+      // BURNISHED_GOLD pair so this strip, the watching RideRow on
+      // /book-ll, and any future watching surface all share one outline
+      // recipe. Drift here used to be silent; it's now test-locked.
       style={{
-        border: '1px solid hsl(var(--gold) / 0.25)',
-        boxShadow: '0 4px 14px hsl(var(--gold) / 0.06)',
+        border: BURNISHED_GOLD.borderWatching,
+        boxShadow: BURNISHED_GOLD.glowWatching,
       }}
       aria-label="Lightning Lane watchlist"
     >

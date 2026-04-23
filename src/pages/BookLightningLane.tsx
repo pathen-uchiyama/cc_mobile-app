@@ -111,7 +111,14 @@ export const BURNISHED_GOLD = {
   /** Stronger border when the row is BOTH watching AND locked — same hue,
    *  one weight up so the priming reads at a glance. */
   borderArmed: '1.5px solid hsl(var(--gold) / 0.65)',
-  /** Soft glow only used in the armed state to draw the eye to the row. */
+  /** Ambient glow paired with `borderWatching` — used on any surface that
+   *  collects or represents one or more watching rows (e.g. the watchlist
+   *  strip header). Quieter than the armed glow so a non-armed watching
+   *  surface doesn't compete with an armed row inside it. */
+  glowWatching: '0 4px 14px hsl(var(--gold) / 0.10)',
+  /** Stronger glow paired with `borderArmed` — only used on a row that is
+   *  BOTH watching AND locked, where the heightened halo signals "primed,
+   *  ready to fire the moment the lock lifts". */
   glowArmed: '0 6px 18px hsl(var(--gold) / 0.18)',
 } as const;
 
