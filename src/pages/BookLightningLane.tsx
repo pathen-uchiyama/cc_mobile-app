@@ -92,8 +92,12 @@ const BOOK_WINDOWS: BookWindow[] = [
  * border). It deliberately differs from the *solid* gold fill used on
  * selected time-slot chips elsewhere in the app, so the two roles ("armed"
  * vs. "selected target") never compete for attention.
+ *
+ * Exported so the visual-regression checklist in
+ * `BookLightningLane.visual.test.ts` can pin the exact HSL strings and
+ * catch any silent gold-tone drift.
  */
-const BURNISHED_GOLD = {
+export const BURNISHED_GOLD = {
   /** Pill / chip surface — tint fill + gold ink + soft gold border. */
   surface: {
     backgroundColor: 'hsl(var(--gold) / 0.12)',
