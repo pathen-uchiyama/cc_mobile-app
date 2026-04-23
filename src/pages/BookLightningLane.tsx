@@ -338,11 +338,20 @@ const BookLightningLane = () => {
                   onBook={(windowId) => handleBook(a, windowId)}
                   nowMinutes={nowMinutes}
                   isWatching={watchlist.isWatching(a.id)}
-                  onToggleWatch={() =>
-                    watchlist.isWatching(a.id)
-                      ? watchlist.unwatch(a.id)
-                      : watchlist.watch(a.id, nowMinutes + Math.max(1, summary.llUnlocksInMin))
-                  }
+                  onUnwatch={() => watchlist.unwatch(a.id)}
+                  onWatchWindow={(windowId) => {
+                    const w = BOOK_WINDOWS.find((x) => x.id === windowId) ?? BOOK_WINDOWS[0];
+                    const nextAvail = nowMinutes + Math.max(1, summary.llUnlocksInMin);
+                    const openAt = w.startMin === null ? nextAvail : Math.max(nextAvail, w.startMin);
+                    watchlist.watch(a.id, openAt);
+                    toast.success(`Watching · ${a.name}`, {
+                      description:
+                        w.id === 'asap'
+                          ? `We'll alert you the moment a slot opens.`
+                          : `We'll target the ${w.label.toLowerCase()} window (${w.hint}).`,
+                      duration: 4000,
+                    });
+                  }}
                 />
               );
             })}
@@ -384,11 +393,19 @@ const BookLightningLane = () => {
                   onBook={(windowId) => handleBook(a, windowId)}
                   nowMinutes={nowMinutes}
                   isWatching={watchlist.isWatching(a.id)}
-                  onToggleWatch={() =>
-                    watchlist.isWatching(a.id)
-                      ? watchlist.unwatch(a.id)
-                      : watchlist.watch(a.id, nowMinutes)
-                  }
+                  onUnwatch={() => watchlist.unwatch(a.id)}
+                  onWatchWindow={(windowId) => {
+                    const w = BOOK_WINDOWS.find((x) => x.id === windowId) ?? BOOK_WINDOWS[0];
+                    const openAt = w.startMin === null ? nowMinutes : Math.max(nowMinutes, w.startMin);
+                    watchlist.watch(a.id, openAt);
+                    toast.success(`Watching · ${a.name}`, {
+                      description:
+                        w.id === 'asap'
+                          ? `We'll alert you the moment a slot opens.`
+                          : `We'll target the ${w.label.toLowerCase()} window (${w.hint}).`,
+                      duration: 4000,
+                    });
+                  }}
                 />
               );
             })}
