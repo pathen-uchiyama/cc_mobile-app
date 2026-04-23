@@ -460,7 +460,7 @@ const BookLightningLane = () => {
             <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold">
               Individual Lightning Lane
             </span>
-            <span className="font-sans text-[9px] tabular-nums" style={{ color: 'hsl(var(--gold))' }}>
+            <span className="font-sans text-[9px] tabular-nums" style={{ color: BURNISHED_GOLD.ink }}>
               {summary.illUsedCount} / {summary.illCapTotal} used
             </span>
           </div>
@@ -561,10 +561,10 @@ const BookLightningLane = () => {
             }}
           >
             <span className="flex items-center gap-2">
-              <Check size={14} style={{ color: 'hsl(var(--gold))' }} />
+              <Check size={14} style={{ color: BURNISHED_GOLD.ink }} />
               {sessionAdds === 1 ? '1 new hold secured' : `${sessionAdds} new holds secured`}
             </span>
-            <span className="flex items-center gap-1.5" style={{ color: 'hsl(var(--gold))' }}>
+            <span className="flex items-center gap-1.5" style={{ color: BURNISHED_GOLD.ink }}>
               See it on your stack
               <ArrowRight size={14} />
             </span>
