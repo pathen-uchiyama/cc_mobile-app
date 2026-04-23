@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Zap, MapPin, Clock, Check, Star, Lock, ArrowRight, Sparkles, Hourglass, Heart, Bell } from 'lucide-react';
+import { Zap, MapPin, Clock, Check, Star, Lock, ArrowRight, Sparkles, Hourglass, Heart } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
@@ -295,11 +295,6 @@ const BookLightningLane = () => {
                       ? watchlist.unwatch(a.id)
                       : watchlist.watch(a.id, nowMinutes + Math.max(1, summary.llUnlocksInMin))
                   }
-                  watchOpensAtMin={
-                    !summary.canBookLLNow && !held
-                      ? nowMinutes + Math.max(1, summary.llUnlocksInMin)
-                      : undefined
-                  }
                 />
               );
             })}
@@ -398,18 +393,11 @@ interface RideRowProps {
   disabled: boolean;
   lockReason?: string;
   onBook: () => void;
-  /** Park-time used by the Sellout chip and the Watch button countdown. */
+  /** Park-time used by the Sellout chip. */
   nowMinutes: number;
   /** Whether this lane is on the watchlist — drives the heart-toggle icon. */
   isWatching: boolean;
   onToggleWatch: () => void;
-  /**
-   * When provided and the lane is currently locked, replaces the "Locked"
-   * primary CTA with a Watch CTA. Returns the openAtMin to seed the watch.
-   * Optional so ILL rows (which can be locked by daily cap, where watching
-   * doesn't help) can omit it.
-   */
-  watchOpensAtMin?: number;
 }
 
 const RideRow = ({
@@ -424,13 +412,8 @@ const RideRow = ({
   nowMinutes,
   isWatching,
   onToggleWatch,
-  watchOpensAtMin,
 }: RideRowProps) => {
   const isILL = attraction.type === 'ill';
-  // The Watch CTA replaces the "Locked" primary button only when the lane is
-  // genuinely watchable (i.e. the user isn't already holding it and the page
-  // owner passed a future open-time). Held lanes never show Watch.
-  const showWatchCTA = !!watchOpensAtMin && disabled && !held;
   return (
     <li
       className="rounded-2xl p-4 bg-card transition-opacity"
@@ -513,38 +496,21 @@ const RideRow = ({
             {attraction.nextWindow}
           </span>
         </div>
-        {showWatchCTA ? (
-          <motion.button
-            whileTap={{ scale: 0.97 }}
-            onClick={onToggleWatch}
-            aria-pressed={isWatching}
-            aria-label={isWatching ? `Stop watching ${attraction.name}` : `Watch ${attraction.name}`}
-            className="rounded-xl px-4 py-2.5 border cursor-pointer font-sans text-[12px] font-semibold flex items-center gap-1.5 min-h-[40px]"
-            style={{
-              backgroundColor: isWatching ? 'hsl(var(--gold) / 0.18)' : 'transparent',
-              color: 'hsl(var(--gold))',
-              borderColor: 'hsl(var(--gold) / 0.55)',
-            }}
-          >
-            {isWatching ? (<><Check size={12} /> Watching</>) : (<><Bell size={12} /> Watch</>)}
-          </motion.button>
-        ) : (
-          <motion.button
-            whileTap={disabled ? undefined : { scale: 0.97 }}
-            onClick={onBook}
-            disabled={disabled}
-            aria-label={held ? 'Already held' : `Book ${attraction.name}`}
-            title={lockReason}
-            className="rounded-xl px-4 py-2.5 border-none font-sans text-[12px] font-semibold flex items-center gap-1.5 min-h-[40px]"
-            style={{
-              backgroundColor: held ? 'hsl(var(--accent) / 0.15)' : disabled ? 'hsl(var(--obsidian) / 0.06)' : 'hsl(var(--primary))',
-              color: held ? 'hsl(var(--accent))' : disabled ? 'hsl(var(--slate-plaid))' : 'hsl(var(--primary-foreground))',
-              cursor: disabled ? 'not-allowed' : 'pointer',
-            }}
-          >
-            {held ? (<><Check size={12} /> Held</>) : disabled ? (<><Lock size={12} /> Locked</>) : 'Book'}
-          </motion.button>
-        )}
+        <motion.button
+          whileTap={disabled ? undefined : { scale: 0.97 }}
+          onClick={onBook}
+          disabled={disabled}
+          aria-label={held ? 'Already held' : `Book ${attraction.name}`}
+          title={lockReason}
+          className="rounded-xl px-4 py-2.5 border-none font-sans text-[12px] font-semibold flex items-center gap-1.5 min-h-[40px]"
+          style={{
+            backgroundColor: held ? 'hsl(var(--accent) / 0.15)' : disabled ? 'hsl(var(--obsidian) / 0.06)' : 'hsl(var(--primary))',
+            color: held ? 'hsl(var(--accent))' : disabled ? 'hsl(var(--slate-plaid))' : 'hsl(var(--primary-foreground))',
+            cursor: disabled ? 'not-allowed' : 'pointer',
+          }}
+        >
+          {held ? (<><Check size={12} /> Held</>) : disabled ? (<><Lock size={12} /> Locked</>) : 'Book'}
+        </motion.button>
       </div>
       {lockReason && !held && (
         <p className="font-sans text-[9px] mt-1.5 tabular-nums text-right" style={{ color: 'hsl(var(--slate-plaid))' }}>
