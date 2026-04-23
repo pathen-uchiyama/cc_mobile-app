@@ -129,15 +129,15 @@ const InterestRow = ({
           </p>
           <p className="font-sans text-[10px] mt-0.5 tabular-nums" style={{ color: 'hsl(var(--slate-plaid))' }}>
             {entry.status === 'watching' &&
-              `Window opens ${formatMinutes(entry.openAtMin)} · in ${formatCountdown(Math.max(0, minsUntil))}`}
+              `Targeting ${formatMinutes(entry.desiredTimeMin)} · party ${entry.partySize} · opens in ${formatCountdown(Math.max(0, minsUntil))}`}
             {entry.status === 'alerted' && (
               <span className="font-bold" style={{ color: 'hsl(316 95% 35%)' }}>
-                Open now — tap to book
+                Open now — tap to book {formatMinutes(entry.desiredTimeMin)} for {entry.partySize}
               </span>
             )}
             {entry.status === 'booked' && (
               <span className="font-semibold" style={{ color: 'hsl(var(--accent))' }}>
-                Auto-booked · on the books
+                Auto-booked {formatMinutes(entry.desiredTimeMin)} · party {entry.partySize}
               </span>
             )}
             {entry.status === 'missed' && 'Window passed — re-arm?'}
