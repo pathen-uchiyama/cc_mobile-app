@@ -544,21 +544,14 @@ const RideRow = ({
             {attraction.nextWindow}
           </span>
         </div>
-        <motion.button
-          whileTap={disabled ? undefined : { scale: 0.97 }}
-          onClick={onBook}
+        <BookSplitButton
+          attraction={attraction}
+          held={held}
           disabled={disabled}
-          aria-label={held ? 'Already held' : `Book ${attraction.name}`}
-          title={lockReason}
-          className="rounded-xl px-4 py-2.5 border-none font-sans text-[12px] font-semibold flex items-center gap-1.5 min-h-[40px]"
-          style={{
-            backgroundColor: held ? 'hsl(var(--accent) / 0.15)' : disabled ? 'hsl(var(--obsidian) / 0.06)' : 'hsl(var(--primary))',
-            color: held ? 'hsl(var(--accent))' : disabled ? 'hsl(var(--slate-plaid))' : 'hsl(var(--primary-foreground))',
-            cursor: disabled ? 'not-allowed' : 'pointer',
-          }}
-        >
-          {held ? (<><Check size={12} /> Held</>) : disabled ? (<><Lock size={12} /> Locked</>) : 'Book'}
-        </motion.button>
+          lockReason={lockReason}
+          nowMinutes={nowMinutes}
+          onBook={onBook}
+        />
       </div>
       {lockReason && !held && (
         <p className="font-sans text-[9px] mt-1.5 tabular-nums text-right" style={{ color: 'hsl(var(--slate-plaid))' }}>
