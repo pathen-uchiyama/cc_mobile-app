@@ -952,6 +952,12 @@ export default BookLightningLane;
  * keeping the two surfaces visually locked.
  */
 const SelloutLegend = () => {
+  // NOTE — gold here is a *data value* in the sell-out urgency taxonomy
+  // (magenta = "going fast", gold = "soon", slate = "plenty of time"),
+  // NOT the burnished editorial gold. It deliberately stays as a raw HSL
+  // string so a future palette swap of either scale is independent of
+  // the other. Do not refactor to BURNISHED_GOLD.ink — see the test
+  // `BookLightningLane.token-purity.test.ts` for the locked exceptions.
   const items: { color: string; label: string }[] = [
     { color: 'hsl(316 95% 35%)', label: 'Going fast' },
     { color: 'hsl(var(--gold))', label: 'Soon' },
@@ -987,6 +993,8 @@ const SelloutLegend = () => {
  * the legend → filter → list color story.
  */
 type UrgencyValue = 'all' | '1h' | '2h' | 'later';
+// NOTE — see SelloutLegend above. Gold here is a taxonomy data value,
+// intentionally not consumed through BURNISHED_GOLD.
 const URGENCY_CHIPS: { value: UrgencyValue; label: string; color: string; description: string }[] = [
   { value: 'all',   label: 'All',         color: 'hsl(var(--obsidian))',     description: 'Show every standard Lightning Lane.' },
   { value: '1h',    label: 'Within 1h',   color: 'hsl(316 95% 35%)',         description: 'Lanes typically sold out within the next hour — going fast.' },
