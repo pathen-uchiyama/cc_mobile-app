@@ -11,6 +11,7 @@ import {
   Bell,
   Check,
   CalendarClock,
+  Minus,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { RESERVATIONS, formatTime, type Reservation } from '@/data/reservations';
@@ -128,15 +129,15 @@ const InterestRow = ({
           </p>
           <p className="font-sans text-[10px] mt-0.5 tabular-nums" style={{ color: 'hsl(var(--slate-plaid))' }}>
             {entry.status === 'watching' &&
-              `Window opens ${formatMinutes(entry.openAtMin)} · in ${formatCountdown(Math.max(0, minsUntil))}`}
+              `Targeting ${formatMinutes(entry.desiredTimeMin)} · party ${entry.partySize} · opens in ${formatCountdown(Math.max(0, minsUntil))}`}
             {entry.status === 'alerted' && (
               <span className="font-bold" style={{ color: 'hsl(316 95% 35%)' }}>
-                Open now — tap to book
+                Open now — tap to book {formatMinutes(entry.desiredTimeMin)} for {entry.partySize}
               </span>
             )}
             {entry.status === 'booked' && (
               <span className="font-semibold" style={{ color: 'hsl(var(--accent))' }}>
-                Auto-booked · on the books
+                Auto-booked {formatMinutes(entry.desiredTimeMin)} · party {entry.partySize}
               </span>
             )}
             {entry.status === 'missed' && 'Window passed — re-arm?'}
@@ -199,6 +200,138 @@ const InterestRow = ({
 };
 
 /**
+ * Suggestion row (in the "Add an interest" picker). Captures the two pieces
+ * of info Disney needs to actually book — desired arrival time and party
+ * size — so the moment the booking window opens we can either:
+ *   • auto-fire the request (manager + sovereign), or
+ *   • surface a single "Book" tap (explorer)
+ * without ever asking the guest to type or pick anything else.
+ */
+interface SuggestionRowProps {
+  interest: ReservationInterest;
+  defaultPartySize: number;
+  onWatch: (payload: { desiredTimeMin: number; partySize: number }) => void;
+}
+
+/** Fixed time-slot grid (5 PM – 9 PM, every 30 min) — matches typical ADR slots. */
+const TIME_SLOTS: number[] = (() => {
+  const slots: number[] = [];
+  for (let m = 17 * 60; m <= 21 * 60; m += 30) slots.push(m);
+  return slots;
+})();
+
+const SuggestionRow = ({ interest, defaultPartySize, onWatch }: SuggestionRowProps) => {
+  const Icon = interest.kind === 'dining' ? Utensils : Sparkles;
+  const [desiredTimeMin, setDesiredTimeMin] = useState<number>(18 * 60 + 30);
+  const [partySize, setPartySize] = useState<number>(defaultPartySize);
+
+  return (
+    <li
+      className="rounded-xl px-3 py-3 flex flex-col gap-2.5"
+      style={{
+        backgroundColor: 'hsl(var(--background) / 0.6)',
+        border: '1px solid hsl(var(--obsidian) / 0.05)',
+      }}
+    >
+      <div className="flex items-start gap-2.5 min-w-0">
+        <Icon size={13} className="shrink-0 mt-0.5" style={{ color: 'hsl(var(--gold))' }} />
+        <div className="min-w-0 flex-1">
+          <p className="font-sans text-[12px] font-semibold text-foreground truncate">
+            {interest.name}
+          </p>
+          <p className="font-sans text-[10px] mt-0.5" style={{ color: 'hsl(var(--slate-plaid))' }}>
+            {interest.location}
+            {interest.priceTier ? ` · ${interest.priceTier}` : ''}
+            {' · '}
+            <span className="tabular-nums">opens {formatMinutes(interest.bookingOpensAtMin)}</span>
+          </p>
+          <p className="font-sans text-[10px] mt-1 text-muted-foreground leading-snug">
+            {interest.pitch}
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <p className="font-sans text-[8px] uppercase tracking-sovereign font-bold mb-1.5" style={{ color: 'hsl(var(--slate-plaid))' }}>
+          Preferred time
+        </p>
+        <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
+          {TIME_SLOTS.map((m) => {
+            const active = m === desiredTimeMin;
+            return (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setDesiredTimeMin(m)}
+                className="shrink-0 rounded-lg px-2.5 py-1.5 border cursor-pointer font-sans text-[10px] font-semibold tabular-nums min-h-[30px]"
+                style={{
+                  backgroundColor: active ? 'hsl(var(--gold))' : 'transparent',
+                  color: active ? 'hsl(var(--parchment))' : 'hsl(var(--slate-plaid))',
+                  borderColor: active ? 'hsl(var(--gold))' : 'hsl(var(--obsidian) / 0.12)',
+                }}
+                aria-pressed={active}
+                aria-label={`Target ${formatMinutes(m)}`}
+              >
+                {formatMinutes(m)}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <span className="font-sans text-[8px] uppercase tracking-sovereign font-bold" style={{ color: 'hsl(var(--slate-plaid))' }}>
+            Party
+          </span>
+          <div
+            className="flex items-center rounded-lg overflow-hidden"
+            style={{ border: '1px solid hsl(var(--obsidian) / 0.12)' }}
+          >
+            <button
+              type="button"
+              onClick={() => setPartySize((n) => Math.max(1, n - 1))}
+              className="bg-transparent border-none cursor-pointer px-2 py-1 flex items-center justify-center min-h-[30px]"
+              style={{ color: 'hsl(var(--slate-plaid))' }}
+              aria-label="Decrease party size"
+              disabled={partySize <= 1}
+            >
+              <Minus size={12} />
+            </button>
+            <span className="font-sans text-[12px] font-bold tabular-nums px-2 min-w-[20px] text-center text-foreground">
+              {partySize}
+            </span>
+            <button
+              type="button"
+              onClick={() => setPartySize((n) => Math.min(12, n + 1))}
+              className="bg-transparent border-none cursor-pointer px-2 py-1 flex items-center justify-center min-h-[30px]"
+              style={{ color: 'hsl(var(--slate-plaid))' }}
+              aria-label="Increase party size"
+              disabled={partySize >= 12}
+            >
+              <Plus size={12} />
+            </button>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => onWatch({ desiredTimeMin, partySize })}
+          className="shrink-0 rounded-lg px-3 py-1.5 border-none cursor-pointer font-sans text-[10px] font-bold flex items-center gap-1 min-h-[32px]"
+          style={{
+            backgroundColor: 'hsl(var(--gold))',
+            color: 'hsl(var(--parchment))',
+          }}
+          aria-label={`Watch ${interest.name} at ${formatMinutes(desiredTimeMin)} for party of ${partySize}`}
+        >
+          <Eye size={10} /> Watch
+        </button>
+      </div>
+    </li>
+  );
+};
+
+/**
  * Strategic Dashboard — "The Plumbing"
  *
  * Focused on table-service dining and experiences. Two stacks:
@@ -226,6 +359,15 @@ const StrategicDashboard = ({ open, onClose }: StrategicDashboardProps) => {
       ),
     [],
   );
+
+  // Sensible default party size for the watch picker — we try to infer the
+  // typical group size from the guest's existing standing reservations so
+  // they don't have to adjust the stepper for the common case.
+  const defaultPartySize = useMemo(() => {
+    const sizes = standing.map((r) => r.partySize ?? 0).filter((n) => n > 0);
+    if (!sizes.length) return 4;
+    return Math.round(sizes.reduce((a, b) => a + b, 0) / sizes.length);
+  }, [standing]);
 
   // Aggregate party-stated interest signals so the picker can rank by
   // relevance. We fold in attraction names from the survey *and* the top
@@ -460,59 +602,24 @@ const StrategicDashboard = ({ open, onClose }: StrategicDashboardProps) => {
                         </p>
                       ) : (
                         <ul className="list-none p-0 m-0 space-y-1.5">
-                          {pickerCandidates.map((i) => {
-                            const Icon = i.kind === 'dining' ? Utensils : Sparkles;
-                            return (
-                              <li
-                                key={i.id}
-                                className="rounded-xl px-3 py-2.5 flex items-center justify-between gap-2"
-                                style={{
-                                  backgroundColor: 'hsl(var(--background) / 0.6)',
-                                  border: '1px solid hsl(var(--obsidian) / 0.05)',
-                                }}
-                              >
-                                <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                                  <Icon size={13} className="shrink-0 mt-0.5" style={{ color: 'hsl(var(--gold))' }} />
-                                  <div className="min-w-0 flex-1">
-                                    <p className="font-sans text-[12px] font-semibold text-foreground truncate">
-                                      {i.name}
-                                    </p>
-                                    <p className="font-sans text-[10px] mt-0.5" style={{ color: 'hsl(var(--slate-plaid))' }}>
-                                      {i.location}
-                                      {i.priceTier ? ` · ${i.priceTier}` : ''}
-                                      {' · '}
-                                      <span className="tabular-nums">opens {formatMinutes(i.bookingOpensAtMin)}</span>
-                                    </p>
-                                    <p className="font-sans text-[10px] mt-1 text-muted-foreground leading-snug">
-                                      {i.pitch}
-                                    </p>
-                                  </div>
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    watchlist.watch(i.id);
-                                    fire('selection');
-                                    toast(`Watching · ${i.name}`, {
-                                      description:
-                                        tier === 'explorer'
-                                          ? "We'll alert you when the window opens."
-                                          : "We'll auto-book it when the window opens.",
-                                      duration: 4000,
-                                    });
-                                  }}
-                                  className="shrink-0 rounded-lg px-2.5 py-1.5 border-none cursor-pointer font-sans text-[10px] font-bold flex items-center gap-1 min-h-[32px]"
-                                  style={{
-                                    backgroundColor: 'hsl(var(--gold))',
-                                    color: 'hsl(var(--parchment))',
-                                  }}
-                                  aria-label={`Watch ${i.name}`}
-                                >
-                                  <Eye size={10} /> Watch
-                                </button>
-                              </li>
-                            );
-                          })}
+                          {pickerCandidates.map((i) => (
+                            <SuggestionRow
+                              key={i.id}
+                              interest={i}
+                              defaultPartySize={defaultPartySize}
+                              onWatch={(payload) => {
+                                watchlist.watch(i.id, payload);
+                                fire('selection');
+                                toast(`Watching · ${i.name}`, {
+                                  description:
+                                    tier === 'explorer'
+                                      ? `We'll alert you to grab ${formatMinutes(payload.desiredTimeMin)} for ${payload.partySize} the moment the window opens.`
+                                      : `We'll auto-book ${formatMinutes(payload.desiredTimeMin)} for ${payload.partySize} the moment the window opens.`,
+                                  duration: 4500,
+                                });
+                              }}
+                            />
+                          ))}
                         </ul>
                       )}
                     </motion.div>
