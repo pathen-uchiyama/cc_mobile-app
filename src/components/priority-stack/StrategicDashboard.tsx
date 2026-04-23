@@ -1,18 +1,42 @@
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Zap, TrendingDown, Clock, Users, Utensils, Sparkles, ArrowRight } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import {
+  X,
+  TrendingDown,
+  Users,
+  Utensils,
+  Sparkles,
+  Plus,
+  Eye,
+  Bell,
+  Check,
+  CalendarClock,
+} from 'lucide-react';
+import { toast } from 'sonner';
 import { RESERVATIONS, formatTime, type Reservation } from '@/data/reservations';
 import {
-  INITIAL_HOLDS,
-  DEFAULT_CAPACITY,
-  summarizeCapacity,
-} from '@/data/lightningLanes';
-import CapacityMeter from '@/components/lightning-lane/CapacityMeter';
+  INTEREST_POOL,
+  scoreInterest,
+  formatMinutes,
+  type ReservationInterest,
+} from '@/data/reservationInterests';
+import { PARTY_WANTS, COMMUNITY_PICKS } from '@/data/wantToDos';
+import { useReservationWatchlist } from '@/hooks/reservations/useReservationWatchlist';
+import { useCompanion } from '@/contexts/CompanionContext';
+import { useHaptics } from '@/hooks/useHaptics';
+import { formatCountdown } from '@/data/lightningLanes';
 
 interface StrategicDashboardProps {
   open: boolean;
   onClose: () => void;
 }
+
+/**
+ * Today's park context — drives the park-aware filter on the interest pool.
+ * Real implementation pulls from the trip plan; for now we mirror the rest
+ * of /park which is hard-coded to Magic Kingdom.
+ */
+const TODAYS_PARK: ReservationInterest['park'] = 'magic-kingdom';
 
 const STATUS_TONE: Record<Reservation['status'], { bg: string; fg: string; label: string }> = {
   'open-now': { bg: 'hsl(var(--accent) / 0.15)', fg: 'hsl(var(--accent))', label: 'open now' },
