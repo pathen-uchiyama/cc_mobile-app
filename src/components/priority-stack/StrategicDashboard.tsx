@@ -38,6 +38,48 @@ interface StrategicDashboardProps {
 /** Today's park context — drives the park-aware filter. */
 const TODAYS_PARK: ReservationInterest['park'] = 'magic-kingdom';
 
+/**
+ * Solid-gold "selected target" treatment — the single source of truth for
+ * any time-slot chip that represents a *chosen* target the system will
+ * pursue (e.g. "I want this 7:00 PM slot", "I want whatever opens first").
+ *
+ * This is the *solid* counterpart to `BURNISHED_GOLD` over in
+ * `BookLightningLane.tsx`. The two roles must never bleed into each other:
+ *
+ *   • SOLID_GOLD_TARGET — fully-saturated gold fill + parchment ink. Used
+ *     ONLY on a chip that is the active selection in a row of choices.
+ *     Reads as a hard, deliberate pick.
+ *
+ *   • BURNISHED_GOLD — 12% gold tint + saturated gold ink + 45% gold
+ *     border. Used for "armed / watching" surfaces (heart, Watch CTA pill,
+ *     watching card outline). Reads as ambient priming, not a hard pick.
+ *
+ * Exported so the visual-regression checklist in
+ * `StrategicDashboard.visual.test.ts` can pin the exact strings and prove
+ * the two recipes never overlap.
+ */
+export const SOLID_GOLD_TARGET = {
+  /** The chip's surface when it IS the active target. */
+  selected: {
+    backgroundColor: 'hsl(var(--gold))',
+    color: 'hsl(var(--parchment))',
+    borderColor: 'hsl(var(--gold))',
+  } as const,
+  /** The chip's surface when it is NOT the active target — transparent
+   *  fill, gold *outline only* for the sentinel ("Next available", which is
+   *  always offered), neutral outline for ordinary slots. */
+  unselectedSentinel: {
+    backgroundColor: 'transparent',
+    color: 'hsl(var(--gold))',
+    borderColor: 'hsl(var(--gold))',
+  } as const,
+  unselectedSlot: {
+    backgroundColor: 'transparent',
+    color: 'hsl(var(--slate-plaid))',
+    borderColor: 'hsl(var(--obsidian) / 0.12)',
+  } as const,
+} as const;
+
 const STATUS_TONE: Record<Reservation['status'], { bg: string; fg: string; label: string }> = {
   'open-now': { bg: 'hsl(var(--accent) / 0.15)', fg: 'hsl(var(--accent))', label: 'open now' },
   'checked-in': { bg: 'hsl(var(--accent) / 0.15)', fg: 'hsl(var(--accent))', label: 'checked in' },
@@ -382,11 +424,16 @@ const SuggestionRow = ({ interest, defaultPartySize, nowMinutes, onWatch }: Sugg
             onClick={() => setNextAvailable(true)}
             disabled={nextAvailableSlot === null}
             className="shrink-0 rounded-lg px-2.5 py-1.5 border font-sans text-[10px] font-bold min-h-[30px] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer flex items-center gap-1"
-            style={{
-              backgroundColor: nextAvailable ? 'hsl(var(--gold))' : 'transparent',
-              color: nextAvailable ? 'hsl(var(--parchment))' : 'hsl(var(--gold))',
-              borderColor: 'hsl(var(--gold))',
-            }}
+            // Sentinel chip — always wears gold (either solid when chosen,
+            // or gold-outlined when not) because "next available" is itself
+            // a permanent affordance. Both states flow through
+            // SOLID_GOLD_TARGET so the chip can never accidentally adopt
+            // the BURNISHED_GOLD tint recipe used for armed/watching.
+            style={
+              nextAvailable
+                ? SOLID_GOLD_TARGET.selected
+                : SOLID_GOLD_TARGET.unselectedSentinel
+            }
             aria-pressed={nextAvailable}
             aria-label={
               nextAvailableSlot
@@ -422,11 +469,16 @@ const SuggestionRow = ({ interest, defaultPartySize, nowMinutes, onWatch }: Sugg
                   setDesiredTimeMin(m);
                 }}
                 className="shrink-0 rounded-lg px-2.5 py-1.5 border font-sans text-[10px] font-semibold tabular-nums min-h-[30px] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
-                style={{
-                  backgroundColor: active ? 'hsl(var(--gold))' : 'transparent',
-                  color: active ? 'hsl(var(--parchment))' : 'hsl(var(--slate-plaid))',
-                  borderColor: active ? 'hsl(var(--gold))' : 'hsl(var(--obsidian) / 0.12)',
-                }}
+                // Time-slot chip — solid gold when it IS the target,
+                // neutral outline otherwise. Never dips into the burnished
+                // tint recipe (that's reserved for "armed/watching" surfaces
+                // on /book-ll); a chip is always a hard pick or a quiet
+                // candidate, never an ambient priming state.
+                style={
+                  active
+                    ? SOLID_GOLD_TARGET.selected
+                    : SOLID_GOLD_TARGET.unselectedSlot
+                }
                 aria-pressed={active}
                 disabled={slotInvalid && !active}
                 aria-label={`Target ${formatMinutes(m)}`}
