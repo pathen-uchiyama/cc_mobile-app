@@ -319,7 +319,7 @@ const SuggestionRow = ({ interest, defaultPartySize, onWatch }: SuggestionRowPro
           onClick={() => onWatch({ desiredTimeMin, partySize })}
           className="shrink-0 rounded-lg px-3 py-1.5 border-none cursor-pointer font-sans text-[10px] font-bold flex items-center gap-1 min-h-[32px]"
           style={{
-            backgroundColor: 'hsl(var(--gold))',
+            backgroundColor: 'hsl(var(--obsidian))',
             color: 'hsl(var(--parchment))',
           }}
           aria-label={`Watch ${interest.name} at ${formatMinutes(desiredTimeMin)} for party of ${partySize}`}
