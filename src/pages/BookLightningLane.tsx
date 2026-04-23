@@ -1,9 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Zap, MapPin, Clock, Check, Star, Lock, ArrowRight, Sparkles, Hourglass, Heart } from 'lucide-react';
+import { Zap, MapPin, Clock, Check, Star, Lock, ArrowRight, Sparkles, Hourglass, Heart, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   LL_INVENTORY,
   INITIAL_HOLDS,
@@ -49,6 +57,30 @@ const INITIAL_NOW_MINUTES = 11 * 60 + 5;
  * use a 1:1 ratio (or just `new Date()`).
  */
 const TICK_MIN_PER_SEC = 0.5; // ~30 park-minutes per real minute
+
+/**
+ * Booking time-of-day windows. Each window's `startMin` is the park-time
+ * we'll request as the start of the return slot. `null` for ASAP — we use
+ * `nowMinutes + 60` (the standard 1-hour return window from the API).
+ */
+type BookWindowId = 'asap' | 'morning' | 'afternoon' | 'early-evening' | 'evening';
+interface BookWindow {
+  id: BookWindowId;
+  label: string;
+  /** Range hint shown in the menu (display only). */
+  hint: string;
+  /** Park-time minutes we'll request, or null for ASAP. */
+  startMin: number | null;
+  /** Window end (used to grey out a slot once it has fully passed). */
+  endMin: number;
+}
+const BOOK_WINDOWS: BookWindow[] = [
+  { id: 'asap',          label: 'Book ASAP',         hint: 'Next available',   startMin: null,    endMin: 24 * 60 },
+  { id: 'morning',       label: 'Morning',           hint: '9 AM – 12 PM',     startMin: 9 * 60,  endMin: 12 * 60 },
+  { id: 'afternoon',     label: 'Afternoon',         hint: '12 PM – 3 PM',     startMin: 12 * 60, endMin: 15 * 60 },
+  { id: 'early-evening', label: 'Early evening',     hint: '3 PM – 6 PM',      startMin: 15 * 60, endMin: 18 * 60 },
+  { id: 'evening',       label: 'Evening',           hint: '7 PM – close',     startMin: 19 * 60, endMin: 23 * 60 },
+];
 
 /**
  * /book-ll — the manual Browse & Book surface.
@@ -136,7 +168,7 @@ const BookLightningLane = () => {
     [],
   );
 
-  const handleBook = (a: LLAttraction) => {
+  const handleBook = (a: LLAttraction, windowId: BookWindowId = 'asap') => {
     const isILL = a.type === 'ill';
     if (isILL && !summary.canBookILL) {
       toast.error('Daily Individual Lightning Lane cap reached.');
@@ -146,17 +178,33 @@ const BookLightningLane = () => {
       toast.error(`Next standard slot unlocks in ${formatCountdown(summary.llUnlocksInMin)}.`);
       return false;
     }
+    const window = BOOK_WINDOWS.find((w) => w.id === windowId) ?? BOOK_WINDOWS[0];
+    // ASAP → standard 1-hour return from now. Time-of-day → that window's
+    // start, but never earlier than the next available slot (now + 60).
+    const earliest = nowMinutes + 60;
+    const requestedStart =
+      window.startMin === null ? earliest : Math.max(earliest, window.startMin);
+    if (window.startMin !== null && nowMinutes >= window.endMin) {
+      toast.error(`${window.label} window has already passed today.`);
+      return false;
+    }
     fire('bookingSuccess');
     const newHold: HeldLL = {
       id: `h-${Date.now()}`,
       attractionId: a.id,
       type: a.type,
       bookedAtMin: nowMinutes,
-      windowStartMin: nowMinutes + 60,
+      windowStartMin: requestedStart,
       status: 'held',
     };
     setHolds((prev) => [...prev, newHold]);
     setSessionAdds((n) => n + 1);
+    if (window.id !== 'asap') {
+      toast.success(`Requested ${window.label.toLowerCase()} · ${a.name}`, {
+        description: `Window starts ${formatClockTime(requestedStart)}.`,
+        duration: 5000,
+      });
+    }
     // Single confirmation surface — the sticky "Return to your day" ribbon
     // already announces session adds. Avoid double-firing the same signal.
     return true;
@@ -287,7 +335,7 @@ const BookLightningLane = () => {
                   dim={dim}
                   disabled={disabled}
                   lockReason={!summary.canBookLLNow && !held ? `Unlocks in ${formatCountdown(summary.llUnlocksInMin)}` : undefined}
-                  onBook={() => handleBook(a)}
+                  onBook={(windowId) => handleBook(a, windowId)}
                   nowMinutes={nowMinutes}
                   isWatching={watchlist.isWatching(a.id)}
                   onToggleWatch={() =>
@@ -333,7 +381,7 @@ const BookLightningLane = () => {
                   dim={held}
                   disabled={disabled}
                   lockReason={!summary.canBookILL && !held ? 'Daily cap reached' : undefined}
-                  onBook={() => handleBook(a)}
+                  onBook={(windowId) => handleBook(a, windowId)}
                   nowMinutes={nowMinutes}
                   isWatching={watchlist.isWatching(a.id)}
                   onToggleWatch={() =>
@@ -392,13 +440,129 @@ interface RideRowProps {
   dim: boolean;
   disabled: boolean;
   lockReason?: string;
-  onBook: () => void;
+  onBook: (windowId: BookWindowId) => void;
   /** Park-time used by the Sellout chip. */
   nowMinutes: number;
   /** Whether this lane is on the watchlist — drives the heart-toggle icon. */
   isWatching: boolean;
   onToggleWatch: () => void;
 }
+
+/**
+ * Split-button booking control. Primary tap = "Book ASAP" (next available
+ * 1-hour return slot); the chevron opens a menu of time-of-day windows
+ * (morning / afternoon / early evening / evening) so guests can request a
+ * return slot that fits the rest of their day. Past windows are disabled
+ * automatically based on park-time.
+ */
+interface BookSplitButtonProps {
+  attraction: LLAttraction;
+  held: boolean;
+  disabled: boolean;
+  lockReason?: string;
+  nowMinutes: number;
+  onBook: (windowId: BookWindowId) => void;
+}
+
+const BookSplitButton = ({
+  attraction,
+  held,
+  disabled,
+  lockReason,
+  nowMinutes,
+  onBook,
+}: BookSplitButtonProps) => {
+  if (held) {
+    return (
+      <span
+        className="rounded-xl px-4 py-2.5 font-sans text-[12px] font-semibold flex items-center gap-1.5 min-h-[40px]"
+        style={{
+          backgroundColor: 'hsl(var(--accent) / 0.15)',
+          color: 'hsl(var(--accent))',
+        }}
+      >
+        <Check size={12} /> Held
+      </span>
+    );
+  }
+
+  if (disabled) {
+    return (
+      <span
+        className="rounded-xl px-4 py-2.5 font-sans text-[12px] font-semibold flex items-center gap-1.5 min-h-[40px]"
+        title={lockReason}
+        style={{
+          backgroundColor: 'hsl(var(--obsidian) / 0.06)',
+          color: 'hsl(var(--slate-plaid))',
+          cursor: 'not-allowed',
+        }}
+      >
+        <Lock size={12} /> Locked
+      </span>
+    );
+  }
+
+  return (
+    <div className="flex items-stretch overflow-hidden rounded-xl" style={{ backgroundColor: 'hsl(var(--primary))' }}>
+      <motion.button
+        type="button"
+        whileTap={{ scale: 0.97 }}
+        onClick={() => onBook('asap')}
+        aria-label={`Book ${attraction.name} ASAP`}
+        className="px-3.5 py-2.5 border-none font-sans text-[12px] font-semibold flex items-center gap-1.5 min-h-[40px] cursor-pointer"
+        style={{
+          backgroundColor: 'hsl(var(--primary))',
+          color: 'hsl(var(--primary-foreground))',
+        }}
+      >
+        Book ASAP
+      </motion.button>
+      <span className="w-px" style={{ backgroundColor: 'hsl(var(--primary-foreground) / 0.18)' }} />
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            aria-label={`Pick a time-of-day to book ${attraction.name}`}
+            className="px-2.5 border-none cursor-pointer flex items-center justify-center min-h-[40px]"
+            style={{
+              backgroundColor: 'hsl(var(--primary))',
+              color: 'hsl(var(--primary-foreground))',
+            }}
+          >
+            <ChevronDown size={14} />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuLabel className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground">
+            Pick a return window
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          {BOOK_WINDOWS.map((w) => {
+            const passed = w.startMin !== null && nowMinutes >= w.endMin;
+            return (
+              <DropdownMenuItem
+                key={w.id}
+                disabled={passed}
+                onSelect={() => onBook(w.id)}
+                className="flex items-center justify-between gap-3"
+              >
+                <span className="font-sans text-[12px] font-semibold">
+                  {w.label}
+                </span>
+                <span
+                  className="font-sans text-[10px] tabular-nums"
+                  style={{ color: passed ? 'hsl(var(--slate-plaid) / 0.5)' : 'hsl(var(--slate-plaid))' }}
+                >
+                  {passed ? 'Passed' : w.hint}
+                </span>
+              </DropdownMenuItem>
+            );
+          })}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+};
 
 const RideRow = ({
   attraction,
@@ -496,21 +660,14 @@ const RideRow = ({
             {attraction.nextWindow}
           </span>
         </div>
-        <motion.button
-          whileTap={disabled ? undefined : { scale: 0.97 }}
-          onClick={onBook}
+        <BookSplitButton
+          attraction={attraction}
+          held={held}
           disabled={disabled}
-          aria-label={held ? 'Already held' : `Book ${attraction.name}`}
-          title={lockReason}
-          className="rounded-xl px-4 py-2.5 border-none font-sans text-[12px] font-semibold flex items-center gap-1.5 min-h-[40px]"
-          style={{
-            backgroundColor: held ? 'hsl(var(--accent) / 0.15)' : disabled ? 'hsl(var(--obsidian) / 0.06)' : 'hsl(var(--primary))',
-            color: held ? 'hsl(var(--accent))' : disabled ? 'hsl(var(--slate-plaid))' : 'hsl(var(--primary-foreground))',
-            cursor: disabled ? 'not-allowed' : 'pointer',
-          }}
-        >
-          {held ? (<><Check size={12} /> Held</>) : disabled ? (<><Lock size={12} /> Locked</>) : 'Book'}
-        </motion.button>
+          lockReason={lockReason}
+          nowMinutes={nowMinutes}
+          onBook={onBook}
+        />
       </div>
       {lockReason && !held && (
         <p className="font-sans text-[9px] mt-1.5 tabular-nums text-right" style={{ color: 'hsl(var(--slate-plaid))' }}>
