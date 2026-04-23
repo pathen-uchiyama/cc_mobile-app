@@ -587,9 +587,7 @@ const BookSplitButton = ({
           className="rounded-xl px-4 py-2.5 font-sans text-[12px] font-semibold flex items-center gap-1.5 min-h-[40px]"
           title={lockReason ? `Armed — ${lockReason}` : 'Armed — waiting to unlock'}
           style={{
-            backgroundColor: 'hsl(var(--gold) / 0.12)',
-            color: 'hsl(var(--gold))',
-            border: '1px solid hsl(var(--gold) / 0.45)',
+            ...BURNISHED_GOLD.surface,
             cursor: 'not-allowed',
           }}
           aria-label={
