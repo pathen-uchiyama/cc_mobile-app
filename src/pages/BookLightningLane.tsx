@@ -482,6 +482,11 @@ interface BookSplitButtonProps {
   lockReason?: string;
   nowMinutes: number;
   onBook: (windowId: BookWindowId) => void;
+  /** When true, the lane is locked AND the guest has armed a watch on it.
+   *  Renders a gold "Armed · Locked" pill instead of the neutral grey one
+   *  so the locked CTA reads as "primed, waiting for unlock" rather than
+   *  "dead-end". */
+  armed?: boolean;
 }
 
 const BookSplitButton = ({
@@ -491,6 +496,7 @@ const BookSplitButton = ({
   lockReason,
   nowMinutes,
   onBook,
+  armed = false,
 }: BookSplitButtonProps) => {
   if (held) {
     return (
@@ -507,6 +513,30 @@ const BookSplitButton = ({
   }
 
   if (disabled) {
+    if (armed) {
+      // Watch is armed AND lane is locked. Combined state: the system will
+      // act for the guest as soon as the lock lifts. Gold-tinted pill +
+      // heart icon ties this back to the heart in the row header.
+      return (
+        <span
+          className="rounded-xl px-4 py-2.5 font-sans text-[12px] font-semibold flex items-center gap-1.5 min-h-[40px]"
+          title={lockReason ? `Armed — ${lockReason}` : 'Armed — waiting to unlock'}
+          style={{
+            backgroundColor: 'hsl(var(--gold) / 0.12)',
+            color: 'hsl(var(--gold))',
+            border: '1px solid hsl(var(--gold) / 0.45)',
+            cursor: 'not-allowed',
+          }}
+          aria-label={
+            lockReason
+              ? `Armed and waiting. ${lockReason}.`
+              : 'Armed and waiting to unlock.'
+          }
+        >
+          <Heart size={12} fill="currentColor" /> Armed · Locked
+        </span>
+      );
+    }
     return (
       <span
         className="rounded-xl px-4 py-2.5 font-sans text-[12px] font-semibold flex items-center gap-1.5 min-h-[40px]"
@@ -599,16 +629,27 @@ const RideRow = ({
   onWatchWindow,
 }: RideRowProps) => {
   const isILL = attraction.type === 'ill';
+  // Combined "armed + locked" state — the heart is engaged but the lane
+  // can't be booked yet. We tighten the card border to gold and switch
+  // both the heart and the CTA to a coordinated "Armed" treatment so the
+  // two surfaces tell the same story.
+  const armedLocked = isWatching && disabled && !held;
   return (
     <li
       className="rounded-2xl p-4 bg-card transition-opacity"
       style={{
-        border: isWatching
-          ? '1.5px solid hsl(var(--gold) / 0.45)'
+        border: armedLocked
+          ? '1.5px solid hsl(var(--gold) / 0.7)'
+          : isWatching
+            ? '1.5px solid hsl(var(--gold) / 0.45)'
+            : mustDo
+              ? '1.5px solid hsl(var(--gold) / 0.6)'
+              : '1px solid hsl(var(--obsidian) / 0.05)',
+        boxShadow: armedLocked
+          ? '0 6px 18px hsl(var(--gold) / 0.18)'
           : mustDo
-            ? '1.5px solid hsl(var(--gold) / 0.6)'
-            : '1px solid hsl(var(--obsidian) / 0.05)',
-        boxShadow: mustDo ? '0 4px 14px hsl(var(--gold) / 0.10)' : '0 4px 12px hsl(var(--obsidian) / 0.03)',
+            ? '0 4px 14px hsl(var(--gold) / 0.10)'
+            : '0 4px 12px hsl(var(--obsidian) / 0.03)',
         opacity: dim ? 0.55 : 1,
       }}
     >
@@ -658,12 +699,36 @@ const RideRow = ({
             type="button"
             onClick={onUnwatch}
             aria-pressed
-            aria-label={`Stop watching ${attraction.name}`}
-            title="Watching — tap to remove"
-            className="shrink-0 rounded-full p-2 bg-transparent border-none cursor-pointer flex items-center justify-center min-h-[36px] min-w-[36px] outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-primary/40"
+            aria-label={
+              armedLocked
+                ? `Armed — will alert when ${attraction.name} unlocks. Tap to remove.`
+                : `Stop watching ${attraction.name}`
+            }
+            title={
+              armedLocked
+                ? 'Armed — waiting for the lane to unlock. Tap to remove.'
+                : 'Watching — tap to remove'
+            }
+            className="relative shrink-0 rounded-full p-2 bg-transparent border-none cursor-pointer flex items-center justify-center min-h-[36px] min-w-[36px] outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-primary/40"
             style={{ color: 'hsl(var(--gold))' }}
           >
-            <Heart size={16} fill="currentColor" />
+            <Heart
+              size={16}
+              fill="currentColor"
+              className={armedLocked ? 'animate-pulse' : ''}
+            />
+            {armedLocked && (
+              <span
+                aria-hidden="true"
+                className="absolute top-1 right-1 rounded-full animate-pulse"
+                style={{
+                  width: 6,
+                  height: 6,
+                  backgroundColor: 'hsl(var(--gold))',
+                  boxShadow: '0 0 0 2px hsl(var(--card))',
+                }}
+              />
+            )}
           </button>
         ) : (
           <DropdownMenu>
@@ -729,11 +794,15 @@ const RideRow = ({
           lockReason={lockReason}
           nowMinutes={nowMinutes}
           onBook={onBook}
+          armed={armedLocked}
         />
       </div>
       {lockReason && !held && (
-        <p className="font-sans text-[9px] mt-1.5 tabular-nums text-right" style={{ color: 'hsl(var(--slate-plaid))' }}>
-          {lockReason}
+        <p
+          className="font-sans text-[9px] mt-1.5 tabular-nums text-right"
+          style={{ color: armedLocked ? 'hsl(var(--gold))' : 'hsl(var(--slate-plaid))' }}
+        >
+          {armedLocked ? `Armed · ${lockReason}` : lockReason}
         </p>
       )}
     </li>
