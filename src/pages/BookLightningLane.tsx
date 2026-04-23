@@ -482,6 +482,11 @@ interface BookSplitButtonProps {
   lockReason?: string;
   nowMinutes: number;
   onBook: (windowId: BookWindowId) => void;
+  /** When true, the lane is locked AND the guest has armed a watch on it.
+   *  Renders a gold "Armed · Locked" pill instead of the neutral grey one
+   *  so the locked CTA reads as "primed, waiting for unlock" rather than
+   *  "dead-end". */
+  armed?: boolean;
 }
 
 const BookSplitButton = ({
@@ -491,6 +496,7 @@ const BookSplitButton = ({
   lockReason,
   nowMinutes,
   onBook,
+  armed = false,
 }: BookSplitButtonProps) => {
   if (held) {
     return (
@@ -507,6 +513,30 @@ const BookSplitButton = ({
   }
 
   if (disabled) {
+    if (armed) {
+      // Watch is armed AND lane is locked. Combined state: the system will
+      // act for the guest as soon as the lock lifts. Gold-tinted pill +
+      // heart icon ties this back to the heart in the row header.
+      return (
+        <span
+          className="rounded-xl px-4 py-2.5 font-sans text-[12px] font-semibold flex items-center gap-1.5 min-h-[40px]"
+          title={lockReason ? `Armed — ${lockReason}` : 'Armed — waiting to unlock'}
+          style={{
+            backgroundColor: 'hsl(var(--gold) / 0.12)',
+            color: 'hsl(var(--gold))',
+            border: '1px solid hsl(var(--gold) / 0.45)',
+            cursor: 'not-allowed',
+          }}
+          aria-label={
+            lockReason
+              ? `Armed and waiting. ${lockReason}.`
+              : 'Armed and waiting to unlock.'
+          }
+        >
+          <Heart size={12} fill="currentColor" /> Armed · Locked
+        </span>
+      );
+    }
     return (
       <span
         className="rounded-xl px-4 py-2.5 font-sans text-[12px] font-semibold flex items-center gap-1.5 min-h-[40px]"
