@@ -398,18 +398,11 @@ interface RideRowProps {
   disabled: boolean;
   lockReason?: string;
   onBook: () => void;
-  /** Park-time used by the Sellout chip and the Watch button countdown. */
+  /** Park-time used by the Sellout chip. */
   nowMinutes: number;
   /** Whether this lane is on the watchlist — drives the heart-toggle icon. */
   isWatching: boolean;
   onToggleWatch: () => void;
-  /**
-   * When provided and the lane is currently locked, replaces the "Locked"
-   * primary CTA with a Watch CTA. Returns the openAtMin to seed the watch.
-   * Optional so ILL rows (which can be locked by daily cap, where watching
-   * doesn't help) can omit it.
-   */
-  watchOpensAtMin?: number;
 }
 
 const RideRow = ({
@@ -424,13 +417,8 @@ const RideRow = ({
   nowMinutes,
   isWatching,
   onToggleWatch,
-  watchOpensAtMin,
 }: RideRowProps) => {
   const isILL = attraction.type === 'ill';
-  // The Watch CTA replaces the "Locked" primary button only when the lane is
-  // genuinely watchable (i.e. the user isn't already holding it and the page
-  // owner passed a future open-time). Held lanes never show Watch.
-  const showWatchCTA = !!watchOpensAtMin && disabled && !held;
   return (
     <li
       className="rounded-2xl p-4 bg-card transition-opacity"
