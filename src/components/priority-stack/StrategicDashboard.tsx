@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
@@ -236,7 +236,35 @@ const TIME_SLOTS: number[] = (() => {
 const SuggestionRow = ({ interest, defaultPartySize, nowMinutes, onWatch }: SuggestionRowProps) => {
   const Icon = interest.kind === 'dining' ? Utensils : Sparkles;
   const [desiredTimeMin, setDesiredTimeMin] = useState<number>(18 * 60 + 30);
+  /** When true, the row tracks the earliest valid slot as park-time advances
+   *  instead of pinning to a specific clock time. Lets the guest say "just
+   *  pull whatever opens first" without manually re-picking a slot. */
+  const [nextAvailable, setNextAvailable] = useState<boolean>(false);
   const [partySize, setPartySize] = useState<number>(defaultPartySize);
+
+  /**
+   * Compute the earliest valid slot from the same constraints validation
+   * uses: must be > now, must be ≥ bookingOpensAtMin + MIN_LEAD_MIN, must
+   * fall within the seating grid. We snap up to the next 30-min slot so
+   * the captured arrival time matches the dining grid Disney exposes.
+   */
+  const nextAvailableSlot = useMemo<number | null>(() => {
+    const earliest = Math.max(nowMinutes + 1, interest.bookingOpensAtMin + MIN_LEAD_MIN);
+    const gridStart = TIME_SLOTS[0];
+    const target = Math.max(earliest, gridStart);
+    // Snap up to the next 30-minute slot in our grid.
+    const snapped = Math.ceil(target / 30) * 30;
+    if (snapped > LATEST_SEATING_MIN) return null;
+    return snapped;
+  }, [nowMinutes, interest.bookingOpensAtMin]);
+
+  // When "Next available" is on, keep desiredTimeMin synced to the rolling
+  // earliest slot so the watch payload reflects what we'll actually request.
+  useEffect(() => {
+    if (nextAvailable && nextAvailableSlot !== null) {
+      setDesiredTimeMin(nextAvailableSlot);
+    }
+  }, [nextAvailable, nextAvailableSlot]);
 
   // Validate the captured payload. We reject:
   //   • party sizes outside 1–10 (Disney's per-reservation cap)
@@ -292,8 +320,39 @@ const SuggestionRow = ({ interest, defaultPartySize, nowMinutes, onWatch }: Sugg
           Preferred time
         </p>
         <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
+          {/* Next-available sentinel — auto-targets the earliest valid slot
+              and stays in sync as the park clock advances. Disabled when
+              every slot is past the latest seating. */}
+          <button
+            type="button"
+            onClick={() => setNextAvailable(true)}
+            disabled={nextAvailableSlot === null}
+            className="shrink-0 rounded-lg px-2.5 py-1.5 border font-sans text-[10px] font-bold min-h-[30px] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer flex items-center gap-1"
+            style={{
+              backgroundColor: nextAvailable ? 'hsl(var(--gold))' : 'transparent',
+              color: nextAvailable ? 'hsl(var(--parchment))' : 'hsl(var(--gold))',
+              borderColor: 'hsl(var(--gold))',
+            }}
+            aria-pressed={nextAvailable}
+            aria-label={
+              nextAvailableSlot
+                ? `Target next available slot, currently ${formatMinutes(nextAvailableSlot)}`
+                : 'No upcoming slots available today'
+            }
+            title={
+              nextAvailableSlot
+                ? `We'll pull whatever opens first (now ${formatMinutes(nextAvailableSlot)})`
+                : 'No upcoming slots'
+            }
+          >
+            <Sparkles size={10} />
+            Next available
+            {nextAvailable && nextAvailableSlot !== null && (
+              <span className="tabular-nums opacity-80">· {formatMinutes(nextAvailableSlot)}</span>
+            )}
+          </button>
           {TIME_SLOTS.map((m) => {
-            const active = m === desiredTimeMin;
+            const active = !nextAvailable && m === desiredTimeMin;
             // Mark slots that would fail validation so guests see why
             // certain times aren't selectable as targets.
             const slotInvalid =
@@ -304,7 +363,10 @@ const SuggestionRow = ({ interest, defaultPartySize, nowMinutes, onWatch }: Sugg
               <button
                 key={m}
                 type="button"
-                onClick={() => setDesiredTimeMin(m)}
+                onClick={() => {
+                  setNextAvailable(false);
+                  setDesiredTimeMin(m);
+                }}
                 className="shrink-0 rounded-lg px-2.5 py-1.5 border font-sans text-[10px] font-semibold tabular-nums min-h-[30px] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
                 style={{
                   backgroundColor: active ? 'hsl(var(--gold))' : 'transparent',
