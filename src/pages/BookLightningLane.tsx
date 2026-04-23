@@ -120,6 +120,27 @@ export const BURNISHED_GOLD = {
    *  BOTH watching AND locked, where the heightened halo signals "primed,
    *  ready to fire the moment the lock lifts". */
   glowArmed: '0 6px 18px hsl(var(--gold) / 0.18)',
+  /**
+   * Borderless tinted pill — used for small editorial labels that wear gold
+   * as a category badge (Must-Do, ILL price). Differs from `surface` by
+   * design: no border, since these badges are typographic micro-pills, not
+   * interactive surfaces. Both prior call-sites used slightly different
+   * opacities (0.10 vs 0.15) — collapsed to 0.12 to lock parity with
+   * `surface.backgroundColor`.
+   */
+  pill: {
+    backgroundColor: 'hsl(var(--gold) / 0.12)',
+    color: 'hsl(var(--gold))',
+  } as const,
+  /**
+   * Must-Do row border — heavier than `borderWatching` so the user's own
+   * Must-Do pin reads as the editorial peak of the gold ladder, even when
+   * sitting next to a watching/armed row. Watching > Must-Do > ordinary.
+   */
+  borderMustDo: '1.5px solid hsl(var(--gold) / 0.6)',
+  /** Glow paired with `borderMustDo` — same intensity as `glowWatching` so
+   *  the Must-Do row sits one notch *under* the armed row in halo weight. */
+  glowMustDo: '0 4px 14px hsl(var(--gold) / 0.10)',
 } as const;
 
 /**
@@ -339,7 +360,7 @@ const BookLightningLane = () => {
             <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold">
               Standard Multi-Pass
             </span>
-            <span className="font-sans text-[9px] tabular-nums" style={{ color: 'hsl(var(--gold))' }}>
+            <span className="font-sans text-[9px] tabular-nums" style={{ color: BURNISHED_GOLD.ink }}>
               {llOrdered.length} options
             </span>
           </div>
@@ -439,7 +460,7 @@ const BookLightningLane = () => {
             <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold">
               Individual Lightning Lane
             </span>
-            <span className="font-sans text-[9px] tabular-nums" style={{ color: 'hsl(var(--gold))' }}>
+            <span className="font-sans text-[9px] tabular-nums" style={{ color: BURNISHED_GOLD.ink }}>
               {summary.illUsedCount} / {summary.illCapTotal} used
             </span>
           </div>
@@ -540,10 +561,10 @@ const BookLightningLane = () => {
             }}
           >
             <span className="flex items-center gap-2">
-              <Check size={14} style={{ color: 'hsl(var(--gold))' }} />
+              <Check size={14} style={{ color: BURNISHED_GOLD.ink }} />
               {sessionAdds === 1 ? '1 new hold secured' : `${sessionAdds} new holds secured`}
             </span>
-            <span className="flex items-center gap-1.5" style={{ color: 'hsl(var(--gold))' }}>
+            <span className="flex items-center gap-1.5" style={{ color: BURNISHED_GOLD.ink }}>
               See it on your stack
               <ArrowRight size={14} />
             </span>
@@ -750,12 +771,12 @@ const RideRow = ({
           : isWatching
             ? BURNISHED_GOLD.borderWatching
             : mustDo
-              ? '1.5px solid hsl(var(--gold) / 0.6)'
+              ? BURNISHED_GOLD.borderMustDo
               : '1px solid hsl(var(--obsidian) / 0.05)',
         boxShadow: armedLocked
           ? BURNISHED_GOLD.glowArmed
           : mustDo
-            ? '0 4px 14px hsl(var(--gold) / 0.10)'
+            ? BURNISHED_GOLD.glowMustDo
             : '0 4px 12px hsl(var(--obsidian) / 0.03)',
         opacity: dim ? 0.55 : 1,
       }}
@@ -764,7 +785,10 @@ const RideRow = ({
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
             {mustDo && (
-              <span className="inline-flex items-center gap-1 font-sans text-[8px] uppercase tracking-sovereign font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: 'hsl(var(--gold) / 0.15)', color: 'hsl(var(--gold))' }}>
+              <span
+                className="inline-flex items-center gap-1 font-sans text-[8px] uppercase tracking-sovereign font-bold px-1.5 py-0.5 rounded-full"
+                style={BURNISHED_GOLD.pill}
+              >
                 <Star size={9} fill="currentColor" /> Must-Do
               </span>
             )}
@@ -779,7 +803,10 @@ const RideRow = ({
               </span>
             )}
             {isILL && (
-              <span className="font-sans text-[8px] uppercase tracking-sovereign font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: 'hsl(var(--gold) / 0.10)', color: 'hsl(var(--gold))' }}>
+              <span
+                className="font-sans text-[8px] uppercase tracking-sovereign font-bold px-1.5 py-0.5 rounded-full"
+                style={BURNISHED_GOLD.pill}
+              >
                 ILL · ${attraction.priceUsd}
               </span>
             )}
@@ -925,6 +952,12 @@ export default BookLightningLane;
  * keeping the two surfaces visually locked.
  */
 const SelloutLegend = () => {
+  // NOTE — gold here is a *data value* in the sell-out urgency taxonomy
+  // (magenta = "going fast", gold = "soon", slate = "plenty of time"),
+  // NOT the burnished editorial gold. It deliberately stays as a raw HSL
+  // string so a future palette swap of either scale is independent of
+  // the other. Do not refactor to BURNISHED_GOLD.ink — see the test
+  // `BookLightningLane.token-purity.test.ts` for the locked exceptions.
   const items: { color: string; label: string }[] = [
     { color: 'hsl(316 95% 35%)', label: 'Going fast' },
     { color: 'hsl(var(--gold))', label: 'Soon' },
@@ -960,6 +993,8 @@ const SelloutLegend = () => {
  * the legend → filter → list color story.
  */
 type UrgencyValue = 'all' | '1h' | '2h' | 'later';
+// NOTE — see SelloutLegend above. Gold here is a taxonomy data value,
+// intentionally not consumed through BURNISHED_GOLD.
 const URGENCY_CHIPS: { value: UrgencyValue; label: string; color: string; description: string }[] = [
   { value: 'all',   label: 'All',         color: 'hsl(var(--obsidian))',     description: 'Show every standard Lightning Lane.' },
   { value: '1h',    label: 'Within 1h',   color: 'hsl(316 95% 35%)',         description: 'Lanes typically sold out within the next hour — going fast.' },
