@@ -354,10 +354,26 @@ const SuggestionRow = ({ interest, defaultPartySize, nowMinutes, onWatch }: Sugg
       </div>
 
       <div>
-        <p className="font-sans text-[8px] uppercase tracking-sovereign font-bold mb-1.5" style={{ color: 'hsl(var(--slate-plaid))' }}>
+        <p
+          id={`${timeRowId}-label`}
+          className="font-sans text-[8px] uppercase tracking-sovereign font-bold mb-1.5"
+          style={{ color: timeInvalid ? 'hsl(316 95% 35%)' : 'hsl(var(--slate-plaid))' }}
+        >
           Preferred time
         </p>
-        <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
+        <div
+          id={timeRowId}
+          ref={timeRowRef}
+          role="radiogroup"
+          aria-labelledby={`${timeRowId}-label`}
+          aria-invalid={timeInvalid || undefined}
+          aria-errormessage={timeInvalid ? errorId : undefined}
+          className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1 rounded-lg"
+          style={{
+            outline: timeInvalid ? '1.5px solid hsl(316 95% 35% / 0.45)' : 'none',
+            outlineOffset: timeInvalid ? 2 : 0,
+          }}
+        >
           {/* Next-available sentinel — auto-targets the earliest valid slot
               and stays in sync as the park clock advances. Disabled when
               every slot is past the latest seating. */}
