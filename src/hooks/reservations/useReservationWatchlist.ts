@@ -26,6 +26,13 @@ export interface ReservationWatchEntry {
   /** Park-time the booking window is expected to open. Frozen on add. */
   openAtMin: number;
   status: 'watching' | 'alerted' | 'booked' | 'missed';
+  /**
+   * Booking payload the guest pre-captured when they tapped Watch. Lets the
+   * system either auto-book (manager + sovereign) or one-tap book
+   * (explorer) without ever asking the guest to type a time or count.
+   */
+  desiredTimeMin: number;
+  partySize: number;
 }
 
 const STORAGE_KEY = 'reservations.watchlist.v1';
@@ -73,7 +80,11 @@ export interface UseReservationWatchlistArgs {
 export interface UseReservationWatchlistReturn {
   entries: ReservationWatchEntry[];
   isWatching: (interestId: string) => boolean;
-  watch: (interestId: string, openAtMin?: number) => void;
+  watch: (
+    interestId: string,
+    payload: { desiredTimeMin: number; partySize: number },
+    openAtMin?: number,
+  ) => void;
   unwatch: (interestId: string) => void;
   dismiss: (interestId: string) => void;
   markBooked: (interestId: string) => void;
