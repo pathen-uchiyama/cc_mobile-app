@@ -360,6 +360,15 @@ const StrategicDashboard = ({ open, onClose }: StrategicDashboardProps) => {
     [],
   );
 
+  // Sensible default party size for the watch picker — we try to infer the
+  // typical group size from the guest's existing standing reservations so
+  // they don't have to adjust the stepper for the common case.
+  const defaultPartySize = useMemo(() => {
+    const sizes = standing.map((r) => r.partySize ?? 0).filter((n) => n > 0);
+    if (!sizes.length) return 4;
+    return Math.round(sizes.reduce((a, b) => a + b, 0) / sizes.length);
+  }, [standing]);
+
   // Aggregate party-stated interest signals so the picker can rank by
   // relevance. We fold in attraction names from the survey *and* the top
   // community picks because guests often defer to "what everyone's doing".
