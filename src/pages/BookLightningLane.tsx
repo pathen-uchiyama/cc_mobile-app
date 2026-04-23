@@ -83,6 +83,35 @@ const BOOK_WINDOWS: BookWindow[] = [
 ];
 
 /**
+ * Burnished-gold treatment — the single source of truth for any surface that
+ * communicates "armed / watching" on /book-ll. Heart toggle, Watch CTA's
+ * armed pill, and the watching card border all consume these tokens so the
+ * three never drift apart visually.
+ *
+ * NOTE: this is a *tinted* gold (low-opacity fill + saturated ink + soft
+ * border). It deliberately differs from the *solid* gold fill used on
+ * selected time-slot chips elsewhere in the app, so the two roles ("armed"
+ * vs. "selected target") never compete for attention.
+ */
+const BURNISHED_GOLD = {
+  /** Pill / chip surface — tint fill + gold ink + soft gold border. */
+  surface: {
+    backgroundColor: 'hsl(var(--gold) / 0.12)',
+    color: 'hsl(var(--gold))',
+    border: '1px solid hsl(var(--gold) / 0.45)',
+  } as const,
+  /** Inked-only — heart icon, footer countdown text. */
+  ink: 'hsl(var(--gold))',
+  /** Standard watching card border (un-locked / un-armed). */
+  borderWatching: '1.5px solid hsl(var(--gold) / 0.45)',
+  /** Stronger border when the row is BOTH watching AND locked — same hue,
+   *  one weight up so the priming reads at a glance. */
+  borderArmed: '1.5px solid hsl(var(--gold) / 0.65)',
+  /** Soft glow only used in the armed state to draw the eye to the row. */
+  glowArmed: '0 6px 18px hsl(var(--gold) / 0.18)',
+} as const;
+
+/**
  * /book-ll — the manual Browse & Book surface.
  *
  * Sort logic:
@@ -587,9 +616,7 @@ const BookSplitButton = ({
           className="rounded-xl px-4 py-2.5 font-sans text-[12px] font-semibold flex items-center gap-1.5 min-h-[40px]"
           title={lockReason ? `Armed — ${lockReason}` : 'Armed — waiting to unlock'}
           style={{
-            backgroundColor: 'hsl(var(--gold) / 0.12)',
-            color: 'hsl(var(--gold))',
-            border: '1px solid hsl(var(--gold) / 0.45)',
+            ...BURNISHED_GOLD.surface,
             cursor: 'not-allowed',
           }}
           aria-label={
@@ -703,15 +730,19 @@ const RideRow = ({
     <li
       className="rounded-2xl p-4 bg-card transition-opacity"
       style={{
+        // Card border ladder — all gold weights flow from BURNISHED_GOLD so
+        // the heart, the armed pill, and the row outline stay locked together.
+        // Must-Do (no watch) keeps a slightly heavier border to preserve its
+        // editorial pin without colliding with the burnished hue.
         border: armedLocked
-          ? '1.5px solid hsl(var(--gold) / 0.7)'
+          ? BURNISHED_GOLD.borderArmed
           : isWatching
-            ? '1.5px solid hsl(var(--gold) / 0.45)'
+            ? BURNISHED_GOLD.borderWatching
             : mustDo
               ? '1.5px solid hsl(var(--gold) / 0.6)'
               : '1px solid hsl(var(--obsidian) / 0.05)',
         boxShadow: armedLocked
-          ? '0 6px 18px hsl(var(--gold) / 0.18)'
+          ? BURNISHED_GOLD.glowArmed
           : mustDo
             ? '0 4px 14px hsl(var(--gold) / 0.10)'
             : '0 4px 12px hsl(var(--obsidian) / 0.03)',
@@ -775,7 +806,7 @@ const RideRow = ({
                 : 'Watching — tap to remove'
             }
             className="relative shrink-0 rounded-full p-2 bg-transparent border-none cursor-pointer flex items-center justify-center min-h-[36px] min-w-[36px] outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-primary/40"
-            style={{ color: 'hsl(var(--gold))' }}
+            style={{ color: BURNISHED_GOLD.ink }}
           >
             <Heart
               size={16}
@@ -789,7 +820,7 @@ const RideRow = ({
                 style={{
                   width: 6,
                   height: 6,
-                  backgroundColor: 'hsl(var(--gold))',
+                  backgroundColor: BURNISHED_GOLD.ink,
                   boxShadow: '0 0 0 2px hsl(var(--card))',
                 }}
               />
@@ -865,7 +896,7 @@ const RideRow = ({
       {lockReason && !held && (
         <p
           className="font-sans text-[9px] mt-1.5 tabular-nums text-right"
-          style={{ color: armedLocked ? 'hsl(var(--gold))' : 'hsl(var(--slate-plaid))' }}
+          style={{ color: armedLocked ? BURNISHED_GOLD.ink : 'hsl(var(--slate-plaid))' }}
         >
           {armedLocked ? `Armed · ${lockReason}` : lockReason}
         </p>
