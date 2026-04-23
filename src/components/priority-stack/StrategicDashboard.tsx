@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
@@ -242,6 +242,16 @@ const SuggestionRow = ({ interest, defaultPartySize, nowMinutes, onWatch }: Sugg
   const [nextAvailable, setNextAvailable] = useState<boolean>(false);
   const [partySize, setPartySize] = useState<number>(defaultPartySize);
 
+  // Stable ids so the inline error can be referenced by the Watch CTA
+  // (aria-describedby) AND by the offending control (aria-errormessage),
+  // and so the "Fix it" affordance can move focus to the right field.
+  const baseId = useId();
+  const errorId = `${baseId}-error`;
+  const timeRowId = `${baseId}-time-row`;
+  const partyStepperId = `${baseId}-party-stepper`;
+  const timeRowRef = useRef<HTMLDivElement>(null);
+  const partyStepperRef = useRef<HTMLDivElement>(null);
+
   /**
    * Compute the earliest valid slot from the same constraints validation
    * uses: must be > now, must be ≥ bookingOpensAtMin + MIN_LEAD_MIN, must
@@ -271,23 +281,51 @@ const SuggestionRow = ({ interest, defaultPartySize, nowMinutes, onWatch }: Sugg
   //   • arrival times that have already passed in park-time
   //   • arrival times before the booking window even opens (+ lead time)
   //   • arrival times after the latest seating slot
-  const validationError = useMemo<string | null>(() => {
+  //
+  // Returns the offending `field` so the inline error can both (a) tag the
+  // failing control with aria-invalid/aria-errormessage, and (b) move focus
+  // to it when the guest taps the "Fix it" affordance.
+  type ValidationField = 'party' | 'time';
+  const validationError = useMemo<{ message: string; field: ValidationField } | null>(() => {
     if (partySize < MIN_PARTY || partySize > MAX_PARTY) {
-      return `Party size must be ${MIN_PARTY}–${MAX_PARTY}.`;
+      return {
+        field: 'party',
+        message: `Party size must be between ${MIN_PARTY} and ${MAX_PARTY} guests.`,
+      };
     }
     if (desiredTimeMin <= nowMinutes) {
-      return 'Pick a time later than now.';
+      return { field: 'time', message: 'Pick an arrival time later than the current park time.' };
     }
     if (desiredTimeMin < interest.bookingOpensAtMin + MIN_LEAD_MIN) {
-      return `Needs ${MIN_LEAD_MIN}+ min after the window opens.`;
+      return {
+        field: 'time',
+        message: `Pick an arrival at least ${MIN_LEAD_MIN} minutes after the booking window opens (${formatMinutes(interest.bookingOpensAtMin)}).`,
+      };
     }
     if (desiredTimeMin > LATEST_SEATING_MIN) {
-      return `Latest seating is ${formatMinutes(LATEST_SEATING_MIN)}.`;
+      return {
+        field: 'time',
+        message: `Pick an arrival no later than ${formatMinutes(LATEST_SEATING_MIN)} (final seating).`,
+      };
     }
     return null;
   }, [partySize, desiredTimeMin, nowMinutes, interest.bookingOpensAtMin]);
 
   const isValid = validationError === null;
+  const timeInvalid = validationError?.field === 'time';
+  const partyInvalid = validationError?.field === 'party';
+
+  // Move focus to the failing control. We focus the *first focusable button*
+  // inside the field group so keyboard + screen reader users land somewhere
+  // they can immediately act on (a time chip or the +/− stepper).
+  const focusFailingField = () => {
+    const target =
+      validationError?.field === 'party' ? partyStepperRef.current : timeRowRef.current;
+    if (!target) return;
+    target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    const firstButton = target.querySelector<HTMLButtonElement>('button:not([disabled])');
+    firstButton?.focus();
+  };
 
   return (
     <li
@@ -316,10 +354,26 @@ const SuggestionRow = ({ interest, defaultPartySize, nowMinutes, onWatch }: Sugg
       </div>
 
       <div>
-        <p className="font-sans text-[8px] uppercase tracking-sovereign font-bold mb-1.5" style={{ color: 'hsl(var(--slate-plaid))' }}>
+        <p
+          id={`${timeRowId}-label`}
+          className="font-sans text-[8px] uppercase tracking-sovereign font-bold mb-1.5"
+          style={{ color: timeInvalid ? 'hsl(316 95% 35%)' : 'hsl(var(--slate-plaid))' }}
+        >
           Preferred time
         </p>
-        <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
+        <div
+          id={timeRowId}
+          ref={timeRowRef}
+          role="radiogroup"
+          aria-labelledby={`${timeRowId}-label`}
+          aria-invalid={timeInvalid || undefined}
+          aria-errormessage={timeInvalid ? errorId : undefined}
+          className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1 rounded-lg"
+          style={{
+            outline: timeInvalid ? '1.5px solid hsl(316 95% 35% / 0.45)' : 'none',
+            outlineOffset: timeInvalid ? 2 : 0,
+          }}
+        >
           {/* Next-available sentinel — auto-targets the earliest valid slot
               and stays in sync as the park clock advances. Disabled when
               every slot is past the latest seating. */}
@@ -386,12 +440,26 @@ const SuggestionRow = ({ interest, defaultPartySize, nowMinutes, onWatch }: Sugg
 
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <span className="font-sans text-[8px] uppercase tracking-sovereign font-bold" style={{ color: 'hsl(var(--slate-plaid))' }}>
+          <span
+            id={`${partyStepperId}-label`}
+            className="font-sans text-[8px] uppercase tracking-sovereign font-bold"
+            style={{ color: partyInvalid ? 'hsl(316 95% 35%)' : 'hsl(var(--slate-plaid))' }}
+          >
             Party
           </span>
           <div
+            id={partyStepperId}
+            ref={partyStepperRef}
+            role="group"
+            aria-labelledby={`${partyStepperId}-label`}
+            aria-invalid={partyInvalid || undefined}
+            aria-errormessage={partyInvalid ? errorId : undefined}
             className="flex items-center rounded-lg overflow-hidden"
-            style={{ border: '1px solid hsl(var(--obsidian) / 0.12)' }}
+            style={{
+              border: partyInvalid
+                ? '1.5px solid hsl(316 95% 35% / 0.65)'
+                : '1px solid hsl(var(--obsidian) / 0.12)',
+            }}
           >
             <button
               type="button"
@@ -429,6 +497,7 @@ const SuggestionRow = ({ interest, defaultPartySize, nowMinutes, onWatch }: Sugg
             color: 'hsl(var(--parchment))',
           }}
           aria-disabled={!isValid}
+          aria-describedby={validationError ? errorId : undefined}
           aria-label={`Watch ${interest.name} at ${formatMinutes(desiredTimeMin)} for party of ${partySize}`}
         >
           <Eye size={10} /> Watch
@@ -437,11 +506,27 @@ const SuggestionRow = ({ interest, defaultPartySize, nowMinutes, onWatch }: Sugg
 
       {validationError && (
         <p
+          id={errorId}
           role="alert"
-          className="font-sans text-[10px] font-semibold m-0"
+          aria-live="polite"
+          className="font-sans text-[10px] font-semibold m-0 flex items-center justify-end gap-2 flex-wrap"
           style={{ color: 'hsl(316 95% 35%)' }}
         >
-          {validationError}
+          <span className="flex-1 min-w-0 text-right leading-snug">
+            {validationError.message}
+          </span>
+          <button
+            type="button"
+            onClick={focusFailingField}
+            className="shrink-0 rounded-md px-2 py-1 bg-transparent cursor-pointer font-sans text-[10px] font-bold underline underline-offset-2 min-h-[28px]"
+            style={{
+              color: 'hsl(316 95% 35%)',
+              border: '1px solid hsl(316 95% 35% / 0.35)',
+            }}
+            aria-label={`Fix ${validationError.field === 'party' ? 'party size' : 'preferred time'}`}
+          >
+            Fix {validationError.field === 'party' ? 'party' : 'time'}
+          </button>
         </p>
       )}
     </li>
