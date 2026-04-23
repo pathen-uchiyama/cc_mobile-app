@@ -462,7 +462,10 @@ interface RideRowProps {
   nowMinutes: number;
   /** Whether this lane is on the watchlist — drives the heart-toggle icon. */
   isWatching: boolean;
-  onToggleWatch: () => void;
+  /** Remove this lane from the watchlist. */
+  onUnwatch: () => void;
+  /** Add this lane to the watchlist with a preferred booking window. */
+  onWatchWindow: (windowId: BookWindowId) => void;
 }
 
 /**
