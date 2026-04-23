@@ -771,12 +771,12 @@ const RideRow = ({
           : isWatching
             ? BURNISHED_GOLD.borderWatching
             : mustDo
-              ? '1.5px solid hsl(var(--gold) / 0.6)'
+              ? BURNISHED_GOLD.borderMustDo
               : '1px solid hsl(var(--obsidian) / 0.05)',
         boxShadow: armedLocked
           ? BURNISHED_GOLD.glowArmed
           : mustDo
-            ? '0 4px 14px hsl(var(--gold) / 0.10)'
+            ? BURNISHED_GOLD.glowMustDo
             : '0 4px 12px hsl(var(--obsidian) / 0.03)',
         opacity: dim ? 0.55 : 1,
       }}
@@ -785,7 +785,10 @@ const RideRow = ({
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
             {mustDo && (
-              <span className="inline-flex items-center gap-1 font-sans text-[8px] uppercase tracking-sovereign font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: 'hsl(var(--gold) / 0.15)', color: 'hsl(var(--gold))' }}>
+              <span
+                className="inline-flex items-center gap-1 font-sans text-[8px] uppercase tracking-sovereign font-bold px-1.5 py-0.5 rounded-full"
+                style={BURNISHED_GOLD.pill}
+              >
                 <Star size={9} fill="currentColor" /> Must-Do
               </span>
             )}
@@ -800,7 +803,10 @@ const RideRow = ({
               </span>
             )}
             {isILL && (
-              <span className="font-sans text-[8px] uppercase tracking-sovereign font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: 'hsl(var(--gold) / 0.10)', color: 'hsl(var(--gold))' }}>
+              <span
+                className="font-sans text-[8px] uppercase tracking-sovereign font-bold px-1.5 py-0.5 rounded-full"
+                style={BURNISHED_GOLD.pill}
+              >
                 ILL · ${attraction.priceUsd}
               </span>
             )}
