@@ -39,17 +39,30 @@ describe('WatchlistStrip — burnished-gold outline parity with /book-ll', () =>
       />,
     );
 
-  it('outer section uses BURNISHED_GOLD.borderWatching', () => {
+  // jsdom expands the `border` shorthand into long-hand properties on the
+  // inline `style` attribute, so a substring match on the original token
+  // string fails. We snapshot both the raw attribute and the long-hand
+  // CSSOM to anchor on the unique gold-alpha fingerprint instead.
+  const styleSnapshot = (el: HTMLElement): string => {
+    const inline = (el.getAttribute('style') ?? '').replace(/\s+/g, ' ');
+    const cssText = el.style.cssText.replace(/\s+/g, ' ');
+    return `${inline} || ${cssText}`;
+  };
+
+  it('outer section uses BURNISHED_GOLD.borderWatching (gold @ 0.45)', () => {
     renderStrip();
-    const section = screen.getByLabelText('Lightning Lane watchlist');
-    // React serializes inline borders as `border: <value>` in the style attr.
-    expect(section.getAttribute('style')).toContain(BURNISHED_GOLD.borderWatching);
+    const section = screen.getByLabelText('Lightning Lane watchlist') as HTMLElement;
+    // borderWatching === '1.5px solid hsl(var(--gold) / 0.45)'. The 45%
+    // gold alpha is unique to the watching border in this token, so it's
+    // a safe fingerprint to anchor on across long-hand expansion.
+    expect(styleSnapshot(section)).toMatch(/hsl\(var\(--gold\)\s*\/\s*0\.45\)/);
   });
 
   it('outer section uses BURNISHED_GOLD.glowWatching', () => {
+    // box-shadow is preserved verbatim, so a direct substring match is fine.
     renderStrip();
-    const section = screen.getByLabelText('Lightning Lane watchlist');
-    expect(section.getAttribute('style')).toContain(BURNISHED_GOLD.glowWatching);
+    const section = screen.getByLabelText('Lightning Lane watchlist') as HTMLElement;
+    expect(styleSnapshot(section)).toContain(BURNISHED_GOLD.glowWatching);
   });
 
   it('outer section never reaches for the armed glow (would outshout an armed row inside)', () => {
@@ -57,8 +70,10 @@ describe('WatchlistStrip — burnished-gold outline parity with /book-ll', () =>
     // stronger armed glow, an actual armed row inside would lose its
     // visual primacy. This negative assertion locks the hierarchy.
     renderStrip();
-    const section = screen.getByLabelText('Lightning Lane watchlist');
-    expect(section.getAttribute('style')).not.toContain(BURNISHED_GOLD.glowArmed);
-    expect(section.getAttribute('style')).not.toContain(BURNISHED_GOLD.borderArmed);
+    const section = screen.getByLabelText('Lightning Lane watchlist') as HTMLElement;
+    const snap = styleSnapshot(section);
+    expect(snap).not.toContain(BURNISHED_GOLD.glowArmed);
+    // borderArmed's fingerprint is gold @ 0.65 — must NOT appear.
+    expect(snap).not.toMatch(/hsl\(var\(--gold\)\s*\/\s*0\.65\)/);
   });
 });
