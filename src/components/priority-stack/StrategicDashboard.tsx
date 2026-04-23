@@ -593,59 +593,24 @@ const StrategicDashboard = ({ open, onClose }: StrategicDashboardProps) => {
                         </p>
                       ) : (
                         <ul className="list-none p-0 m-0 space-y-1.5">
-                          {pickerCandidates.map((i) => {
-                            const Icon = i.kind === 'dining' ? Utensils : Sparkles;
-                            return (
-                              <li
-                                key={i.id}
-                                className="rounded-xl px-3 py-2.5 flex items-center justify-between gap-2"
-                                style={{
-                                  backgroundColor: 'hsl(var(--background) / 0.6)',
-                                  border: '1px solid hsl(var(--obsidian) / 0.05)',
-                                }}
-                              >
-                                <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                                  <Icon size={13} className="shrink-0 mt-0.5" style={{ color: 'hsl(var(--gold))' }} />
-                                  <div className="min-w-0 flex-1">
-                                    <p className="font-sans text-[12px] font-semibold text-foreground truncate">
-                                      {i.name}
-                                    </p>
-                                    <p className="font-sans text-[10px] mt-0.5" style={{ color: 'hsl(var(--slate-plaid))' }}>
-                                      {i.location}
-                                      {i.priceTier ? ` · ${i.priceTier}` : ''}
-                                      {' · '}
-                                      <span className="tabular-nums">opens {formatMinutes(i.bookingOpensAtMin)}</span>
-                                    </p>
-                                    <p className="font-sans text-[10px] mt-1 text-muted-foreground leading-snug">
-                                      {i.pitch}
-                                    </p>
-                                  </div>
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    watchlist.watch(i.id);
-                                    fire('selection');
-                                    toast(`Watching · ${i.name}`, {
-                                      description:
-                                        tier === 'explorer'
-                                          ? "We'll alert you when the window opens."
-                                          : "We'll auto-book it when the window opens.",
-                                      duration: 4000,
-                                    });
-                                  }}
-                                  className="shrink-0 rounded-lg px-2.5 py-1.5 border-none cursor-pointer font-sans text-[10px] font-bold flex items-center gap-1 min-h-[32px]"
-                                  style={{
-                                    backgroundColor: 'hsl(var(--gold))',
-                                    color: 'hsl(var(--parchment))',
-                                  }}
-                                  aria-label={`Watch ${i.name}`}
-                                >
-                                  <Eye size={10} /> Watch
-                                </button>
-                              </li>
-                            );
-                          })}
+                          {pickerCandidates.map((i) => (
+                            <SuggestionRow
+                              key={i.id}
+                              interest={i}
+                              defaultPartySize={defaultPartySize}
+                              onWatch={(payload) => {
+                                watchlist.watch(i.id, payload);
+                                fire('selection');
+                                toast(`Watching · ${i.name}`, {
+                                  description:
+                                    tier === 'explorer'
+                                      ? `We'll alert you to grab ${formatMinutes(payload.desiredTimeMin)} for ${payload.partySize} the moment the window opens.`
+                                      : `We'll auto-book ${formatMinutes(payload.desiredTimeMin)} for ${payload.partySize} the moment the window opens.`,
+                                  duration: 4500,
+                                });
+                              }}
+                            />
+                          ))}
                         </ul>
                       )}
                     </motion.div>
