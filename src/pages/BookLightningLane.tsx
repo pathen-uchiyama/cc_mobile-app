@@ -120,6 +120,27 @@ export const BURNISHED_GOLD = {
    *  BOTH watching AND locked, where the heightened halo signals "primed,
    *  ready to fire the moment the lock lifts". */
   glowArmed: '0 6px 18px hsl(var(--gold) / 0.18)',
+  /**
+   * Borderless tinted pill — used for small editorial labels that wear gold
+   * as a category badge (Must-Do, ILL price). Differs from `surface` by
+   * design: no border, since these badges are typographic micro-pills, not
+   * interactive surfaces. Both prior call-sites used slightly different
+   * opacities (0.10 vs 0.15) — collapsed to 0.12 to lock parity with
+   * `surface.backgroundColor`.
+   */
+  pill: {
+    backgroundColor: 'hsl(var(--gold) / 0.12)',
+    color: 'hsl(var(--gold))',
+  } as const,
+  /**
+   * Must-Do row border — heavier than `borderWatching` so the user's own
+   * Must-Do pin reads as the editorial peak of the gold ladder, even when
+   * sitting next to a watching/armed row. Watching > Must-Do > ordinary.
+   */
+  borderMustDo: '1.5px solid hsl(var(--gold) / 0.6)',
+  /** Glow paired with `borderMustDo` — same intensity as `glowWatching` so
+   *  the Must-Do row sits one notch *under* the armed row in halo weight. */
+  glowMustDo: '0 4px 14px hsl(var(--gold) / 0.10)',
 } as const;
 
 /**
