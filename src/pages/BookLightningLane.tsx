@@ -335,7 +335,7 @@ const BookLightningLane = () => {
                   dim={dim}
                   disabled={disabled}
                   lockReason={!summary.canBookLLNow && !held ? `Unlocks in ${formatCountdown(summary.llUnlocksInMin)}` : undefined}
-                  onBook={() => handleBook(a)}
+                  onBook={(windowId) => handleBook(a, windowId)}
                   nowMinutes={nowMinutes}
                   isWatching={watchlist.isWatching(a.id)}
                   onToggleWatch={() =>
@@ -381,7 +381,7 @@ const BookLightningLane = () => {
                   dim={held}
                   disabled={disabled}
                   lockReason={!summary.canBookILL && !held ? 'Daily cap reached' : undefined}
-                  onBook={() => handleBook(a)}
+                  onBook={(windowId) => handleBook(a, windowId)}
                   nowMinutes={nowMinutes}
                   isWatching={watchlist.isWatching(a.id)}
                   onToggleWatch={() =>
