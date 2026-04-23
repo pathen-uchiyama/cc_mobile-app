@@ -59,6 +59,30 @@ const INITIAL_NOW_MINUTES = 11 * 60 + 5;
 const TICK_MIN_PER_SEC = 0.5; // ~30 park-minutes per real minute
 
 /**
+ * Booking time-of-day windows. Each window's `startMin` is the park-time
+ * we'll request as the start of the return slot. `null` for ASAP — we use
+ * `nowMinutes + 60` (the standard 1-hour return window from the API).
+ */
+type BookWindowId = 'asap' | 'morning' | 'afternoon' | 'early-evening' | 'evening';
+interface BookWindow {
+  id: BookWindowId;
+  label: string;
+  /** Range hint shown in the menu (display only). */
+  hint: string;
+  /** Park-time minutes we'll request, or null for ASAP. */
+  startMin: number | null;
+  /** Window end (used to grey out a slot once it has fully passed). */
+  endMin: number;
+}
+const BOOK_WINDOWS: BookWindow[] = [
+  { id: 'asap',          label: 'Book ASAP',         hint: 'Next available',   startMin: null,    endMin: 24 * 60 },
+  { id: 'morning',       label: 'Morning',           hint: '9 AM – 12 PM',     startMin: 9 * 60,  endMin: 12 * 60 },
+  { id: 'afternoon',     label: 'Afternoon',         hint: '12 PM – 3 PM',     startMin: 12 * 60, endMin: 15 * 60 },
+  { id: 'early-evening', label: 'Early evening',     hint: '3 PM – 6 PM',      startMin: 15 * 60, endMin: 18 * 60 },
+  { id: 'evening',       label: 'Evening',           hint: '7 PM – close',     startMin: 19 * 60, endMin: 23 * 60 },
+];
+
+/**
  * /book-ll — the manual Browse & Book surface.
  *
  * Sort logic:
