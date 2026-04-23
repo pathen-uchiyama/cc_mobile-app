@@ -440,7 +440,7 @@ interface RideRowProps {
   dim: boolean;
   disabled: boolean;
   lockReason?: string;
-  onBook: () => void;
+  onBook: (windowId: BookWindowId) => void;
   /** Park-time used by the Sellout chip. */
   nowMinutes: number;
   /** Whether this lane is on the watchlist — drives the heart-toggle icon. */
