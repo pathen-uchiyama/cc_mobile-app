@@ -242,50 +242,10 @@ const StrategicDashboard = ({ open, onClose }: StrategicDashboardProps) => {
     [],
   );
 
-  // Mocked booking outcome — in production this hits the booking API.
-  // Returns true when the slot was secured. For the prototype we always
-  // succeed so the auto-book path is exercised.
-  const handleBookInterest = useCallback((_interest: ReservationInterest) => {
-    return true;
-  }, []);
-
-  const watchlist = useReservationWatchlist({
-    nowMinutes: NOW_MINUTES,
-    onAutoBook: handleBookInterest,
-    onAlert: (interest, mode) => {
-      if (mode === 'auto-book') {
-        fire('bookingSuccess');
-        toast.success(`Auto-booked · ${interest.name}`, {
-          description: 'Now showing in your standing reservations.',
-          duration: 6000,
-        });
-      } else if (mode === 'auto-book-failed') {
-        fire('recommendation');
-        toast.error(`Couldn't auto-book ${interest.name}`, {
-          description: 'Window slipped. Tap to try grabbing it now.',
-          duration: 8000,
-          action: {
-            label: 'Book',
-            onClick: () => {
-              if (handleBookInterest(interest)) watchlist.markBooked(interest.id);
-            },
-          },
-        });
-      } else {
-        fire('recommendation');
-        toast(`${interest.name} is open!`, {
-          description: 'The booking window just opened — tap to grab it.',
-          duration: 8000,
-          action: {
-            label: 'Book',
-            onClick: () => {
-              if (handleBookInterest(interest)) watchlist.markBooked(interest.id);
-            },
-          },
-        });
-      }
-    },
-  });
+  // Watchlist + clock now live in a top-level provider so alerts (toast +
+  // haptic) keep firing even when this sheet is closed. We just consume.
+  const { nowMinutes, bookInterest: handleBookInterest, ...watchlist } =
+    useReservationWatchlistContext();
 
   // Sort watchlist: alerted first, then watching by soonest, then booked, then missed.
   const sortedEntries = useMemo(() => {
