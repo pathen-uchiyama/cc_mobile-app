@@ -427,17 +427,48 @@ const BookLightningLane = () => {
                   onBook={(windowId) => handleBook(a, windowId)}
                   nowMinutes={nowMinutes}
                   isWatching={watchlist.isWatching(a.id)}
-                  onUnwatch={() => watchlist.unwatch(a.id)}
+                  onUnwatch={() => {
+                    const prev = watchlist.entries.find((e) => e.attractionId === a.id);
+                    watchlist.unwatch(a.id);
+                    fire('selection');
+                    toast(`Removed · ${a.name}`, {
+                      description: 'No longer watching for an opening.',
+                      duration: 4500,
+                      action: prev
+                        ? {
+                            label: 'Undo',
+                            onClick: () => {
+                              watchlist.watch(a.id, prev.openAtMin);
+                              toast.success(`Watching · ${a.name}`, {
+                                description: 'Watch restored.',
+                                duration: 3000,
+                              });
+                            },
+                          }
+                        : undefined,
+                    });
+                  }}
                   onWatchWindow={(windowId) => {
                     const w = BOOK_WINDOWS.find((x) => x.id === windowId) ?? BOOK_WINDOWS[0];
                     const openAt = w.startMin === null ? nowMinutes : Math.max(nowMinutes, w.startMin);
                     watchlist.watch(a.id, openAt);
+                    fire('selection');
                     toast.success(`Watching · ${a.name}`, {
                       description:
                         w.id === 'asap'
-                          ? `We'll alert you the moment a slot opens.`
-                          : `We'll target the ${w.label.toLowerCase()} window (${w.hint}).`,
-                      duration: 4000,
+                          ? `Added to your watchlist — we'll alert the moment a slot opens.`
+                          : `Added to your watchlist — targeting the ${w.label.toLowerCase()} window (${w.hint}).`,
+                      duration: 4500,
+                      action: {
+                        label: 'Undo',
+                        onClick: () => {
+                          watchlist.unwatch(a.id);
+                          toast(`Removed · ${a.name}`, {
+                            description: 'Watch cancelled.',
+                            duration: 3000,
+                          });
+                        },
+                      },
                     });
                   }}
                 />
