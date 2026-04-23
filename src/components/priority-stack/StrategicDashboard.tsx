@@ -415,7 +415,7 @@ const StrategicDashboard = ({ open, onClose }: StrategicDashboardProps) => {
                           key={entry.interestId}
                           interest={interest}
                           entry={entry}
-                          nowMinutes={NOW_MINUTES}
+                          nowMinutes={nowMinutes}
                           onUnwatch={watchlist.unwatch}
                           onBookNow={(i) => {
                             if (handleBookInterest(i)) watchlist.markBooked(i.id);
