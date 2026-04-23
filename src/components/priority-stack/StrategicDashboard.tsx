@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
@@ -22,9 +22,9 @@ import {
 } from '@/data/reservationInterests';
 import { PARTY_WANTS, COMMUNITY_PICKS } from '@/data/wantToDos';
 import {
-  useReservationWatchlist,
   type ReservationWatchEntry,
 } from '@/hooks/reservations/useReservationWatchlist';
+import { useReservationWatchlistContext } from '@/contexts/ReservationWatchlistContext';
 import { useCompanion } from '@/contexts/CompanionContext';
 import { useHaptics } from '@/hooks/useHaptics';
 import { formatCountdown } from '@/data/lightningLanes';
@@ -36,9 +36,6 @@ interface StrategicDashboardProps {
 
 /** Today's park context — drives the park-aware filter. */
 const TODAYS_PARK: ReservationInterest['park'] = 'magic-kingdom';
-
-/** Mock park-time anchor mirrors /park (11:05 AM). */
-const NOW_MINUTES = 11 * 60 + 5;
 
 const STATUS_TONE: Record<Reservation['status'], { bg: string; fg: string; label: string }> = {
   'open-now': { bg: 'hsl(var(--accent) / 0.15)', fg: 'hsl(var(--accent))', label: 'open now' },
@@ -245,50 +242,10 @@ const StrategicDashboard = ({ open, onClose }: StrategicDashboardProps) => {
     [],
   );
 
-  // Mocked booking outcome — in production this hits the booking API.
-  // Returns true when the slot was secured. For the prototype we always
-  // succeed so the auto-book path is exercised.
-  const handleBookInterest = useCallback((_interest: ReservationInterest) => {
-    return true;
-  }, []);
-
-  const watchlist = useReservationWatchlist({
-    nowMinutes: NOW_MINUTES,
-    onAutoBook: handleBookInterest,
-    onAlert: (interest, mode) => {
-      if (mode === 'auto-book') {
-        fire('bookingSuccess');
-        toast.success(`Auto-booked · ${interest.name}`, {
-          description: 'Now showing in your standing reservations.',
-          duration: 6000,
-        });
-      } else if (mode === 'auto-book-failed') {
-        fire('recommendation');
-        toast.error(`Couldn't auto-book ${interest.name}`, {
-          description: 'Window slipped. Tap to try grabbing it now.',
-          duration: 8000,
-          action: {
-            label: 'Book',
-            onClick: () => {
-              if (handleBookInterest(interest)) watchlist.markBooked(interest.id);
-            },
-          },
-        });
-      } else {
-        fire('recommendation');
-        toast(`${interest.name} is open!`, {
-          description: 'The booking window just opened — tap to grab it.',
-          duration: 8000,
-          action: {
-            label: 'Book',
-            onClick: () => {
-              if (handleBookInterest(interest)) watchlist.markBooked(interest.id);
-            },
-          },
-        });
-      }
-    },
-  });
+  // Watchlist + clock now live in a top-level provider so alerts (toast +
+  // haptic) keep firing even when this sheet is closed. We just consume.
+  const { nowMinutes, bookInterest: handleBookInterest, ...watchlist } =
+    useReservationWatchlistContext();
 
   // Sort watchlist: alerted first, then watching by soonest, then booked, then missed.
   const sortedEntries = useMemo(() => {
@@ -458,7 +415,7 @@ const StrategicDashboard = ({ open, onClose }: StrategicDashboardProps) => {
                           key={entry.interestId}
                           interest={interest}
                           entry={entry}
-                          nowMinutes={NOW_MINUTES}
+                          nowMinutes={nowMinutes}
                           onUnwatch={watchlist.unwatch}
                           onBookNow={(i) => {
                             if (handleBookInterest(i)) watchlist.markBooked(i.id);
