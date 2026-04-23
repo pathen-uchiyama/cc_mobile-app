@@ -496,38 +496,21 @@ const RideRow = ({
             {attraction.nextWindow}
           </span>
         </div>
-        {showWatchCTA ? (
-          <motion.button
-            whileTap={{ scale: 0.97 }}
-            onClick={onToggleWatch}
-            aria-pressed={isWatching}
-            aria-label={isWatching ? `Stop watching ${attraction.name}` : `Watch ${attraction.name}`}
-            className="rounded-xl px-4 py-2.5 border cursor-pointer font-sans text-[12px] font-semibold flex items-center gap-1.5 min-h-[40px]"
-            style={{
-              backgroundColor: isWatching ? 'hsl(var(--gold) / 0.18)' : 'transparent',
-              color: 'hsl(var(--gold))',
-              borderColor: 'hsl(var(--gold) / 0.55)',
-            }}
-          >
-            {isWatching ? (<><Check size={12} /> Watching</>) : (<><Bell size={12} /> Watch</>)}
-          </motion.button>
-        ) : (
-          <motion.button
-            whileTap={disabled ? undefined : { scale: 0.97 }}
-            onClick={onBook}
-            disabled={disabled}
-            aria-label={held ? 'Already held' : `Book ${attraction.name}`}
-            title={lockReason}
-            className="rounded-xl px-4 py-2.5 border-none font-sans text-[12px] font-semibold flex items-center gap-1.5 min-h-[40px]"
-            style={{
-              backgroundColor: held ? 'hsl(var(--accent) / 0.15)' : disabled ? 'hsl(var(--obsidian) / 0.06)' : 'hsl(var(--primary))',
-              color: held ? 'hsl(var(--accent))' : disabled ? 'hsl(var(--slate-plaid))' : 'hsl(var(--primary-foreground))',
-              cursor: disabled ? 'not-allowed' : 'pointer',
-            }}
-          >
-            {held ? (<><Check size={12} /> Held</>) : disabled ? (<><Lock size={12} /> Locked</>) : 'Book'}
-          </motion.button>
-        )}
+        <motion.button
+          whileTap={disabled ? undefined : { scale: 0.97 }}
+          onClick={onBook}
+          disabled={disabled}
+          aria-label={held ? 'Already held' : `Book ${attraction.name}`}
+          title={lockReason}
+          className="rounded-xl px-4 py-2.5 border-none font-sans text-[12px] font-semibold flex items-center gap-1.5 min-h-[40px]"
+          style={{
+            backgroundColor: held ? 'hsl(var(--accent) / 0.15)' : disabled ? 'hsl(var(--obsidian) / 0.06)' : 'hsl(var(--primary))',
+            color: held ? 'hsl(var(--accent))' : disabled ? 'hsl(var(--slate-plaid))' : 'hsl(var(--primary-foreground))',
+            cursor: disabled ? 'not-allowed' : 'pointer',
+          }}
+        >
+          {held ? (<><Check size={12} /> Held</>) : disabled ? (<><Lock size={12} /> Locked</>) : 'Book'}
+        </motion.button>
       </div>
       {lockReason && !held && (
         <p className="font-sans text-[9px] mt-1.5 tabular-nums text-right" style={{ color: 'hsl(var(--slate-plaid))' }}>
