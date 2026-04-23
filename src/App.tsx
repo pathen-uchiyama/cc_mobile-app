@@ -19,6 +19,7 @@ import { CompanionProvider } from "./contexts/CompanionContext";
 import { JoyEventsProvider } from "./contexts/JoyEventsContext";
 import { CelebrationProvider } from "./contexts/CelebrationContext";
 import { MemoryProvider } from "./contexts/MemoryContext";
+import { ReservationWatchlistProvider } from "./contexts/ReservationWatchlistContext";
 import RouteTransition from "./components/layout/RouteTransition";
 
 const queryClient = new QueryClient();
@@ -59,7 +60,9 @@ const App = () => (
           <CelebrationProvider>
             <MemoryProvider>
               <BrowserRouter>
-                <AnimatedRoutes />
+                <ReservationWatchlistProvider>
+                  <AnimatedRoutes />
+                </ReservationWatchlistProvider>
               </BrowserRouter>
             </MemoryProvider>
           </CelebrationProvider>

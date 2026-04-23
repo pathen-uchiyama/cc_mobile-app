@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
@@ -22,9 +22,9 @@ import {
 } from '@/data/reservationInterests';
 import { PARTY_WANTS, COMMUNITY_PICKS } from '@/data/wantToDos';
 import {
-  useReservationWatchlist,
   type ReservationWatchEntry,
 } from '@/hooks/reservations/useReservationWatchlist';
+import { useReservationWatchlistContext } from '@/contexts/ReservationWatchlistContext';
 import { useCompanion } from '@/contexts/CompanionContext';
 import { useHaptics } from '@/hooks/useHaptics';
 import { formatCountdown } from '@/data/lightningLanes';
@@ -36,9 +36,6 @@ interface StrategicDashboardProps {
 
 /** Today's park context — drives the park-aware filter. */
 const TODAYS_PARK: ReservationInterest['park'] = 'magic-kingdom';
-
-/** Mock park-time anchor mirrors /park (11:05 AM). */
-const NOW_MINUTES = 11 * 60 + 5;
 
 const STATUS_TONE: Record<Reservation['status'], { bg: string; fg: string; label: string }> = {
   'open-now': { bg: 'hsl(var(--accent) / 0.15)', fg: 'hsl(var(--accent))', label: 'open now' },
