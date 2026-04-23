@@ -469,11 +469,16 @@ const SuggestionRow = ({ interest, defaultPartySize, nowMinutes, onWatch }: Sugg
                   setDesiredTimeMin(m);
                 }}
                 className="shrink-0 rounded-lg px-2.5 py-1.5 border font-sans text-[10px] font-semibold tabular-nums min-h-[30px] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
-                style={{
-                  backgroundColor: active ? 'hsl(var(--gold))' : 'transparent',
-                  color: active ? 'hsl(var(--parchment))' : 'hsl(var(--slate-plaid))',
-                  borderColor: active ? 'hsl(var(--gold))' : 'hsl(var(--obsidian) / 0.12)',
-                }}
+                // Time-slot chip — solid gold when it IS the target,
+                // neutral outline otherwise. Never dips into the burnished
+                // tint recipe (that's reserved for "armed/watching" surfaces
+                // on /book-ll); a chip is always a hard pick or a quiet
+                // candidate, never an ambient priming state.
+                style={
+                  active
+                    ? SOLID_GOLD_TARGET.selected
+                    : SOLID_GOLD_TARGET.unselectedSlot
+                }
                 aria-pressed={active}
                 disabled={slotInvalid && !active}
                 aria-label={`Target ${formatMinutes(m)}`}
