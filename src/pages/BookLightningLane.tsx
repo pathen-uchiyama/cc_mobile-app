@@ -806,7 +806,7 @@ const RideRow = ({
                 : 'Watching — tap to remove'
             }
             className="relative shrink-0 rounded-full p-2 bg-transparent border-none cursor-pointer flex items-center justify-center min-h-[36px] min-w-[36px] outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-primary/40"
-            style={{ color: 'hsl(var(--gold))' }}
+            style={{ color: BURNISHED_GOLD.ink }}
           >
             <Heart
               size={16}
@@ -820,7 +820,7 @@ const RideRow = ({
                 style={{
                   width: 6,
                   height: 6,
-                  backgroundColor: 'hsl(var(--gold))',
+                  backgroundColor: BURNISHED_GOLD.ink,
                   boxShadow: '0 0 0 2px hsl(var(--card))',
                 }}
               />
@@ -896,7 +896,7 @@ const RideRow = ({
       {lockReason && !held && (
         <p
           className="font-sans text-[9px] mt-1.5 tabular-nums text-right"
-          style={{ color: armedLocked ? 'hsl(var(--gold))' : 'hsl(var(--slate-plaid))' }}
+          style={{ color: armedLocked ? BURNISHED_GOLD.ink : 'hsl(var(--slate-plaid))' }}
         >
           {armedLocked ? `Armed · ${lockReason}` : lockReason}
         </p>
