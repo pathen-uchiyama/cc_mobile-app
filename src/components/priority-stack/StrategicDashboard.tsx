@@ -206,12 +206,25 @@ const InterestRow = ({
  *   • auto-fire the request (manager + sovereign), or
  *   • surface a single "Book" tap (explorer)
  * without ever asking the guest to type or pick anything else.
+ *
+ * Inline validation prevents a watch being saved with payloads Disney's
+ * booking API would reject — party sizes outside 1–10 or arrival times
+ * that are already in the past or after dining service ends.
  */
 interface SuggestionRowProps {
   interest: ReservationInterest;
   defaultPartySize: number;
+  nowMinutes: number;
   onWatch: (payload: { desiredTimeMin: number; partySize: number }) => void;
 }
+
+/** Booking constraints — match Disney's same-day reservation API limits. */
+const MIN_PARTY = 1;
+const MAX_PARTY = 10;
+/** Latest allowed seating (9:30 PM) — last service for most table-service. */
+const LATEST_SEATING_MIN = 21 * 60 + 30;
+/** Min lead time between window-open and arrival (15 min). */
+const MIN_LEAD_MIN = 15;
 
 /** Fixed time-slot grid (5 PM – 9 PM, every 30 min) — matches typical ADR slots. */
 const TIME_SLOTS: number[] = (() => {
@@ -220,10 +233,33 @@ const TIME_SLOTS: number[] = (() => {
   return slots;
 })();
 
-const SuggestionRow = ({ interest, defaultPartySize, onWatch }: SuggestionRowProps) => {
+const SuggestionRow = ({ interest, defaultPartySize, nowMinutes, onWatch }: SuggestionRowProps) => {
   const Icon = interest.kind === 'dining' ? Utensils : Sparkles;
   const [desiredTimeMin, setDesiredTimeMin] = useState<number>(18 * 60 + 30);
   const [partySize, setPartySize] = useState<number>(defaultPartySize);
+
+  // Validate the captured payload. We reject:
+  //   • party sizes outside 1–10 (Disney's per-reservation cap)
+  //   • arrival times that have already passed in park-time
+  //   • arrival times before the booking window even opens (+ lead time)
+  //   • arrival times after the latest seating slot
+  const validationError = useMemo<string | null>(() => {
+    if (partySize < MIN_PARTY || partySize > MAX_PARTY) {
+      return `Party size must be ${MIN_PARTY}–${MAX_PARTY}.`;
+    }
+    if (desiredTimeMin <= nowMinutes) {
+      return 'Pick a time later than now.';
+    }
+    if (desiredTimeMin < interest.bookingOpensAtMin + MIN_LEAD_MIN) {
+      return `Needs ${MIN_LEAD_MIN}+ min after the window opens.`;
+    }
+    if (desiredTimeMin > LATEST_SEATING_MIN) {
+      return `Latest seating is ${formatMinutes(LATEST_SEATING_MIN)}.`;
+    }
+    return null;
+  }, [partySize, desiredTimeMin, nowMinutes, interest.bookingOpensAtMin]);
+
+  const isValid = validationError === null;
 
   return (
     <li
@@ -258,18 +294,25 @@ const SuggestionRow = ({ interest, defaultPartySize, onWatch }: SuggestionRowPro
         <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
           {TIME_SLOTS.map((m) => {
             const active = m === desiredTimeMin;
+            // Mark slots that would fail validation so guests see why
+            // certain times aren't selectable as targets.
+            const slotInvalid =
+              m <= nowMinutes ||
+              m < interest.bookingOpensAtMin + MIN_LEAD_MIN ||
+              m > LATEST_SEATING_MIN;
             return (
               <button
                 key={m}
                 type="button"
                 onClick={() => setDesiredTimeMin(m)}
-                className="shrink-0 rounded-lg px-2.5 py-1.5 border cursor-pointer font-sans text-[10px] font-semibold tabular-nums min-h-[30px]"
+                className="shrink-0 rounded-lg px-2.5 py-1.5 border font-sans text-[10px] font-semibold tabular-nums min-h-[30px] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
                 style={{
                   backgroundColor: active ? 'hsl(var(--gold))' : 'transparent',
                   color: active ? 'hsl(var(--parchment))' : 'hsl(var(--slate-plaid))',
                   borderColor: active ? 'hsl(var(--gold))' : 'hsl(var(--obsidian) / 0.12)',
                 }}
                 aria-pressed={active}
+                disabled={slotInvalid && !active}
                 aria-label={`Target ${formatMinutes(m)}`}
               >
                 {formatMinutes(m)}
@@ -290,11 +333,11 @@ const SuggestionRow = ({ interest, defaultPartySize, onWatch }: SuggestionRowPro
           >
             <button
               type="button"
-              onClick={() => setPartySize((n) => Math.max(1, n - 1))}
+              onClick={() => setPartySize((n) => Math.max(MIN_PARTY, n - 1))}
               className="bg-transparent border-none cursor-pointer px-2 py-1 flex items-center justify-center min-h-[30px]"
               style={{ color: 'hsl(var(--slate-plaid))' }}
               aria-label="Decrease party size"
-              disabled={partySize <= 1}
+              disabled={partySize <= MIN_PARTY}
             >
               <Minus size={12} />
             </button>
@@ -303,11 +346,11 @@ const SuggestionRow = ({ interest, defaultPartySize, onWatch }: SuggestionRowPro
             </span>
             <button
               type="button"
-              onClick={() => setPartySize((n) => Math.min(12, n + 1))}
+              onClick={() => setPartySize((n) => Math.min(MAX_PARTY, n + 1))}
               className="bg-transparent border-none cursor-pointer px-2 py-1 flex items-center justify-center min-h-[30px]"
               style={{ color: 'hsl(var(--slate-plaid))' }}
               aria-label="Increase party size"
-              disabled={partySize >= 12}
+              disabled={partySize >= MAX_PARTY}
             >
               <Plus size={12} />
             </button>
@@ -316,17 +359,29 @@ const SuggestionRow = ({ interest, defaultPartySize, onWatch }: SuggestionRowPro
 
         <button
           type="button"
-          onClick={() => onWatch({ desiredTimeMin, partySize })}
-          className="shrink-0 rounded-lg px-3 py-1.5 border-none cursor-pointer font-sans text-[10px] font-bold flex items-center gap-1 min-h-[32px]"
+          onClick={() => isValid && onWatch({ desiredTimeMin, partySize })}
+          disabled={!isValid}
+          className="shrink-0 rounded-lg px-3 py-1.5 border-none font-sans text-[10px] font-bold flex items-center gap-1 min-h-[32px] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
           style={{
             backgroundColor: 'hsl(var(--obsidian))',
             color: 'hsl(var(--parchment))',
           }}
+          aria-disabled={!isValid}
           aria-label={`Watch ${interest.name} at ${formatMinutes(desiredTimeMin)} for party of ${partySize}`}
         >
           <Eye size={10} /> Watch
         </button>
       </div>
+
+      {validationError && (
+        <p
+          role="alert"
+          className="font-sans text-[10px] font-semibold m-0"
+          style={{ color: 'hsl(316 95% 35%)' }}
+        >
+          {validationError}
+        </p>
+      )}
     </li>
   );
 };
@@ -607,6 +662,7 @@ const StrategicDashboard = ({ open, onClose }: StrategicDashboardProps) => {
                               key={i.id}
                               interest={i}
                               defaultPartySize={defaultPartySize}
+                              nowMinutes={nowMinutes}
                               onWatch={(payload) => {
                                 watchlist.watch(i.id, payload);
                                 fire('selection');
