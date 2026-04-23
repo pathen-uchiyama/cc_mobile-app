@@ -168,7 +168,7 @@ const BookLightningLane = () => {
     [],
   );
 
-  const handleBook = (a: LLAttraction) => {
+  const handleBook = (a: LLAttraction, windowId: BookWindowId = 'asap') => {
     const isILL = a.type === 'ill';
     if (isILL && !summary.canBookILL) {
       toast.error('Daily Individual Lightning Lane cap reached.');
@@ -178,17 +178,33 @@ const BookLightningLane = () => {
       toast.error(`Next standard slot unlocks in ${formatCountdown(summary.llUnlocksInMin)}.`);
       return false;
     }
+    const window = BOOK_WINDOWS.find((w) => w.id === windowId) ?? BOOK_WINDOWS[0];
+    // ASAP → standard 1-hour return from now. Time-of-day → that window's
+    // start, but never earlier than the next available slot (now + 60).
+    const earliest = nowMinutes + 60;
+    const requestedStart =
+      window.startMin === null ? earliest : Math.max(earliest, window.startMin);
+    if (window.startMin !== null && nowMinutes >= window.endMin) {
+      toast.error(`${window.label} window has already passed today.`);
+      return false;
+    }
     fire('bookingSuccess');
     const newHold: HeldLL = {
       id: `h-${Date.now()}`,
       attractionId: a.id,
       type: a.type,
       bookedAtMin: nowMinutes,
-      windowStartMin: nowMinutes + 60,
+      windowStartMin: requestedStart,
       status: 'held',
     };
     setHolds((prev) => [...prev, newHold]);
     setSessionAdds((n) => n + 1);
+    if (window.id !== 'asap') {
+      toast.success(`Requested ${window.label.toLowerCase()} · ${a.name}`, {
+        description: `Window starts ${formatClockTime(requestedStart)}.`,
+        duration: 5000,
+      });
+    }
     // Single confirmation surface — the sticky "Return to your day" ribbon
     // already announces session adds. Avoid double-firing the same signal.
     return true;
