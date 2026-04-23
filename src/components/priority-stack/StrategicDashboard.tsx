@@ -281,23 +281,51 @@ const SuggestionRow = ({ interest, defaultPartySize, nowMinutes, onWatch }: Sugg
   //   • arrival times that have already passed in park-time
   //   • arrival times before the booking window even opens (+ lead time)
   //   • arrival times after the latest seating slot
-  const validationError = useMemo<string | null>(() => {
+  //
+  // Returns the offending `field` so the inline error can both (a) tag the
+  // failing control with aria-invalid/aria-errormessage, and (b) move focus
+  // to it when the guest taps the "Fix it" affordance.
+  type ValidationField = 'party' | 'time';
+  const validationError = useMemo<{ message: string; field: ValidationField } | null>(() => {
     if (partySize < MIN_PARTY || partySize > MAX_PARTY) {
-      return `Party size must be ${MIN_PARTY}–${MAX_PARTY}.`;
+      return {
+        field: 'party',
+        message: `Party size must be between ${MIN_PARTY} and ${MAX_PARTY} guests.`,
+      };
     }
     if (desiredTimeMin <= nowMinutes) {
-      return 'Pick a time later than now.';
+      return { field: 'time', message: 'Pick an arrival time later than the current park time.' };
     }
     if (desiredTimeMin < interest.bookingOpensAtMin + MIN_LEAD_MIN) {
-      return `Needs ${MIN_LEAD_MIN}+ min after the window opens.`;
+      return {
+        field: 'time',
+        message: `Pick an arrival at least ${MIN_LEAD_MIN} minutes after the booking window opens (${formatMinutes(interest.bookingOpensAtMin)}).`,
+      };
     }
     if (desiredTimeMin > LATEST_SEATING_MIN) {
-      return `Latest seating is ${formatMinutes(LATEST_SEATING_MIN)}.`;
+      return {
+        field: 'time',
+        message: `Pick an arrival no later than ${formatMinutes(LATEST_SEATING_MIN)} (final seating).`,
+      };
     }
     return null;
   }, [partySize, desiredTimeMin, nowMinutes, interest.bookingOpensAtMin]);
 
   const isValid = validationError === null;
+  const timeInvalid = validationError?.field === 'time';
+  const partyInvalid = validationError?.field === 'party';
+
+  // Move focus to the failing control. We focus the *first focusable button*
+  // inside the field group so keyboard + screen reader users land somewhere
+  // they can immediately act on (a time chip or the +/− stepper).
+  const focusFailingField = () => {
+    const target =
+      validationError?.field === 'party' ? partyStepperRef.current : timeRowRef.current;
+    if (!target) return;
+    target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    const firstButton = target.querySelector<HTMLButtonElement>('button:not([disabled])');
+    firstButton?.focus();
+  };
 
   return (
     <li
