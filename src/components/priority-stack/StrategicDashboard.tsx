@@ -424,11 +424,16 @@ const SuggestionRow = ({ interest, defaultPartySize, nowMinutes, onWatch }: Sugg
             onClick={() => setNextAvailable(true)}
             disabled={nextAvailableSlot === null}
             className="shrink-0 rounded-lg px-2.5 py-1.5 border font-sans text-[10px] font-bold min-h-[30px] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer flex items-center gap-1"
-            style={{
-              backgroundColor: nextAvailable ? 'hsl(var(--gold))' : 'transparent',
-              color: nextAvailable ? 'hsl(var(--parchment))' : 'hsl(var(--gold))',
-              borderColor: 'hsl(var(--gold))',
-            }}
+            // Sentinel chip — always wears gold (either solid when chosen,
+            // or gold-outlined when not) because "next available" is itself
+            // a permanent affordance. Both states flow through
+            // SOLID_GOLD_TARGET so the chip can never accidentally adopt
+            // the BURNISHED_GOLD tint recipe used for armed/watching.
+            style={
+              nextAvailable
+                ? SOLID_GOLD_TARGET.selected
+                : SOLID_GOLD_TARGET.unselectedSentinel
+            }
             aria-pressed={nextAvailable}
             aria-label={
               nextAvailableSlot
