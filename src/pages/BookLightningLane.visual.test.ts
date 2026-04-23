@@ -9,8 +9,12 @@ import { BURNISHED_GOLD } from './BookLightningLane';
  *
  *   1. ❤️  Heart toggle (watching / armed)        — `ink`
  *   2. ⚡ Watch CTA "Armed · Locked" pill         — `surface`
- *   3. ▭  Card outline + glow on a watching row   — `borderWatching`,
- *                                                   `borderArmed`, `glowArmed`
+ *   3. ▭  Card outline + glow on a watching row   — `borderWatching` +
+ *                                                   `glowWatching`
+ *   4. ▭  Card outline + glow on an armed row     — `borderArmed` +
+ *                                                   `glowArmed`
+ *   5. ▭  Watchlist strip outer surface           — `borderWatching` +
+ *                                                   `glowWatching`
  *
  * Time-slot chips elsewhere in the app use a *solid* gold fill (different
  * role — "selected target") and intentionally diverge from this token. If
@@ -69,6 +73,14 @@ describe('BookLightningLane — gold-tone visual contract', () => {
       // the eye can find the primed row in a long list.
       expect(BURNISHED_GOLD.glowArmed).toBe('0 6px 18px hsl(var(--gold) / 0.18)');
     });
+
+    it('locks the watching-only glow (paired with borderWatching)', () => {
+      // The quieter sibling of glowArmed. Used on any "watching collection"
+      // surface (e.g. the WatchlistStrip header). Must stay strictly
+      // softer than glowArmed so an armed row visibly outranks the strip
+      // it lives inside.
+      expect(BURNISHED_GOLD.glowWatching).toBe('0 4px 14px hsl(var(--gold) / 0.10)');
+    });
   });
 
   describe('cross-surface invariants', () => {
@@ -104,11 +116,26 @@ describe('BookLightningLane — gold-tone visual contract', () => {
         BURNISHED_GOLD.surface.border,
         BURNISHED_GOLD.borderWatching,
         BURNISHED_GOLD.borderArmed,
+        BURNISHED_GOLD.glowWatching,
         BURNISHED_GOLD.glowArmed,
       ];
       for (const v of allValues) {
         expect(v).toMatch(/var\(--gold\)/);
       }
+    });
+
+    it('armed glow strictly outranks watching glow', () => {
+      // The armed row must always visually dominate any watching surface
+      // it sits inside. We pin the relationship by extracting the alpha
+      // from each glow's `hsl(... / 0.NN)` tail.
+      const alpha = (s: string): number => {
+        const m = s.match(/\/\s*(0\.\d+)\)/);
+        if (!m) throw new Error(`No alpha found in: ${s}`);
+        return Number(m[1]);
+      };
+      expect(alpha(BURNISHED_GOLD.glowArmed)).toBeGreaterThan(
+        alpha(BURNISHED_GOLD.glowWatching),
+      );
     });
   });
 });
