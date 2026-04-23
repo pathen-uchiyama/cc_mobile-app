@@ -83,6 +83,35 @@ const BOOK_WINDOWS: BookWindow[] = [
 ];
 
 /**
+ * Burnished-gold treatment — the single source of truth for any surface that
+ * communicates "armed / watching" on /book-ll. Heart toggle, Watch CTA's
+ * armed pill, and the watching card border all consume these tokens so the
+ * three never drift apart visually.
+ *
+ * NOTE: this is a *tinted* gold (low-opacity fill + saturated ink + soft
+ * border). It deliberately differs from the *solid* gold fill used on
+ * selected time-slot chips elsewhere in the app, so the two roles ("armed"
+ * vs. "selected target") never compete for attention.
+ */
+const BURNISHED_GOLD = {
+  /** Pill / chip surface — tint fill + gold ink + soft gold border. */
+  surface: {
+    backgroundColor: 'hsl(var(--gold) / 0.12)',
+    color: 'hsl(var(--gold))',
+    border: '1px solid hsl(var(--gold) / 0.45)',
+  } as const,
+  /** Inked-only — heart icon, footer countdown text. */
+  ink: 'hsl(var(--gold))',
+  /** Standard watching card border (un-locked / un-armed). */
+  borderWatching: '1.5px solid hsl(var(--gold) / 0.45)',
+  /** Stronger border when the row is BOTH watching AND locked — same hue,
+   *  one weight up so the priming reads at a glance. */
+  borderArmed: '1.5px solid hsl(var(--gold) / 0.65)',
+  /** Soft glow only used in the armed state to draw the eye to the row. */
+  glowArmed: '0 6px 18px hsl(var(--gold) / 0.18)',
+} as const;
+
+/**
  * /book-ll — the manual Browse & Book surface.
  *
  * Sort logic:
