@@ -448,6 +448,122 @@ interface RideRowProps {
   onToggleWatch: () => void;
 }
 
+/**
+ * Split-button booking control. Primary tap = "Book ASAP" (next available
+ * 1-hour return slot); the chevron opens a menu of time-of-day windows
+ * (morning / afternoon / early evening / evening) so guests can request a
+ * return slot that fits the rest of their day. Past windows are disabled
+ * automatically based on park-time.
+ */
+interface BookSplitButtonProps {
+  attraction: LLAttraction;
+  held: boolean;
+  disabled: boolean;
+  lockReason?: string;
+  nowMinutes: number;
+  onBook: (windowId: BookWindowId) => void;
+}
+
+const BookSplitButton = ({
+  attraction,
+  held,
+  disabled,
+  lockReason,
+  nowMinutes,
+  onBook,
+}: BookSplitButtonProps) => {
+  if (held) {
+    return (
+      <span
+        className="rounded-xl px-4 py-2.5 font-sans text-[12px] font-semibold flex items-center gap-1.5 min-h-[40px]"
+        style={{
+          backgroundColor: 'hsl(var(--accent) / 0.15)',
+          color: 'hsl(var(--accent))',
+        }}
+      >
+        <Check size={12} /> Held
+      </span>
+    );
+  }
+
+  if (disabled) {
+    return (
+      <span
+        className="rounded-xl px-4 py-2.5 font-sans text-[12px] font-semibold flex items-center gap-1.5 min-h-[40px]"
+        title={lockReason}
+        style={{
+          backgroundColor: 'hsl(var(--obsidian) / 0.06)',
+          color: 'hsl(var(--slate-plaid))',
+          cursor: 'not-allowed',
+        }}
+      >
+        <Lock size={12} /> Locked
+      </span>
+    );
+  }
+
+  return (
+    <div className="flex items-stretch overflow-hidden rounded-xl" style={{ backgroundColor: 'hsl(var(--primary))' }}>
+      <motion.button
+        type="button"
+        whileTap={{ scale: 0.97 }}
+        onClick={() => onBook('asap')}
+        aria-label={`Book ${attraction.name} ASAP`}
+        className="px-3.5 py-2.5 border-none font-sans text-[12px] font-semibold flex items-center gap-1.5 min-h-[40px] cursor-pointer"
+        style={{
+          backgroundColor: 'hsl(var(--primary))',
+          color: 'hsl(var(--primary-foreground))',
+        }}
+      >
+        Book ASAP
+      </motion.button>
+      <span className="w-px" style={{ backgroundColor: 'hsl(var(--primary-foreground) / 0.18)' }} />
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            aria-label={`Pick a time-of-day to book ${attraction.name}`}
+            className="px-2.5 border-none cursor-pointer flex items-center justify-center min-h-[40px]"
+            style={{
+              backgroundColor: 'hsl(var(--primary))',
+              color: 'hsl(var(--primary-foreground))',
+            }}
+          >
+            <ChevronDown size={14} />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuLabel className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground">
+            Pick a return window
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          {BOOK_WINDOWS.map((w) => {
+            const passed = w.startMin !== null && nowMinutes >= w.endMin;
+            return (
+              <DropdownMenuItem
+                key={w.id}
+                disabled={passed}
+                onSelect={() => onBook(w.id)}
+                className="flex items-center justify-between gap-3"
+              >
+                <span className="font-sans text-[12px] font-semibold">
+                  {w.label}
+                </span>
+                <span
+                  className="font-sans text-[10px] tabular-nums"
+                  style={{ color: passed ? 'hsl(var(--slate-plaid) / 0.5)' : 'hsl(var(--slate-plaid))' }}
+                >
+                  {passed ? 'Passed' : w.hint}
+                </span>
+              </DropdownMenuItem>
+            );
+          })}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+};
+
 const RideRow = ({
   attraction,
   held,
