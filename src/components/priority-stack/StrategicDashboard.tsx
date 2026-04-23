@@ -11,6 +11,7 @@ import {
   Bell,
   Check,
   CalendarClock,
+  Minus,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { RESERVATIONS, formatTime, type Reservation } from '@/data/reservations';
