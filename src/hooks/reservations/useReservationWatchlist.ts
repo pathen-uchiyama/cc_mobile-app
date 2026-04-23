@@ -155,7 +155,11 @@ export const useReservationWatchlist = ({
   );
 
   const watch = useCallback(
-    (interestId: string, openAtMin?: number) => {
+    (
+      interestId: string,
+      payload: { desiredTimeMin: number; partySize: number },
+      openAtMin?: number,
+    ) => {
       setEntries((prev) => {
         if (prev.some((e) => e.interestId === interestId)) return prev;
         const fallback =
@@ -169,6 +173,8 @@ export const useReservationWatchlist = ({
             addedAtMin: nowMinutes,
             openAtMin: fallback,
             status: 'watching' as const,
+            desiredTimeMin: payload.desiredTimeMin,
+            partySize: payload.partySize,
           },
         ];
       });
