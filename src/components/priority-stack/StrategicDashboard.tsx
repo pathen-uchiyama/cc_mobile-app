@@ -440,12 +440,26 @@ const SuggestionRow = ({ interest, defaultPartySize, nowMinutes, onWatch }: Sugg
 
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <span className="font-sans text-[8px] uppercase tracking-sovereign font-bold" style={{ color: 'hsl(var(--slate-plaid))' }}>
+          <span
+            id={`${partyStepperId}-label`}
+            className="font-sans text-[8px] uppercase tracking-sovereign font-bold"
+            style={{ color: partyInvalid ? 'hsl(316 95% 35%)' : 'hsl(var(--slate-plaid))' }}
+          >
             Party
           </span>
           <div
+            id={partyStepperId}
+            ref={partyStepperRef}
+            role="group"
+            aria-labelledby={`${partyStepperId}-label`}
+            aria-invalid={partyInvalid || undefined}
+            aria-errormessage={partyInvalid ? errorId : undefined}
             className="flex items-center rounded-lg overflow-hidden"
-            style={{ border: '1px solid hsl(var(--obsidian) / 0.12)' }}
+            style={{
+              border: partyInvalid
+                ? '1.5px solid hsl(316 95% 35% / 0.65)'
+                : '1px solid hsl(var(--obsidian) / 0.12)',
+            }}
           >
             <button
               type="button"
@@ -483,6 +497,7 @@ const SuggestionRow = ({ interest, defaultPartySize, nowMinutes, onWatch }: Sugg
             color: 'hsl(var(--parchment))',
           }}
           aria-disabled={!isValid}
+          aria-describedby={validationError ? errorId : undefined}
           aria-label={`Watch ${interest.name} at ${formatMinutes(desiredTimeMin)} for party of ${partySize}`}
         >
           <Eye size={10} /> Watch
@@ -491,11 +506,27 @@ const SuggestionRow = ({ interest, defaultPartySize, nowMinutes, onWatch }: Sugg
 
       {validationError && (
         <p
+          id={errorId}
           role="alert"
-          className="font-sans text-[10px] font-semibold m-0"
+          aria-live="polite"
+          className="font-sans text-[10px] font-semibold m-0 flex items-center justify-end gap-2 flex-wrap"
           style={{ color: 'hsl(316 95% 35%)' }}
         >
-          {validationError}
+          <span className="flex-1 min-w-0 text-right leading-snug">
+            {validationError.message}
+          </span>
+          <button
+            type="button"
+            onClick={focusFailingField}
+            className="shrink-0 rounded-md px-2 py-1 bg-transparent cursor-pointer font-sans text-[10px] font-bold underline underline-offset-2 min-h-[28px]"
+            style={{
+              color: 'hsl(316 95% 35%)',
+              border: '1px solid hsl(316 95% 35% / 0.35)',
+            }}
+            aria-label={`Fix ${validationError.field === 'party' ? 'party size' : 'preferred time'}`}
+          >
+            Fix {validationError.field === 'party' ? 'party' : 'time'}
+          </button>
         </p>
       )}
     </li>
