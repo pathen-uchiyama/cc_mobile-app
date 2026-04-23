@@ -295,11 +295,6 @@ const BookLightningLane = () => {
                       ? watchlist.unwatch(a.id)
                       : watchlist.watch(a.id, nowMinutes + Math.max(1, summary.llUnlocksInMin))
                   }
-                  watchOpensAtMin={
-                    !summary.canBookLLNow && !held
-                      ? nowMinutes + Math.max(1, summary.llUnlocksInMin)
-                      : undefined
-                  }
                 />
               );
             })}
