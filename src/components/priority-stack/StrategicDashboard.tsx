@@ -662,6 +662,7 @@ const StrategicDashboard = ({ open, onClose }: StrategicDashboardProps) => {
                               key={i.id}
                               interest={i}
                               defaultPartySize={defaultPartySize}
+                              nowMinutes={nowMinutes}
                               onWatch={(payload) => {
                                 watchlist.watch(i.id, payload);
                                 fire('selection');
