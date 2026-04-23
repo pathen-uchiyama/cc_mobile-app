@@ -242,6 +242,16 @@ const SuggestionRow = ({ interest, defaultPartySize, nowMinutes, onWatch }: Sugg
   const [nextAvailable, setNextAvailable] = useState<boolean>(false);
   const [partySize, setPartySize] = useState<number>(defaultPartySize);
 
+  // Stable ids so the inline error can be referenced by the Watch CTA
+  // (aria-describedby) AND by the offending control (aria-errormessage),
+  // and so the "Fix it" affordance can move focus to the right field.
+  const baseId = useId();
+  const errorId = `${baseId}-error`;
+  const timeRowId = `${baseId}-time-row`;
+  const partyStepperId = `${baseId}-party-stepper`;
+  const timeRowRef = useRef<HTMLDivElement>(null);
+  const partyStepperRef = useRef<HTMLDivElement>(null);
+
   /**
    * Compute the earliest valid slot from the same constraints validation
    * uses: must be > now, must be ≥ bookingOpensAtMin + MIN_LEAD_MIN, must
