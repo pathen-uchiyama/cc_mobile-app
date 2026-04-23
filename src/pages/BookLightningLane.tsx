@@ -730,15 +730,19 @@ const RideRow = ({
     <li
       className="rounded-2xl p-4 bg-card transition-opacity"
       style={{
+        // Card border ladder — all gold weights flow from BURNISHED_GOLD so
+        // the heart, the armed pill, and the row outline stay locked together.
+        // Must-Do (no watch) keeps a slightly heavier border to preserve its
+        // editorial pin without colliding with the burnished hue.
         border: armedLocked
-          ? '1.5px solid hsl(var(--gold) / 0.7)'
+          ? BURNISHED_GOLD.borderArmed
           : isWatching
-            ? '1.5px solid hsl(var(--gold) / 0.45)'
+            ? BURNISHED_GOLD.borderWatching
             : mustDo
               ? '1.5px solid hsl(var(--gold) / 0.6)'
               : '1px solid hsl(var(--obsidian) / 0.05)',
         boxShadow: armedLocked
-          ? '0 6px 18px hsl(var(--gold) / 0.18)'
+          ? BURNISHED_GOLD.glowArmed
           : mustDo
             ? '0 4px 14px hsl(var(--gold) / 0.10)'
             : '0 4px 12px hsl(var(--obsidian) / 0.03)',
