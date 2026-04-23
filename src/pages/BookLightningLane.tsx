@@ -338,11 +338,20 @@ const BookLightningLane = () => {
                   onBook={(windowId) => handleBook(a, windowId)}
                   nowMinutes={nowMinutes}
                   isWatching={watchlist.isWatching(a.id)}
-                  onToggleWatch={() =>
-                    watchlist.isWatching(a.id)
-                      ? watchlist.unwatch(a.id)
-                      : watchlist.watch(a.id, nowMinutes + Math.max(1, summary.llUnlocksInMin))
-                  }
+                  onUnwatch={() => watchlist.unwatch(a.id)}
+                  onWatchWindow={(windowId) => {
+                    const w = BOOK_WINDOWS.find((x) => x.id === windowId) ?? BOOK_WINDOWS[0];
+                    const nextAvail = nowMinutes + Math.max(1, summary.llUnlocksInMin);
+                    const openAt = w.startMin === null ? nextAvail : Math.max(nextAvail, w.startMin);
+                    watchlist.watch(a.id, openAt);
+                    toast.success(`Watching · ${a.name}`, {
+                      description:
+                        w.id === 'asap'
+                          ? `We'll alert you the moment a slot opens.`
+                          : `We'll target the ${w.label.toLowerCase()} window (${w.hint}).`,
+                      duration: 4000,
+                    });
+                  }}
                 />
               );
             })}
@@ -384,11 +393,19 @@ const BookLightningLane = () => {
                   onBook={(windowId) => handleBook(a, windowId)}
                   nowMinutes={nowMinutes}
                   isWatching={watchlist.isWatching(a.id)}
-                  onToggleWatch={() =>
-                    watchlist.isWatching(a.id)
-                      ? watchlist.unwatch(a.id)
-                      : watchlist.watch(a.id, nowMinutes)
-                  }
+                  onUnwatch={() => watchlist.unwatch(a.id)}
+                  onWatchWindow={(windowId) => {
+                    const w = BOOK_WINDOWS.find((x) => x.id === windowId) ?? BOOK_WINDOWS[0];
+                    const openAt = w.startMin === null ? nowMinutes : Math.max(nowMinutes, w.startMin);
+                    watchlist.watch(a.id, openAt);
+                    toast.success(`Watching · ${a.name}`, {
+                      description:
+                        w.id === 'asap'
+                          ? `We'll alert you the moment a slot opens.`
+                          : `We'll target the ${w.label.toLowerCase()} window (${w.hint}).`,
+                      duration: 4000,
+                    });
+                  }}
                 />
               );
             })}
@@ -445,7 +462,10 @@ interface RideRowProps {
   nowMinutes: number;
   /** Whether this lane is on the watchlist — drives the heart-toggle icon. */
   isWatching: boolean;
-  onToggleWatch: () => void;
+  /** Remove this lane from the watchlist. */
+  onUnwatch: () => void;
+  /** Add this lane to the watchlist with a preferred booking window. */
+  onWatchWindow: (windowId: BookWindowId) => void;
 }
 
 /**
@@ -575,7 +595,8 @@ const RideRow = ({
   onBook,
   nowMinutes,
   isWatching,
-  onToggleWatch,
+  onUnwatch,
+  onWatchWindow,
 }: RideRowProps) => {
   const isILL = attraction.type === 'ill';
   return (
@@ -628,23 +649,64 @@ const RideRow = ({
             <SelloutChip selloutMin={attraction.typicalSelloutMin} nowMinutes={nowMinutes} />
           </div>
         </div>
-        {/* Heart toggle — pre-select this lane to be alerted (or auto-booked,
-            depending on tier) the moment its booking window opens. Always
-            visible, including for held lanes (so the guest can re-watch
-            after a hold expires) and ridden lanes (low cost, future-proof). */}
-        <button
-          type="button"
-          onClick={onToggleWatch}
-          aria-pressed={isWatching}
-          aria-label={isWatching ? `Stop watching ${attraction.name}` : `Watch ${attraction.name} for opening`}
-          title={isWatching ? 'Watching — tap to remove' : 'Pre-select to alert at open'}
-          className="shrink-0 rounded-full p-2 bg-transparent border-none cursor-pointer flex items-center justify-center min-h-[36px] min-w-[36px] outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-primary/40"
-          style={{
-            color: isWatching ? 'hsl(var(--gold))' : 'hsl(var(--slate-plaid))',
-          }}
-        >
-          <Heart size={16} fill={isWatching ? 'currentColor' : 'none'} />
-        </button>
+        {/* Heart watch picker — pre-select this lane to be alerted (or
+            auto-booked, depending on tier) when its preferred booking window
+            opens. If already watching, tapping the heart removes it. If not,
+            tapping opens a window picker (Next Available + time-of-day). */}
+        {isWatching ? (
+          <button
+            type="button"
+            onClick={onUnwatch}
+            aria-pressed
+            aria-label={`Stop watching ${attraction.name}`}
+            title="Watching — tap to remove"
+            className="shrink-0 rounded-full p-2 bg-transparent border-none cursor-pointer flex items-center justify-center min-h-[36px] min-w-[36px] outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-primary/40"
+            style={{ color: 'hsl(var(--gold))' }}
+          >
+            <Heart size={16} fill="currentColor" />
+          </button>
+        ) : (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                aria-label={`Watch ${attraction.name} — pick a preferred booking window`}
+                title="Pre-select to alert at open"
+                className="shrink-0 rounded-full p-2 bg-transparent border-none cursor-pointer flex items-center justify-center min-h-[36px] min-w-[36px] outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-primary/40"
+                style={{ color: 'hsl(var(--slate-plaid))' }}
+              >
+                <Heart size={16} fill="none" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-60">
+              <DropdownMenuLabel className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground">
+                Watch for which window?
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {BOOK_WINDOWS.map((w) => {
+                const passed = w.startMin !== null && nowMinutes >= w.endMin;
+                return (
+                  <DropdownMenuItem
+                    key={w.id}
+                    disabled={passed}
+                    onSelect={() => onWatchWindow(w.id)}
+                    className="flex items-center justify-between gap-3"
+                  >
+                    <span className="font-sans text-[12px] font-semibold">
+                      {w.id === 'asap' ? 'Next available' : w.label}
+                    </span>
+                    <span
+                      className="font-sans text-[10px] tabular-nums"
+                      style={{ color: passed ? 'hsl(var(--slate-plaid) / 0.5)' : 'hsl(var(--slate-plaid))' }}
+                    >
+                      {passed ? 'Passed' : w.hint}
+                    </span>
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
 
       <p className="font-sans italic text-[11px] text-foreground/65 leading-snug mb-3">
