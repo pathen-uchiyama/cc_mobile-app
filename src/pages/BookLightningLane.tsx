@@ -360,7 +360,7 @@ const BookLightningLane = () => {
             <span className="font-sans text-[9px] uppercase tracking-sovereign text-muted-foreground font-semibold">
               Standard Multi-Pass
             </span>
-            <span className="font-sans text-[9px] tabular-nums" style={{ color: 'hsl(var(--gold))' }}>
+            <span className="font-sans text-[9px] tabular-nums" style={{ color: BURNISHED_GOLD.ink }}>
               {llOrdered.length} options
             </span>
           </div>
