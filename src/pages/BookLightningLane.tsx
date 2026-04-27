@@ -468,7 +468,6 @@ const BookLightningLane = () => {
           <motion.section
             key={recommendedPick.attraction.id}
             aria-label="Concierge recommendation"
-            aria-live="polite"
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
@@ -571,6 +570,21 @@ const BookLightningLane = () => {
           </motion.section>
         )}
         </AnimatePresence>
+
+        {/*
+         * Stable, visually-hidden live region. Lives outside
+         * AnimatePresence so its node is never unmounted — assistive
+         * tech reliably picks up the text change and announces the new
+         * recommendation as a polite update.
+         */}
+        <div
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          className="sr-only"
+        >
+          {pickAnnouncement}
+        </div>
 
         {/* Standard LL section */}
         <section>
