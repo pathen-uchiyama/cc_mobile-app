@@ -19,6 +19,8 @@ import {
 } from 'lucide-react';
 import type { MustDo } from '@/hooks/park/usePlanStack';
 import type { PartyWant, AttractionKind } from '@/data/wantToDos';
+import { PARTY_WANTS } from '@/data/wantToDos';
+import { LL_INVENTORY } from '@/data/lightningLanes';
 import type { PlanItem } from '@/components/priority-stack/HeroHorizonStack';
 
 type Tab = 'recommended' | 'mustdo' | 'plan';
