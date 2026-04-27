@@ -1,6 +1,5 @@
 import { LayoutGroup, motion, AnimatePresence } from 'framer-motion';
 import FocusMove from './FocusMove';
-import HorizonCard from './HorizonCard';
 
 export interface PlanItem {
   id: string;
