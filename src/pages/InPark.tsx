@@ -498,7 +498,9 @@ const InPark = () => {
         partyWants={PARTY_WANTS}
         communityPicks={COMMUNITY_PICKS}
         excludedAttractions={plan.map((p) => p.attraction)}
+        plan={plan}
         onPromote={promoteMustDoToHero}
+        onAddToPlan={() => navigate('/edit-itinerary')}
       />
 
       <RecordMemorySheet
