@@ -148,6 +148,8 @@ export const BURNISHED_GOLD = {
       background: 'hsl(var(--gold))',
       color: 'hsl(var(--parchment))',
     } as const,
+    /** Hairline divider between the action row and the disclosure. */
+    divider: '1px solid hsl(var(--gold) / 0.18)',
   },
 } as const;
 
