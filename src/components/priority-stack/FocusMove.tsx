@@ -165,33 +165,62 @@ const FocusMove = ({
             />
             Right Now
           </span>
-          <div className="flex items-center gap-1.5 shrink-0">
+          {/*
+           * Segmented status/action capsule.
+           *
+           * Reads left-to-right as one unit: passive wait info → active
+           * "I rode it" CTA, separated by a hairline divider so the two
+           * halves clearly belong together but have different jobs.
+           * Shared height (44px) and rounded-full so the touch target
+           * meets the 44px mobile minimum and the silhouette stays calm
+           * against the cream surface.
+           */}
+          <div
+            className="flex items-stretch shrink-0 rounded-full overflow-hidden h-11"
+            style={{
+              background: 'hsl(var(--surface-container-low))',
+              boxShadow: '0 0 0 1px hsl(var(--gold) / 0.22)',
+            }}
+          >
             {wait && (
               <div
-                className="flex items-center gap-1.5 bg-secondary-container px-3 py-1.5 rounded-full"
+                className="flex items-center gap-1.5 pl-3.5 pr-3"
                 aria-label={`Current wait time ${wait}`}
                 title={`Current wait: ${wait}`}
               >
-                <Clock size={12} className="text-primary" aria-hidden="true" />
-                <span className="font-sans text-sm text-primary font-bold tabular-nums leading-none">
+                <Clock size={12} className="text-primary/70" aria-hidden="true" />
+                <span className="font-sans text-[13px] text-primary font-bold tabular-nums leading-none">
                   {wait}
                 </span>
-                <span className="font-sans text-[9px] uppercase tracking-sovereign text-primary/70 font-bold leading-none">
+                <span className="font-sans text-[9px] uppercase tracking-sovereign text-primary/55 font-bold leading-none">
                   wait
                 </span>
               </div>
             )}
             {onComplete && (
               <motion.button
-                whileTap={{ scale: 0.9 }}
+                whileTap={{ scale: 0.96 }}
                 onClick={onComplete}
-                aria-label={`I rode ${attraction} — mark complete`}
-                title="I rode this — mark complete"
-                className="flex items-center justify-center gap-1.5 h-11 px-3 bg-gold text-parchment cursor-pointer rounded-full font-sans text-[11px] font-bold uppercase tracking-sovereign border-none shrink-0"
-                style={{ letterSpacing: '0.08em' }}
+                aria-label={`Mark ${attraction} as ridden`}
+                title="Mark as ridden"
+                className="flex items-center gap-1.5 pl-3 pr-3.5 bg-transparent cursor-pointer border-none font-sans text-[11px] font-bold uppercase tracking-sovereign text-primary"
+                style={{
+                  letterSpacing: '0.08em',
+                  borderLeft: wait ? '1px solid hsl(var(--gold) / 0.22)' : 'none',
+                }}
               >
-                <Check size={14} strokeWidth={2.5} aria-hidden="true" />
-                <span className="leading-none">I rode it</span>
+                <span
+                  className="flex items-center justify-center rounded-full"
+                  style={{
+                    width: '20px',
+                    height: '20px',
+                    background: 'hsl(var(--gold) / 0.18)',
+                    color: 'hsl(var(--gold))',
+                  }}
+                >
+                  <Check size={12} strokeWidth={2.75} aria-hidden="true" />
+                </span>
+                <span className="leading-none">Rode it</span>
               </motion.button>
             )}
           </div>
