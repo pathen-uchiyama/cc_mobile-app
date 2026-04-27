@@ -70,9 +70,11 @@ const PullRideInSheet = ({
   partyWants,
   communityPicks,
   excludedAttractions = [],
+  plan = [],
   onPromote,
+  onAddToPlan,
 }: PullRideInSheetProps) => {
-  const [tier, setTier] = useState<Tier>('all');
+  const [tab, setTab] = useState<Tab>('recommended');
 
   const excluded = useMemo(
     () => new Set(excludedAttractions.map((a) => a.toLowerCase())),
@@ -168,10 +170,6 @@ const PullRideInSheet = ({
     }
     return null;
   }, [rankedMustDos, rankedParty, rankedCommunity]);
-
-  const showMust = tier === 'all' || tier === 'must';
-  const showParty = tier === 'all' || tier === 'party';
-  const showCommunity = tier === 'all' || tier === 'community';
 
   const handlePromote = (sourceId: string, attraction: string) => {
     onClose();
