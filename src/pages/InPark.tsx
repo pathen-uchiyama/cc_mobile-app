@@ -163,6 +163,47 @@ const InPark = () => {
     cap: llSummary.llCapTotal,
   };
 
+  /**
+   * LL alert banner — only renders when the guest is using LL on this trip
+   * (any held bookings or available cap) AND something actionable is true:
+   *   • a held LL has just entered its 60-minute tap-in window, or
+   *   • a fresh standard-LL booking window has opened.
+   *
+   * Held-LL ready-to-redeem wins over window-open because the redemption
+   * is the more urgent action.
+   */
+  const isUsingLL = llSummary.llHeldCount > 0 || llSummary.llCapTotal > 0;
+  const TAPIN_WINDOW_MIN = 60;
+  const readyHold = INITIAL_HOLDS
+    .filter(
+      (h) =>
+        h.status === 'held' &&
+        NOW_MINUTES >= h.windowStartMin &&
+        NOW_MINUTES <= h.windowStartMin + TAPIN_WINDOW_MIN,
+    )
+    .sort((a, b) => a.windowStartMin - b.windowStartMin)[0];
+
+  let llAlert: LLAlert | null = null;
+  if (isUsingLL) {
+    if (readyHold) {
+      const inv = LL_INVENTORY.find((a) => a.id === readyHold.attractionId);
+      const closesIn = readyHold.windowStartMin + TAPIN_WINDOW_MIN - NOW_MINUTES;
+      llAlert = {
+        kind: 'redeem-ready',
+        eyebrow: 'Lightning Lane Ready',
+        title: inv ? `${inv.name} — tap in now` : 'Tap in to your Lightning Lane now',
+        detail: `Window closes in ${formatCountdown(Math.max(1, closesIn))}`,
+      };
+    } else if (llSummary.canBookLLNow) {
+      llAlert = {
+        kind: 'window-open',
+        eyebrow: 'Booking Window Open',
+        title: 'Your next Lightning Lane is ready to book.',
+        detail: `${llSummary.llHeldCount}/${llSummary.llCapTotal} held · browse inventory`,
+      };
+    }
+  }
+
   // Type A = manager tier with LL tracking on. They get the Strategic Dashboard.
   const isTypeA = tier === 'manager' && llTrackerVisible;
 
