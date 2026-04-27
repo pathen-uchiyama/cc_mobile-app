@@ -659,6 +659,57 @@ const PullRideInSheet = ({
                       Cancel
                     </button>
                   </div>
+                  {suggestions.length > 0 && (
+                    <ul
+                      className="list-none p-1 m-0 rounded-xl space-y-0.5"
+                      style={{ background: 'hsl(var(--obsidian) / 0.04)' }}
+                      role="listbox"
+                      aria-label="Matching attractions"
+                    >
+                      {suggestions.map((s) => {
+                        const KindIcon = KIND_META[s.kind].Icon;
+                        const kindLabel = KIND_META[s.kind].label;
+                        return (
+                          <li key={s.suggestId}>
+                            <button
+                              type="button"
+                              role="option"
+                              aria-selected={false}
+                              onClick={() => handleSuggestionPick(s)}
+                              className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg bg-transparent border-none cursor-pointer text-left transition-colors hover:bg-accent/5"
+                              style={{ minHeight: '40px' }}
+                            >
+                              <span
+                                aria-hidden
+                                className="shrink-0 inline-flex items-center justify-center rounded-full"
+                                style={{
+                                  width: '22px',
+                                  height: '22px',
+                                  background: 'hsl(var(--gold) / 0.15)',
+                                  color: 'hsl(var(--gold))',
+                                }}
+                              >
+                                <KindIcon size={11} />
+                              </span>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-display text-[13px] leading-tight text-foreground truncate">
+                                  {s.name}
+                                </p>
+                                <p
+                                  className="font-sans text-[10px] leading-tight mt-0.5 truncate"
+                                  style={{ color: 'hsl(var(--slate-plaid))' }}
+                                >
+                                  {kindLabel}
+                                  {s.location ? ` · ${s.location}` : ''}
+                                </p>
+                              </div>
+                              <Plus size={13} className="shrink-0" style={{ color: 'hsl(var(--gold))' }} />
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
                   <p
                     className="font-sans italic text-[10px] leading-snug px-1"
                     style={{ color: 'hsl(var(--slate-plaid))' }}
