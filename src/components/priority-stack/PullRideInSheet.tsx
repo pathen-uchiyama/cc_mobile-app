@@ -74,6 +74,8 @@ const PullRideInSheet = ({
    * suggestions (e.g. 1-of-5 yes) for guests who want to explore wider.
    */
   const [includeLowConfidence, setIncludeLowConfidence] = useState(false);
+  /** Inline legend popover toggle — explains the two source tiers. */
+  const [legendOpen, setLegendOpen] = useState(false);
 
   const excluded = useMemo(
     () => new Set(excludedAttractions.map((a) => a.toLowerCase())),
