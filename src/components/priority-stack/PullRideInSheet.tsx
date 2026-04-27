@@ -14,6 +14,7 @@ import {
   Wand2,
   Plus,
   Clock,
+  CalendarPlus,
 } from 'lucide-react';
 import type { MustDo } from '@/hooks/park/usePlanStack';
 import type { PartyWant, CommunityPick, AttractionKind } from '@/data/wantToDos';
@@ -365,12 +366,12 @@ const PullRideInSheet = ({
                       ))}
                     </Section>
                   ) : (
-                    <p
-                      className="font-sans text-[12px] text-center py-8"
-                      style={{ color: 'hsl(var(--slate-plaid))' }}
-                    >
-                      Your plan is empty.
-                    </p>
+                    <PlanEmptyState
+                      onAdd={() => {
+                        onClose();
+                        onAddToPlan?.();
+                      }}
+                    />
                   )}
                 </>
               )}
@@ -568,6 +569,60 @@ const Row = ({
 };
 
 export default PullRideInSheet;
+
+/* ─── Plan tab · empty state ───────────────────────────────────── */
+
+/**
+ * Editorial empty state for the "Plan" tab. No chrome, no borders — just a
+ * calm gold mark, a one-line invitation, and a single primary CTA. Tapping
+ * the CTA closes the sheet and routes to the itinerary editor (the parent
+ * controls where exactly that goes via `onAddToPlan`).
+ */
+const PlanEmptyState = ({ onAdd }: { onAdd: () => void }) => (
+  <div className="flex flex-col items-center text-center px-6 py-10">
+    <span
+      aria-hidden
+      className="flex items-center justify-center rounded-full mb-4"
+      style={{
+        width: '52px',
+        height: '52px',
+        background: 'hsl(var(--gold) / 0.12)',
+        color: 'hsl(var(--gold))',
+        boxShadow: '0 0 0 1px hsl(var(--gold) / 0.35)',
+      }}
+    >
+      <CalendarPlus size={22} />
+    </span>
+    <p
+      className="font-sans text-[8px] uppercase tracking-sovereign font-bold mb-1.5"
+      style={{ color: 'hsl(var(--gold))', letterSpacing: '0.18em' }}
+    >
+      A Quiet Slate
+    </p>
+    <h4 className="font-display text-[18px] leading-tight text-foreground mb-1.5">
+      Your day is unwritten.
+    </h4>
+    <p
+      className="font-sans italic text-[12px] leading-snug max-w-[260px] mb-5"
+      style={{ color: 'hsl(var(--slate-plaid))' }}
+    >
+      Sketch the first move and the rest of the strategy will follow.
+    </p>
+    <motion.button
+      whileTap={{ scale: 0.98 }}
+      type="button"
+      onClick={onAdd}
+      className="inline-flex items-center gap-2 rounded-xl px-5 py-3 cursor-pointer font-sans text-[11px] uppercase tracking-sovereign font-bold border-none min-h-[44px]"
+      style={{
+        background: 'hsl(var(--primary))',
+        color: 'hsl(var(--highlighter))',
+      }}
+    >
+      <Plus size={14} />
+      Add to plan
+    </motion.button>
+  </div>
+);
 
 /* ─── Featured "Recommended Next" card ─────────────────────────── */
 
