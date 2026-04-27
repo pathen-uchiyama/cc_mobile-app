@@ -282,7 +282,9 @@ const BookLightningLane = () => {
    */
   const prevPickIdRef = useRef<string | null>(null);
   useEffect(() => {
-    const currentId = recommendedPick?.attraction.id ?? null;
+    const currentPick =
+      recommendedPick.kind === 'pick' ? recommendedPick : null;
+    const currentId = currentPick?.attraction.id ?? null;
     const prevId = prevPickIdRef.current;
     // First render — just record the seed.
     if (prevId === null && currentId === null) return;
@@ -299,9 +301,9 @@ const BookLightningLane = () => {
     if (currentId === prevId) return;
     // Pick changed while the card was already on screen → refresh whisper.
     prevPickIdRef.current = currentId;
-    toast(`Recommendation refreshed · ${recommendedPick?.attraction.name}`, {
+    toast(`Recommendation refreshed · ${currentPick!.attraction.name}`, {
       description:
-        recommendedPick?.reason === 'must-do'
+        currentPick!.reason === 'must-do'
           ? 'A higher-priority Must-Do just rose to the top.'
           : 'The most-urgent grabbable lane updated.',
       duration: 3500,
