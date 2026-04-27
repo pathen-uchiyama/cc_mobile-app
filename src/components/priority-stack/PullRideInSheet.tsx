@@ -89,6 +89,30 @@ const PullRideInSheet = ({
    */
   const [customOpen, setCustomOpen] = useState(false);
   const [customName, setCustomName] = useState('');
+  /**
+   * Per-session dismissal for the Party Wants empty-state card. Persisted
+   * in `sessionStorage` so the prompt stays gone for the rest of the tab
+   * lifetime (across navigation and re-opens of the sheet) but reappears
+   * naturally on the next session — the survey may have been filled out
+   * by then. SSR-safe: the initializer is wrapped in a typeof guard.
+   */
+  const PARTY_EMPTY_DISMISS_KEY = 'pull-ride.partyEmpty.dismissed';
+  const [partyEmptyDismissed, setPartyEmptyDismissed] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      return window.sessionStorage.getItem(PARTY_EMPTY_DISMISS_KEY) === '1';
+    } catch {
+      return false;
+    }
+  });
+  const dismissPartyEmpty = () => {
+    setPartyEmptyDismissed(true);
+    try {
+      window.sessionStorage.setItem(PARTY_EMPTY_DISMISS_KEY, '1');
+    } catch {
+      /* sessionStorage blocked — accept the in-memory dismissal silently. */
+    }
+  };
 
   const excluded = useMemo(
     () => new Set(excludedAttractions.map((a) => a.toLowerCase())),
