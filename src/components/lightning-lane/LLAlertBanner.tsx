@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Timer } from 'lucide-react';
+import { Zap, Timer, AlertCircle, RefreshCw } from 'lucide-react';
 
-export type LLAlertKind = 'window-open' | 'redeem-ready';
+export type LLAlertKind = 'window-open' | 'redeem-ready' | 'window-closed';
 
 export interface LLAlert {
   kind: LLAlertKind;
@@ -35,7 +35,23 @@ interface LLAlertBannerProps {
 const LLAlertBanner = ({ alert, onTap }: LLAlertBannerProps) => (
   <AnimatePresence initial={false}>
     {alert && (
-      <motion.div
+      (() => {
+        const isClosed = alert.kind === 'window-closed';
+        // Burnt-sienna palette for the closed/error variant; gold otherwise.
+        const accent = isClosed ? 'var(--sienna)' : 'var(--gold)';
+        const bgGradient = isClosed
+          ? `linear-gradient(180deg, hsl(${accent} / 0.14) 0%, hsl(${accent} / 0.05) 100%)`
+          : `linear-gradient(180deg, hsl(${accent} / 0.16) 0%, hsl(${accent} / 0.06) 100%)`;
+        const Icon = isClosed ? AlertCircle : Zap;
+        const ActionIcon = isClosed ? RefreshCw : null;
+        const fallbackAction =
+          alert.kind === 'redeem-ready'
+            ? 'Tap in'
+            : alert.kind === 'window-closed'
+              ? 'Refresh'
+              : 'Book now';
+        return (
+          <motion.div
         key={alert.kind}
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -45,10 +61,8 @@ const LLAlertBanner = ({ alert, onTap }: LLAlertBannerProps) => (
         aria-label={`${alert.eyebrow}: ${alert.title}`}
         className="w-full flex items-center gap-3 px-4 py-3 mb-4 rounded-xl text-left"
         style={{
-          background:
-            'linear-gradient(180deg, hsl(var(--gold) / 0.16) 0%, hsl(var(--gold) / 0.06) 100%)',
-          boxShadow:
-            '0 0 0 1px hsl(var(--gold) / 0.45), 0 8px 22px hsl(var(--obsidian) / 0.06)',
+          background: bgGradient,
+          boxShadow: `0 0 0 1px hsl(${accent} / 0.45), 0 8px 22px hsl(var(--obsidian) / 0.06)`,
         }}
       >
         <span
@@ -56,26 +70,26 @@ const LLAlertBanner = ({ alert, onTap }: LLAlertBannerProps) => (
           style={{
             width: '32px',
             height: '32px',
-            background: 'hsl(var(--gold))',
+            background: `hsl(${accent})`,
             color: 'hsl(var(--parchment))',
           }}
         >
-          <Zap size={15} />
+          <Icon size={15} />
         </span>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
             <p
               className="font-sans text-[8px] uppercase tracking-sovereign font-bold"
-              style={{ color: 'hsl(var(--gold))', letterSpacing: '0.16em' }}
+              style={{ color: `hsl(${accent})`, letterSpacing: '0.16em' }}
             >
               {alert.eyebrow}
             </p>
-            {alert.countdown && (
+            {alert.countdown && !isClosed && (
               <span
                 className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md font-sans text-[9px] font-semibold tabular-nums"
                 style={{
-                  background: 'hsl(var(--gold) / 0.18)',
-                  color: 'hsl(var(--gold))',
+                  background: `hsl(${accent} / 0.18)`,
+                  color: `hsl(${accent})`,
                 }}
                 aria-label={`Countdown ${alert.countdown}`}
               >
@@ -97,18 +111,21 @@ const LLAlertBanner = ({ alert, onTap }: LLAlertBannerProps) => (
           type="button"
           onClick={onTap}
           whileTap={{ scale: 0.97 }}
-          className="shrink-0 inline-flex items-center justify-center rounded-lg px-3 py-2 font-sans text-[11px] font-semibold border-none cursor-pointer"
+          className="shrink-0 inline-flex items-center justify-center gap-1 rounded-lg px-3 py-2 font-sans text-[11px] font-semibold border-none cursor-pointer"
           style={{
             minHeight: '36px',
-            background: 'hsl(var(--gold))',
+            background: `hsl(${accent})`,
             color: 'hsl(var(--parchment))',
             letterSpacing: '0.02em',
           }}
-          aria-label={alert.actionLabel ?? (alert.kind === 'redeem-ready' ? 'Tap in' : 'Book now')}
+          aria-label={alert.actionLabel ?? fallbackAction}
         >
-          {alert.actionLabel ?? (alert.kind === 'redeem-ready' ? 'Tap in' : 'Book now')}
+          {ActionIcon && <ActionIcon size={12} strokeWidth={2.5} />}
+          {alert.actionLabel ?? fallbackAction}
         </motion.button>
-      </motion.div>
+          </motion.div>
+        );
+      })()
     )}
   </AnimatePresence>
 );
