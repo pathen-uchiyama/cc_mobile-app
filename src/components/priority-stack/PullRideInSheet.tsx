@@ -66,6 +66,13 @@ const PullRideInSheet = ({
   onPromote,
 }: PullRideInSheetProps) => {
   const [tab, setTab] = useState<Tab>('recommended');
+  /**
+   * "Include low-confidence party picks" — when off (default), Party Wants
+   * with a yes-rate under 50% are hidden so the picker stays focused on
+   * what the party actually agreed on. Flipping it on surfaces the softer
+   * suggestions (e.g. 1-of-5 yes) for guests who want to explore wider.
+   */
+  const [includeLowConfidence, setIncludeLowConfidence] = useState(false);
 
   const excluded = useMemo(
     () => new Set(excludedAttractions.map((a) => a.toLowerCase())),
@@ -91,10 +98,11 @@ const PullRideInSheet = ({
       .filter(
         (p) =>
           !mustNames.has(p.attraction.toLowerCase()) &&
-          !excluded.has(p.attraction.toLowerCase()),
+          !excluded.has(p.attraction.toLowerCase()) &&
+          (includeLowConfidence || p.party.yes / p.party.total >= 0.5),
       )
       .sort((a, b) => b.party.yes / b.party.total - a.party.yes / a.party.total);
-  }, [partyWants, mustDos, excluded]);
+  }, [partyWants, mustDos, excluded, includeLowConfidence]);
 
   /**
    * Cross-tier recommendation — the single "do this next" pick.
