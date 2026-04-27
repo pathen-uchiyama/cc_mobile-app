@@ -12,11 +12,14 @@ import {
   Flag,
   UtensilsCrossed,
   Wand2,
+  Plus,
+  Clock,
 } from 'lucide-react';
 import type { MustDo } from '@/hooks/park/usePlanStack';
 import type { PartyWant, CommunityPick, AttractionKind } from '@/data/wantToDos';
+import type { PlanItem } from '@/components/priority-stack/HeroHorizonStack';
 
-type Tier = 'all' | 'must' | 'party' | 'community';
+type Tab = 'recommended' | 'mustdo' | 'plan';
 
 interface PullRideInSheetProps {
   open: boolean;
@@ -26,12 +29,16 @@ interface PullRideInSheetProps {
   communityPicks: CommunityPick[];
   /** Names of attractions already locked in the active plan — filtered out. */
   excludedAttractions?: string[];
+  /** The active 3-card plan, surfaced on the "Plan" tab. */
+  plan?: PlanItem[];
   /**
    * Inject any attraction onto the active stack as the new "Now" card.
    * The id is a synthetic key (e.g. `must-m1`, `party-w1`, `comm-c3`) — usePlanStack
    * already handles the case where the attraction is brand new.
    */
   onPromote: (sourceId: string, attraction: string) => void;
+  /** Open the editor / picker for adding a brand-new attraction to the plan. */
+  onAddToPlan?: () => void;
 }
 
 const formatVotes = (n: number) =>
@@ -63,9 +70,11 @@ const PullRideInSheet = ({
   partyWants,
   communityPicks,
   excludedAttractions = [],
+  plan = [],
   onPromote,
+  onAddToPlan,
 }: PullRideInSheetProps) => {
-  const [tier, setTier] = useState<Tier>('all');
+  const [tab, setTab] = useState<Tab>('recommended');
 
   const excluded = useMemo(
     () => new Set(excludedAttractions.map((a) => a.toLowerCase())),
@@ -162,10 +171,6 @@ const PullRideInSheet = ({
     return null;
   }, [rankedMustDos, rankedParty, rankedCommunity]);
 
-  const showMust = tier === 'all' || tier === 'must';
-  const showParty = tier === 'all' || tier === 'party';
-  const showCommunity = tier === 'all' || tier === 'community';
-
   const handlePromote = (sourceId: string, attraction: string) => {
     onClose();
     onPromote(sourceId, attraction);
@@ -207,38 +212,41 @@ const PullRideInSheet = ({
                 className="font-sans text-[8px] uppercase tracking-sovereign font-bold mb-1"
                 style={{ color: 'hsl(var(--gold))' }}
               >
-                Pull an Attraction In
+                Attractions
               </p>
               <h3 className="font-display text-[18px] text-foreground leading-tight">
-                Rides, shows, meet & greets — what goes on the active card next?
+                What goes on the active card next?
               </h3>
 
-              {/* Filter chips */}
-              <div className="flex items-center gap-1.5 mt-3 -mx-1 overflow-x-auto">
+              {/* Tabs — three clean segments. */}
+              <div
+                role="tablist"
+                aria-label="Attractions sections"
+                className="flex items-center gap-1 mt-3 p-1 rounded-xl"
+                style={{ background: 'hsl(var(--obsidian) / 0.04)' }}
+              >
                 {([
-                  { id: 'all', label: 'All' },
-                  { id: 'must', label: 'Must-Do' },
-                  { id: 'party', label: 'Party' },
-                  { id: 'community', label: 'Community' },
-                ] as { id: Tier; label: string }[]).map((chip) => {
-                  const active = tier === chip.id;
+                  { id: 'recommended', label: 'Recommended' },
+                  { id: 'mustdo', label: 'Must-Dos' },
+                  { id: 'plan', label: 'Plan' },
+                ] as { id: Tab; label: string }[]).map((t) => {
+                  const active = tab === t.id;
                   return (
                     <button
-                      key={chip.id}
+                      key={t.id}
                       type="button"
-                      onClick={() => setTier(chip.id)}
-                      className="shrink-0 px-3 py-1 rounded-full font-sans text-[10px] uppercase tracking-sovereign font-bold cursor-pointer border"
+                      role="tab"
+                      aria-selected={active}
+                      onClick={() => setTab(t.id)}
+                      className="flex-1 px-3 py-1.5 rounded-lg font-sans text-[10px] uppercase tracking-sovereign font-bold cursor-pointer border-none transition-colors"
                       style={{
                         background: active ? 'hsl(var(--primary))' : 'transparent',
                         color: active
                           ? 'hsl(var(--highlighter))'
                           : 'hsl(var(--slate-plaid))',
-                        borderColor: active
-                          ? 'hsl(var(--primary))'
-                          : 'hsl(var(--obsidian) / 0.12)',
                       }}
                     >
-                      {chip.label}
+                      {t.label}
                     </button>
                   );
                 })}
@@ -246,116 +254,157 @@ const PullRideInSheet = ({
             </header>
 
             <div className="overflow-y-auto px-3 pb-2">
-              {/* ── RECOMMENDED NEXT ── single best cross-tier pick.
-                  Always shown when we have anything at all to recommend, even
-                  if a tier filter is active — the recommendation is the whole
-                  point of opening the sheet. */}
-              {recommendation && (
-                <RecommendedCard
-                  attraction={recommendation.attraction}
-                  location={recommendation.location}
-                  kind={recommendation.kind}
-                  tier={recommendation.tier}
-                  reason={recommendation.reason}
-                  onTap={() => handlePromote(recommendation.sourceId, recommendation.attraction)}
-                />
-              )}
-
-              {/* ── MUST-DO ── */}
-              {showMust && rankedMustDos.length > 0 && (
-                <Section
-                  label="Must-Do · Locked priorities"
-                  accent="gold"
-                >
-                  {rankedMustDos.map((m, i) => {
-                    const remaining = Math.max(0, m.desired - m.done);
-                    const isComplete = remaining === 0;
-                    return (
-                      <Row
-                        key={m.id}
-                        rank={i + 1}
-                        accent="gold"
-                        title={m.attraction}
-                        meta={`${m.done}/${m.desired} ride${m.desired === 1 ? '' : 's'}`}
-                        disabled={isComplete}
-                        recommended={recommendation?.tier === 'must' && recommendation.key === m.id}
-                        onTap={() => handlePromote(m.id, m.attraction)}
-                      />
-                    );
-                  })}
-                </Section>
-              )}
-
-              {/* ── PARTY WANTS ── */}
-              {showParty && rankedParty.length > 0 && (
-                <Section
-                  label="Party Wants · From your pre-trip survey"
-                  accent="magenta"
-                >
-                  {rankedParty.map((p, i) => (
-                    <Row
-                      key={p.id}
-                      rank={i + 1}
-                      accent="magenta"
-                      title={p.attraction}
-                      sub={p.location}
-                      kind={p.kind}
-                      meta={`${p.party.yes} of ${p.party.total} want this`}
-                      metaIcon={<Users size={10} />}
-                      recommended={recommendation?.tier === 'party' && recommendation.key === p.id}
-                      onTap={() => handlePromote(`party-${p.id}`, p.attraction)}
+              {/* ── RECOMMENDED ── single best cross-tier pick + the runners-up. */}
+              {tab === 'recommended' && (
+                <>
+                  {recommendation ? (
+                    <RecommendedCard
+                      attraction={recommendation.attraction}
+                      location={recommendation.location}
+                      kind={recommendation.kind}
+                      tier={recommendation.tier}
+                      reason={recommendation.reason}
+                      onTap={() => handlePromote(recommendation.sourceId, recommendation.attraction)}
                     />
-                  ))}
-                </Section>
+                  ) : (
+                    <p
+                      className="font-sans text-[12px] text-center py-8"
+                      style={{ color: 'hsl(var(--slate-plaid))' }}
+                    >
+                      No new recommendation right now — your plan is on track.
+                    </p>
+                  )}
+
+                  {rankedParty.length > 0 && (
+                    <Section label="Also worth pulling in" accent="magenta">
+                      {rankedParty.slice(0, 3).map((p, i) => (
+                        <Row
+                          key={p.id}
+                          rank={i + 1}
+                          accent="magenta"
+                          title={p.attraction}
+                          sub={p.location}
+                          kind={p.kind}
+                          meta={`${p.party.yes} of ${p.party.total} want this`}
+                          metaIcon={<Users size={10} />}
+                          onTap={() => handlePromote(`party-${p.id}`, p.attraction)}
+                        />
+                      ))}
+                    </Section>
+                  )}
+
+                  {rankedCommunity.length > 0 && (
+                    <Section label="Trending in the park today" accent="slate">
+                      {rankedCommunity.slice(0, 3).map((c, i) => (
+                        <Row
+                          key={c.id}
+                          rank={i + 1}
+                          accent="slate"
+                          title={c.attraction}
+                          sub={c.location}
+                          kind={c.kind}
+                          meta={formatVotes(c.votes)}
+                          metaIcon={<Users size={10} />}
+                          metaTrail={c.trend === 'up' ? <TrendingUp size={9} /> : null}
+                          onTap={() => handlePromote(`comm-${c.id}`, c.attraction)}
+                        />
+                      ))}
+                    </Section>
+                  )}
+                </>
               )}
 
-              {/* ── COMMUNITY ── */}
-              {showCommunity && rankedCommunity.length > 0 && (
-                <Section
-                  label="Community Picks · Voted today"
-                  accent="slate"
-                >
-                  {rankedCommunity.map((c, i) => (
-                    <Row
-                      key={c.id}
-                      rank={i + 1}
-                      accent="slate"
-                      title={c.attraction}
-                      sub={c.location}
-                      kind={c.kind}
-                      meta={formatVotes(c.votes)}
-                      metaIcon={<Users size={10} />}
-                      metaTrail={c.trend === 'up' ? <TrendingUp size={9} /> : null}
-                      recommended={recommendation?.tier === 'community' && recommendation.key === c.id}
-                      onTap={() => handlePromote(`comm-${c.id}`, c.attraction)}
-                    />
-                  ))}
-                </Section>
+              {/* ── MUST-DOS ── */}
+              {tab === 'mustdo' && (
+                <>
+                  {rankedMustDos.length > 0 ? (
+                    <Section label="Must-Do · Locked priorities" accent="gold">
+                      {rankedMustDos.map((m, i) => {
+                        const remaining = Math.max(0, m.desired - m.done);
+                        const isComplete = remaining === 0;
+                        return (
+                          <Row
+                            key={m.id}
+                            rank={i + 1}
+                            accent="gold"
+                            title={m.attraction}
+                            meta={`${m.done}/${m.desired} ride${m.desired === 1 ? '' : 's'}`}
+                            disabled={isComplete}
+                            onTap={() => handlePromote(m.id, m.attraction)}
+                          />
+                        );
+                      })}
+                    </Section>
+                  ) : (
+                    <p
+                      className="font-sans text-[12px] text-center py-8"
+                      style={{ color: 'hsl(var(--slate-plaid))' }}
+                    >
+                      No Must-Dos set for today.
+                    </p>
+                  )}
+                </>
               )}
 
-              {showMust &&
-                showParty &&
-                showCommunity &&
-                rankedMustDos.length === 0 &&
-                rankedParty.length === 0 &&
-                rankedCommunity.length === 0 && (
-                  <p className="font-sans text-[12px] text-center py-8" style={{ color: 'hsl(var(--slate-plaid))' }}>
-                    Nothing left to pull in. You\u2019re flying clean.
-                  </p>
-                )}
+              {/* ── FULL PLAN ── */}
+              {tab === 'plan' && (
+                <>
+                  {plan.length > 0 ? (
+                    <Section label="Today's plan" accent="gold">
+                      {plan.map((p, i) => (
+                        <Row
+                          key={p.id}
+                          rank={i + 1}
+                          accent={p.rank === 'now' ? 'gold' : 'slate'}
+                          title={p.attraction}
+                          sub={p.location}
+                          meta={p.time}
+                          metaIcon={<Clock size={10} />}
+                          onTap={() => handlePromote(p.id, p.attraction)}
+                        />
+                      ))}
+                    </Section>
+                  ) : (
+                    <p
+                      className="font-sans text-[12px] text-center py-8"
+                      style={{ color: 'hsl(var(--slate-plaid))' }}
+                    >
+                      Your plan is empty.
+                    </p>
+                  )}
+                </>
+              )}
             </div>
 
-            <button
-              type="button"
-              onClick={onClose}
-              className="shrink-0 m-3 mt-1 rounded-xl py-2.5 bg-transparent border cursor-pointer font-sans text-[10px] uppercase tracking-sovereign font-bold"
-              style={{
-                borderColor: 'hsl(var(--obsidian) / 0.1)',
-                color: 'hsl(var(--slate-plaid))',
-              }}
-            >
-              Close
-            </button>
+            {/* Persistent footer — always offers a single way to add to plan. */}
+            <div className="shrink-0 flex items-center gap-2 m-3 mt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onAddToPlan?.();
+                }}
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3 cursor-pointer font-sans text-[11px] uppercase tracking-sovereign font-bold border-none"
+                style={{
+                  background: 'hsl(var(--primary))',
+                  color: 'hsl(var(--highlighter))',
+                }}
+              >
+                <Plus size={14} />
+                Add to plan
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="shrink-0 rounded-xl px-4 py-3 bg-transparent border cursor-pointer font-sans text-[10px] uppercase tracking-sovereign font-bold"
+                style={{
+                  borderColor: 'hsl(var(--obsidian) / 0.12)',
+                  color: 'hsl(var(--slate-plaid))',
+                }}
+              >
+                Close
+              </button>
+            </div>
           </motion.aside>
         </>
       )}
