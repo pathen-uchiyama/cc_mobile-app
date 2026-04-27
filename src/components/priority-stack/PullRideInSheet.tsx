@@ -19,6 +19,8 @@ import {
 } from 'lucide-react';
 import type { MustDo } from '@/hooks/park/usePlanStack';
 import type { PartyWant, AttractionKind } from '@/data/wantToDos';
+import { PARTY_WANTS } from '@/data/wantToDos';
+import { LL_INVENTORY } from '@/data/lightningLanes';
 import type { PlanItem } from '@/components/priority-stack/HeroHorizonStack';
 
 type Tab = 'recommended' | 'mustdo' | 'plan';
@@ -164,6 +166,93 @@ const PullRideInSheet = ({
     return null;
   }, [rankedMustDos, rankedParty]);
 
+  /**
+   * Unified attraction catalog for the custom-add autocomplete.
+   *
+   * Pulls from every static catalog the app already knows about — the
+   * Lightning Lane inventory (rides) and the Party Wants pool (rides,
+   * shows, meets, parades, dining). Anything already on the active plan
+   * or already represented in Must-Dos / Party Wants is filtered out:
+   * the picker is for *new* items the guest can't surface from the
+   * tier sections above. Built once per open session.
+   */
+  const catalog = useMemo(() => {
+    type CatalogItem = {
+      key: string;
+      name: string;
+      location?: string;
+      kind: AttractionKind;
+      /** Stable suggestion id used as the synthesized sourceId. */
+      suggestId: string;
+    };
+    const seen = new Set<string>();
+    const items: CatalogItem[] = [];
+    const skip = new Set<string>([
+      ...mustDos.map((m) => m.attraction.toLowerCase()),
+      ...partyWants.map((p) => p.attraction.toLowerCase()),
+      ...excludedAttractions.map((a) => a.toLowerCase()),
+    ]);
+    const push = (item: CatalogItem) => {
+      const key = item.name.toLowerCase();
+      if (seen.has(key) || skip.has(key)) return;
+      seen.add(key);
+      items.push(item);
+    };
+    LL_INVENTORY.forEach((a) =>
+      push({
+        key: a.id,
+        name: a.name,
+        location: a.land,
+        kind: 'ride',
+        suggestId: `catalog-${a.id}`,
+      }),
+    );
+    PARTY_WANTS.forEach((p) =>
+      push({
+        key: p.id,
+        name: p.attraction,
+        location: p.location,
+        kind: p.kind,
+        suggestId: `catalog-${p.id}`,
+      }),
+    );
+    return items;
+  }, [mustDos, partyWants, excludedAttractions]);
+
+  /**
+   * Score a catalog entry against the current query. Higher is better.
+   *  · prefix match on the full name → strongest
+   *  · prefix match on any word      → next
+   *  · substring match anywhere      → baseline
+   *  · subsequence match (typo-tolerant) → weakest, only kept above 0
+   * Returns 0 when nothing matches so the caller can drop the row.
+   */
+  const suggestions = useMemo(() => {
+    const q = customName.trim().toLowerCase();
+    if (q.length < 1) return [];
+    const scoreOne = (name: string): number => {
+      const lower = name.toLowerCase();
+      if (lower.startsWith(q)) return 100;
+      const words = lower.split(/\s+/);
+      if (words.some((w) => w.startsWith(q))) return 80;
+      const idx = lower.indexOf(q);
+      if (idx >= 0) return 60 - Math.min(idx, 40);
+      // Subsequence — every char of q appears in order in name.
+      let i = 0;
+      for (const c of lower) {
+        if (c === q[i]) i++;
+        if (i === q.length) break;
+      }
+      return i === q.length ? 20 : 0;
+    };
+    return catalog
+      .map((c) => ({ item: c, score: scoreOne(c.name) }))
+      .filter((r) => r.score > 0)
+      .sort((a, b) => b.score - a.score || a.item.name.localeCompare(b.item.name))
+      .slice(0, 5)
+      .map((r) => r.item);
+  }, [catalog, customName]);
+
   const handlePromote = (sourceId: string, attraction: string) => {
     onClose();
     onPromote(sourceId, attraction);
@@ -172,9 +261,18 @@ const PullRideInSheet = ({
   const handleCustomSubmit = () => {
     const name = customName.trim();
     if (name.length < 2) return;
+    // If the typed name exactly matches a catalog suggestion, prefer the
+    // catalog id so downstream consumers can later re-link metadata.
+    const exact = catalog.find((c) => c.name.toLowerCase() === name.toLowerCase());
     setCustomName('');
     setCustomOpen(false);
-    handlePromote(`custom-${Date.now()}`, name);
+    handlePromote(exact ? exact.suggestId : `custom-${Date.now()}`, exact ? exact.name : name);
+  };
+
+  const handleSuggestionPick = (item: { suggestId: string; name: string }) => {
+    setCustomName('');
+    setCustomOpen(false);
+    handlePromote(item.suggestId, item.name);
   };
 
   return (
@@ -561,6 +659,57 @@ const PullRideInSheet = ({
                       Cancel
                     </button>
                   </div>
+                  {suggestions.length > 0 && (
+                    <ul
+                      className="list-none p-1 m-0 rounded-xl space-y-0.5"
+                      style={{ background: 'hsl(var(--obsidian) / 0.04)' }}
+                      role="listbox"
+                      aria-label="Matching attractions"
+                    >
+                      {suggestions.map((s) => {
+                        const KindIcon = KIND_META[s.kind].Icon;
+                        const kindLabel = KIND_META[s.kind].label;
+                        return (
+                          <li key={s.suggestId}>
+                            <button
+                              type="button"
+                              role="option"
+                              aria-selected={false}
+                              onClick={() => handleSuggestionPick(s)}
+                              className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg bg-transparent border-none cursor-pointer text-left transition-colors hover:bg-accent/5"
+                              style={{ minHeight: '40px' }}
+                            >
+                              <span
+                                aria-hidden
+                                className="shrink-0 inline-flex items-center justify-center rounded-full"
+                                style={{
+                                  width: '22px',
+                                  height: '22px',
+                                  background: 'hsl(var(--gold) / 0.15)',
+                                  color: 'hsl(var(--gold))',
+                                }}
+                              >
+                                <KindIcon size={11} />
+                              </span>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-display text-[13px] leading-tight text-foreground truncate">
+                                  {s.name}
+                                </p>
+                                <p
+                                  className="font-sans text-[10px] leading-tight mt-0.5 truncate"
+                                  style={{ color: 'hsl(var(--slate-plaid))' }}
+                                >
+                                  {kindLabel}
+                                  {s.location ? ` · ${s.location}` : ''}
+                                </p>
+                              </div>
+                              <Plus size={13} className="shrink-0" style={{ color: 'hsl(var(--gold))' }} />
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
                   <p
                     className="font-sans italic text-[10px] leading-snug px-1"
                     style={{ color: 'hsl(var(--slate-plaid))' }}
