@@ -659,6 +659,47 @@ const Row = ({
 
 export default PullRideInSheet;
 
+/* ─── Source-tier legend row ───────────────────────────────────── */
+
+/**
+ * Tiny color-coded entry used inside the header info popover. Mirrors the
+ * accent colors of the actual `Row` component so guests can map "this dot"
+ * → "that section" at a glance.
+ */
+const LegendRow = ({
+  accent,
+  label,
+  body,
+}: {
+  accent: 'gold' | 'magenta';
+  label: string;
+  body: string;
+}) => (
+  <div className="flex items-start gap-2.5">
+    <span
+      aria-hidden="true"
+      className="shrink-0 rounded-full mt-1"
+      style={{
+        width: '8px',
+        height: '8px',
+        background:
+          accent === 'gold' ? 'hsl(var(--gold))' : 'hsl(316 95% 35%)',
+      }}
+    />
+    <div className="min-w-0">
+      <p className="font-sans text-[10px] font-bold leading-tight text-foreground">
+        {label}
+      </p>
+      <p
+        className="font-sans text-[10px] leading-snug mt-0.5"
+        style={{ color: 'hsl(var(--slate-plaid))' }}
+      >
+        {body}
+      </p>
+    </div>
+  </div>
+);
+
 /* ─── Plan tab · empty state ───────────────────────────────────── */
 
 /**
