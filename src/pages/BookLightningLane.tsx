@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Zap, MapPin, Clock, Check, Star, Lock, ArrowRight, Sparkles, Hourglass, Heart, ChevronDown, Loader2 } from 'lucide-react';
+import { Zap, MapPin, Clock, Check, Star, Lock, ArrowRight, Sparkles, Hourglass, Heart, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
@@ -148,8 +148,6 @@ export const BURNISHED_GOLD = {
       background: 'hsl(var(--gold))',
       color: 'hsl(var(--parchment))',
     } as const,
-    /** Hairline divider between the action row and the disclosure. */
-    divider: '1px solid hsl(var(--gold) / 0.18)',
   },
 } as const;
 
@@ -179,20 +177,6 @@ const BookLightningLane = () => {
   // racing the clock can focus on what's actually slipping away. `all` is the
   // default so nothing is hidden until the guest opts in.
   const [urgency, setUrgency] = useState<'all' | '1h' | '2h' | 'later'>('all');
-  /**
-   * Expansion state for the recommendation card's "Why this pick" line.
-   * Persists across pick swaps so a guest who opened the rationale once
-   * keeps seeing it as live updates roll in.
-   */
-  const [whyExpanded, setWhyExpanded] = useState(false);
-
-  /**
-   * Tracks an in-flight booking request by attraction id so the
-   * Recommended card's "Book now" CTA can show a spinner and reject
-   * repeat taps while the request resolves. Cleared once the booking
-   * commits (or fails fast).
-   */
-  const [bookingPickId, setBookingPickId] = useState<string | null>(null);
 
   const heldIds = useMemo(() => new Set(holds.map((h) => h.attractionId)), [holds]);
 
@@ -261,7 +245,9 @@ const BookLightningLane = () => {
    * so the card can stay hidden rather than mislead.
    */
   const recommendedPick = useMemo(() => {
-    if (!summary.canBookLLNow) return null;
+    if (!summary.canBookLLNow) {
+      return { kind: 'locked' as const };
+    }
     const grabbable = LL_INVENTORY.filter(
       (a) =>
         a.type === 'll' &&
@@ -272,17 +258,19 @@ const BookLightningLane = () => {
         // so this kicks in naturally as the guest sits on the page.
         a.typicalSelloutMin > nowMinutes,
     );
-    if (grabbable.length === 0) return null;
+    if (grabbable.length === 0) {
+      return { kind: 'empty' as const };
+    }
     const mustDos = grabbable
       .filter((a) => isMustDo(a.name, MOCK_MUST_DOS))
       .sort((a, b) => a.typicalSelloutMin - b.typicalSelloutMin);
     if (mustDos.length > 0) {
-      return { attraction: mustDos[0], reason: 'must-do' as const };
+      return { kind: 'pick' as const, attraction: mustDos[0], reason: 'must-do' as const };
     }
     const fallback = grabbable
       .slice()
       .sort((a, b) => a.typicalSelloutMin - b.typicalSelloutMin);
-    return { attraction: fallback[0], reason: 'urgency' as const };
+    return { kind: 'pick' as const, attraction: fallback[0], reason: 'urgency' as const };
   }, [heldIds, summary.canBookLLNow, nowMinutes]);
 
   /**
@@ -293,15 +281,10 @@ const BookLightningLane = () => {
    * crossfade so the live update is felt.
    */
   const prevPickIdRef = useRef<string | null>(null);
-  /**
-   * Stable text for an off-screen aria-live region so screen readers
-   * announce recommendation changes even though the visible card is
-   * keyed (and therefore unmounted/remounted) on each refresh. We set
-   * it after the first render and clear/reset it as the pick changes.
-   */
-  const [pickAnnouncement, setPickAnnouncement] = useState('');
   useEffect(() => {
-    const currentId = recommendedPick?.attraction.id ?? null;
+    const currentPick =
+      recommendedPick.kind === 'pick' ? recommendedPick : null;
+    const currentId = currentPick?.attraction.id ?? null;
     const prevId = prevPickIdRef.current;
     // First render — just record the seed.
     if (prevId === null && currentId === null) return;
@@ -312,23 +295,15 @@ const BookLightningLane = () => {
     // Card disappeared (capacity locked, no candidates) — silent.
     if (currentId === null) {
       prevPickIdRef.current = null;
-      setPickAnnouncement('');
       return;
     }
     // Same pick — no-op.
     if (currentId === prevId) return;
     // Pick changed while the card was already on screen → refresh whisper.
     prevPickIdRef.current = currentId;
-    const reasonPhrase =
-      recommendedPick?.reason === 'must-do'
-        ? 'a higher-priority Must-Do rose to the top'
-        : 'the most-urgent grabbable lane updated';
-    setPickAnnouncement(
-      `Recommendation updated: ${recommendedPick?.attraction.name}. ${reasonPhrase}.`,
-    );
-    toast(`Recommendation refreshed · ${recommendedPick?.attraction.name}`, {
+    toast(`Recommendation refreshed · ${currentPick!.attraction.name}`, {
       description:
-        recommendedPick?.reason === 'must-do'
+        currentPick!.reason === 'must-do'
           ? 'A higher-priority Must-Do just rose to the top.'
           : 'The most-urgent grabbable lane updated.',
       duration: 3500,
@@ -472,18 +447,18 @@ const BookLightningLane = () => {
          * crossfades the swap rather than snapping it.
          */}
         <AnimatePresence mode="wait" initial={false}>
-        {recommendedPick && (
+        {recommendedPick.kind === 'pick' && (
           <motion.section
-            key={recommendedPick.attraction.id}
+            key={`pick-${recommendedPick.attraction.id}`}
             aria-label="Concierge recommendation"
+            aria-live="polite"
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.28, ease: 'easeOut' }}
-            className="rounded-xl px-4 py-3.5 flex flex-col gap-2"
+            className="rounded-xl px-4 py-3.5 flex items-center gap-3"
             style={BURNISHED_GOLD.recommendation.surface}
           >
-            <div className="flex items-center gap-3">
             <span
               className="shrink-0 flex items-center justify-center rounded-full"
               style={{
@@ -513,122 +488,68 @@ const BookLightningLane = () => {
                 {recommendedPick.attraction.standbyMin}m standby
               </p>
             </div>
-            {(() => {
-              const pickId = recommendedPick.attraction.id;
-              const isBooking = bookingPickId === pickId;
-              const isDisabled = bookingPickId !== null;
-              return (
-                <motion.button
-                  type="button"
-                  whileTap={isDisabled ? undefined : { scale: 0.97 }}
-                  onClick={async () => {
-                    if (isDisabled) return;
-                    setBookingPickId(pickId);
-                    try {
-                      // Simulated request latency so the disabled/spinner
-                      // state is observable; replace with the real awaited
-                      // booking call when wired to the backend.
-                      await new Promise((r) => setTimeout(r, 650));
-                      handleBook(recommendedPick.attraction, 'asap');
-                    } finally {
-                      setBookingPickId(null);
-                    }
-                  }}
-                  disabled={isDisabled}
-                  aria-busy={isBooking}
-                  aria-disabled={isDisabled}
-                  className="shrink-0 inline-flex items-center justify-center gap-1.5 rounded-lg px-3 font-sans text-[11px] font-semibold border-none disabled:cursor-not-allowed"
-                  style={{
-                    minHeight: '44px',
-                    minWidth: '92px',
-                    ...BURNISHED_GOLD.recommendation.action,
-                    letterSpacing: '0.04em',
-                    cursor: isDisabled ? 'not-allowed' : 'pointer',
-                    opacity: isDisabled && !isBooking ? 0.55 : 1,
-                  }}
-                  aria-label={
-                    isBooking
-                      ? `Booking ${recommendedPick.attraction.name}…`
-                      : `Book ${recommendedPick.attraction.name} now`
-                  }
-                >
-                  {isBooking ? (
-                    <>
-                      <Loader2 size={14} className="animate-spin" aria-hidden="true" />
-                      <span>Booking…</span>
-                    </>
-                  ) : (
-                    <span>Book now</span>
-                  )}
-                </motion.button>
-              );
-            })()}
-            </div>
-
-            {/*
-             * "Why this pick" disclosure — surfaces the exact ranking rule
-             * the recommendation matched. Lives below the action row so it
-             * never competes with the primary Book CTA.
-             */}
-            <div
-              className="pt-1.5"
-              style={{ borderTop: BURNISHED_GOLD.recommendation.divider }}
+            <motion.button
+              type="button"
+              whileTap={{ scale: 0.97 }}
+              onClick={() => handleBook(recommendedPick.attraction, 'asap')}
+              className="shrink-0 inline-flex items-center justify-center gap-1 rounded-lg px-3 font-sans text-[11px] font-semibold border-none cursor-pointer"
+              style={{
+                minHeight: '44px',
+                ...BURNISHED_GOLD.recommendation.action,
+                letterSpacing: '0.04em',
+              }}
+              aria-label={`Book ${recommendedPick.attraction.name} now`}
             >
-              <button
-                type="button"
-                onClick={() => setWhyExpanded((v) => !v)}
-                aria-expanded={whyExpanded}
-                aria-controls="recommendation-why"
-                className="inline-flex items-center gap-1 font-sans text-[10px] font-semibold border-none bg-transparent cursor-pointer p-0"
-                style={{ color: BURNISHED_GOLD.ink, letterSpacing: '0.04em' }}
+              Book now
+            </motion.button>
+          </motion.section>
+        )}
+        {recommendedPick.kind !== 'pick' && (
+          <motion.section
+            key={`empty-${recommendedPick.kind}`}
+            aria-label="Concierge recommendation"
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.28, ease: 'easeOut' }}
+            className="rounded-xl px-4 py-4 flex items-center gap-3"
+            style={BURNISHED_GOLD.recommendation.surface}
+          >
+            <span
+              className="shrink-0 flex items-center justify-center rounded-full"
+              style={{
+                width: '36px',
+                height: '36px',
+                ...BURNISHED_GOLD.recommendation.medallion,
+                opacity: 0.7,
+              }}
+              aria-hidden="true"
+            >
+              {recommendedPick.kind === 'locked' ? <Hourglass size={16} /> : <Check size={16} />}
+            </span>
+            <div className="flex-1 min-w-0">
+              <p
+                className="font-sans text-[8px] uppercase font-bold leading-none mb-1"
+                style={{ color: BURNISHED_GOLD.ink, letterSpacing: '0.16em' }}
               >
-                {whyExpanded ? 'Hide rationale' : 'Why this pick'}
-                <motion.span
-                  animate={{ rotate: whyExpanded ? 180 : 0 }}
-                  transition={{ duration: 0.2, ease: 'easeOut' }}
-                  className="inline-flex"
-                >
-                  <ChevronDown size={11} strokeWidth={2.5} />
-                </motion.span>
-              </button>
-              <AnimatePresence initial={false}>
-                {whyExpanded && (
-                  <motion.p
-                    id="recommendation-why"
-                    key="why"
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.22, ease: 'easeOut' }}
-                    className="font-sans text-[11px] text-foreground/85 leading-snug overflow-hidden"
-                  >
-                    <span className="block pt-1.5">
-                      {recommendedPick.reason === 'must-do'
-                        ? `Matched “Must-Do · earliest sellout”: this is your highest-priority ride that's still grabbable, and it typically sells out at ${formatClockTime(recommendedPick.attraction.typicalSelloutMin)} — sooner than any other Must-Do you haven't already held.`
-                        : `Matched “Fallback · earliest sellout”: no Must-Dos are still grabbable, so we surfaced the standard lane closest to its typical sellout (${formatClockTime(recommendedPick.attraction.typicalSelloutMin)}) so you don't lose it.`}
-                    </span>
-                  </motion.p>
-                )}
-              </AnimatePresence>
+                {recommendedPick.kind === 'locked'
+                  ? 'Concierge · Resting'
+                  : 'Concierge · All Caught Up'}
+              </p>
+              <p className="font-display text-[15px] leading-tight text-foreground">
+                {recommendedPick.kind === 'locked'
+                  ? 'No recommendation just yet.'
+                  : "You've grabbed everything worth grabbing."}
+              </p>
+              <p className="font-sans text-[10px] mt-0.5 text-muted-foreground tabular-nums">
+                {recommendedPick.kind === 'locked'
+                  ? `Next standard slot unlocks in ${formatCountdown(summary.llUnlocksInMin)}.`
+                  : 'Check back as new lanes open or your day evolves.'}
+              </p>
             </div>
           </motion.section>
         )}
         </AnimatePresence>
-
-        {/*
-         * Stable, visually-hidden live region. Lives outside
-         * AnimatePresence so its node is never unmounted — assistive
-         * tech reliably picks up the text change and announces the new
-         * recommendation as a polite update.
-         */}
-        <div
-          role="status"
-          aria-live="polite"
-          aria-atomic="true"
-          className="sr-only"
-        >
-          {pickAnnouncement}
-        </div>
 
         {/* Standard LL section */}
         <section>
