@@ -595,8 +595,8 @@ const SuggestionRow = ({ interest, defaultPartySize, nowMinutes, onWatch }: Sugg
  *      (explorer).
  *
  * The "Add an interest" picker is filtered by today's park and ranked
- * against the guest's pre-trip survey + live community picks so the most
- * relevant options surface first.
+ * against the guest's pre-trip survey so the most relevant options
+ * surface first.
  *
  * Lightning Lane inventory now lives entirely on the dedicated /book-ll
  * page — this surface stays focused on hospitality bookings.
