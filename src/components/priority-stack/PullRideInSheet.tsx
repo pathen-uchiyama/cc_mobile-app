@@ -15,6 +15,7 @@ import {
   Clock,
   CalendarPlus,
   Info,
+  ClipboardList,
 } from 'lucide-react';
 import type { MustDo } from '@/hooks/park/usePlanStack';
 import type { PartyWant, AttractionKind } from '@/data/wantToDos';
