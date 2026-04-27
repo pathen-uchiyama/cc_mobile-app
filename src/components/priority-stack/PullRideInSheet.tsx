@@ -590,8 +590,8 @@ export default PullRideInSheet;
 /**
  * Editorial empty state for the "Plan" tab. No chrome, no borders — just a
  * calm gold mark, a one-line invitation, and a single primary CTA. Tapping
- * the CTA closes the sheet and routes to the itinerary editor (the parent
- * controls where exactly that goes via `onAddToPlan`).
+ * the CTA switches the sheet to the Recommended tab so the guest can pick
+ * an attraction in-place; selecting any row commits it and closes the sheet.
  */
 const PlanEmptyState = ({ onAdd }: { onAdd: () => void }) => (
   <div className="flex flex-col items-center text-center px-6 py-10">
