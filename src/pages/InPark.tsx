@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import BottomGlassNav from '@/components/BottomGlassNav';
 import HeroHorizonStack, { type PlanItem, type WalkingPrompt } from '@/components/priority-stack/HeroHorizonStack';
 import PivotShimmer from '@/components/priority-stack/PivotShimmer';
@@ -342,7 +343,22 @@ const InPark = () => {
             {/* The Sovereign Stack OR Pivot Shimmer — the only thing on screen. */}
             <section aria-label="Today's plan" className="shrink-0">
               {/* LL alert banner — pinned above the focus card when actionable. */}
-              <LLAlertBanner alert={llAlert} onTap={() => navigate('/book-ll')} />
+              <LLAlertBanner
+                alert={llAlert}
+                onTap={() => {
+                  if (llAlert?.kind === 'window-closed') {
+                    // Soft refresh — re-checks held stack on next render.
+                    // The clock keeps ticking via LightningLaneProvider, so
+                    // this is mostly an acknowledgement that the guest saw
+                    // the failure state.
+                    toast('Status refreshed', {
+                      description: 'Your held Lightning Lane stack is up to date.',
+                    });
+                    return;
+                  }
+                  navigate('/book-ll');
+                }}
+              />
               <AnimatePresence mode="wait">
                 {pivotLabel ? (
                   <motion.div key="shimmer">
