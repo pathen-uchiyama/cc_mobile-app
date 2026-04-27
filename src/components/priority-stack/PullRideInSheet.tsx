@@ -409,6 +409,14 @@ const PullRideInSheet = ({
                     return <Section label="Also worth pulling in" accent="slate">{runnersUp}</Section>;
                   })()}
 
+                  {/* Survey-not-completed state — only shows when there
+                      are zero party wants at all. Points guests back to
+                      the pre-trip survey on the web app, which is the
+                      only place those preferences can be entered. */}
+                  {partyWants.length === 0 && (
+                    <PartyWantsEmptyState />
+                  )}
+
                   {/* Single hint to the full plan — replaces the second
                       runner-up section so density stays low. */}
                   {plan.length > 0 && (
