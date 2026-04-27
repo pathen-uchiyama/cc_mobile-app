@@ -14,6 +14,7 @@ import {
   Plus,
   Clock,
   CalendarPlus,
+  Info,
 } from 'lucide-react';
 import type { MustDo } from '@/hooks/park/usePlanStack';
 import type { PartyWant, AttractionKind } from '@/data/wantToDos';
@@ -73,6 +74,8 @@ const PullRideInSheet = ({
    * suggestions (e.g. 1-of-5 yes) for guests who want to explore wider.
    */
   const [includeLowConfidence, setIncludeLowConfidence] = useState(false);
+  /** Inline legend popover toggle — explains the two source tiers. */
+  const [legendOpen, setLegendOpen] = useState(false);
 
   const excluded = useMemo(
     () => new Set(excludedAttractions.map((a) => a.toLowerCase())),
@@ -193,9 +196,62 @@ const PullRideInSheet = ({
               >
                 Attractions
               </p>
-              <h3 className="font-display text-[18px] text-foreground leading-tight">
-                What goes on the active card next?
-              </h3>
+              <div className="flex items-start gap-2">
+                <h3 className="font-display text-[18px] text-foreground leading-tight flex-1">
+                  What goes on the active card next?
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setLegendOpen((v) => !v)}
+                  aria-expanded={legendOpen}
+                  aria-controls="pull-ride-legend"
+                  aria-label={legendOpen ? 'Hide source legend' : 'What are these sources?'}
+                  className="shrink-0 inline-flex items-center justify-center rounded-full bg-transparent border-none cursor-pointer"
+                  style={{
+                    width: '28px',
+                    height: '28px',
+                    minHeight: '28px',
+                    color: 'hsl(var(--slate-plaid))',
+                  }}
+                >
+                  <Info size={16} />
+                </button>
+              </div>
+
+              <AnimatePresence initial={false}>
+                {legendOpen && (
+                  <motion.div
+                    id="pull-ride-legend"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2, ease: 'easeOut' }}
+                    className="overflow-hidden"
+                  >
+                    <div
+                      className="mt-2 rounded-xl px-3 py-2.5 space-y-2"
+                      style={{ background: 'hsl(var(--obsidian) / 0.04)' }}
+                    >
+                      <LegendRow
+                        accent="gold"
+                        label="Must-Dos"
+                        body="Today's locked priorities. Example: Tron Lightcycle Run · 2 of 3 ridden."
+                      />
+                      <LegendRow
+                        accent="magenta"
+                        label="Party Wants"
+                        body="From your pre-trip survey on the web app. Example: it's a small world · 4 of 5 in your party voted yes."
+                      />
+                      <p
+                        className="font-sans italic text-[10px] leading-snug pt-1"
+                        style={{ color: 'hsl(var(--slate-plaid))' }}
+                      >
+                        Survey responses are managed on the web — adjust them there to update what shows up here.
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* Tabs — three clean segments. */}
               <div
@@ -602,6 +658,47 @@ const Row = ({
 };
 
 export default PullRideInSheet;
+
+/* ─── Source-tier legend row ───────────────────────────────────── */
+
+/**
+ * Tiny color-coded entry used inside the header info popover. Mirrors the
+ * accent colors of the actual `Row` component so guests can map "this dot"
+ * → "that section" at a glance.
+ */
+const LegendRow = ({
+  accent,
+  label,
+  body,
+}: {
+  accent: 'gold' | 'magenta';
+  label: string;
+  body: string;
+}) => (
+  <div className="flex items-start gap-2.5">
+    <span
+      aria-hidden="true"
+      className="shrink-0 rounded-full mt-1"
+      style={{
+        width: '8px',
+        height: '8px',
+        background:
+          accent === 'gold' ? 'hsl(var(--gold))' : 'hsl(316 95% 35%)',
+      }}
+    />
+    <div className="min-w-0">
+      <p className="font-sans text-[10px] font-bold leading-tight text-foreground">
+        {label}
+      </p>
+      <p
+        className="font-sans text-[10px] leading-snug mt-0.5"
+        style={{ color: 'hsl(var(--slate-plaid))' }}
+      >
+        {body}
+      </p>
+    </div>
+  </div>
+);
 
 /* ─── Plan tab · empty state ───────────────────────────────────── */
 
