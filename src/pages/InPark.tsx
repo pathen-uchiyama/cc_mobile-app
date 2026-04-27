@@ -25,9 +25,12 @@ import { useMemoryVault } from '@/contexts/MemoryContext';
 import RecordMemorySheet from '@/components/memory/RecordMemorySheet';
 import InterviewSheet from '@/components/memory/InterviewSheet';
 import { RESERVATIONS, nextHospitalityReservation, minutesUntil } from '@/data/reservations';
-import { LL_INVENTORY, formatCountdown, formatClockTime } from '@/data/lightningLanes';
+import { LL_INVENTORY, formatClockTime } from '@/data/lightningLanes';
 import { useLightningLane } from '@/contexts/LightningLaneContext';
-import LLAlertBanner, { type LLAlert } from '@/components/lightning-lane/LLAlertBanner';
+import LLAlertBanner, {
+  formatBannerCountdown,
+  type LLAlert,
+} from '@/components/lightning-lane/LLAlertBanner';
 import { PARTY_WANTS, COMMUNITY_PICKS } from '@/data/wantToDos';
 import { usePlanStack, type MustDo } from '@/hooks/park/usePlanStack';
 import { useStrategyEngine } from '@/hooks/park/useStrategyEngine';
