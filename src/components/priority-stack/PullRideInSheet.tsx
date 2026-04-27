@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Check,
@@ -877,11 +877,32 @@ const PlanEmptyState = ({ onAdd }: { onAdd: () => void }) => (
  *
  * Visual: magenta accent (matches the Party Wants tier dot), surface
  * card per the no-line rule, no CTA button (the action is off-device).
+ *
+ * Accessibility:
+ *  · Wrapped as an ARIA `status` region with `aria-live="polite"` so
+ *    screen readers announce the prompt when the Recommended tab opens
+ *    to an empty Party Wants tier — without preempting the user.
+ *  · `aria-labelledby` + `aria-describedby` map the heading and body to
+ *    the region, so SR users hear "Party Wants — Your party hasn't
+ *    weighed in yet… Open the pre-trip survey…" as one coherent block.
+ *  · The decorative icon stays `aria-hidden`; its meaning is carried by
+ *    the visible kicker label, which is also announced (visually styled
+ *    as a small caption but exposed as a real heading via sr-only
+ *    prefix for outline tools).
+ *  · `useId` keeps ids unique if the empty state ever appears twice.
  */
 const PartyWantsEmptyState = () => {
   const magenta = 'hsl(316 95% 35%)';
+  const reactId = useId();
+  const headingId = `${reactId}-party-empty-heading`;
+  const bodyId = `${reactId}-party-empty-body`;
   return (
     <section
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      aria-labelledby={headingId}
+      aria-describedby={bodyId}
       className="mt-3 mb-1 mx-1 rounded-2xl p-4 flex items-start gap-3"
       style={{
         background:
@@ -891,7 +912,7 @@ const PartyWantsEmptyState = () => {
       }}
     >
       <span
-        aria-hidden
+        aria-hidden="true"
         className="shrink-0 flex items-center justify-center rounded-full"
         style={{
           width: '36px',
@@ -903,16 +924,24 @@ const PartyWantsEmptyState = () => {
         <ClipboardList size={16} />
       </span>
       <div className="flex-1 min-w-0">
+        {/* Visible kicker is also the section's accessible name. The
+            sr-only prefix gives assistive tech a clearer outline anchor
+            ("Party Wants section: …") without changing the visual. */}
         <p
           className="font-sans text-[8px] uppercase tracking-sovereign font-bold mb-1"
           style={{ color: magenta, letterSpacing: '0.16em' }}
         >
           Party Wants · Awaiting the survey
         </p>
-        <h4 className="font-display text-[15px] leading-tight text-foreground mb-1">
+        <h3
+          id={headingId}
+          className="font-display text-[15px] leading-tight text-foreground mb-1"
+        >
+          <span className="sr-only">Party Wants section: </span>
           Your party hasn't weighed in yet.
-        </h4>
+        </h3>
         <p
+          id={bodyId}
           className="font-sans italic text-[11px] leading-snug"
           style={{ color: 'hsl(var(--foreground) / 0.75)' }}
         >
