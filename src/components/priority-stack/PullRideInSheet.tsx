@@ -14,6 +14,7 @@ import {
   Wand2,
   Plus,
   Clock,
+  CalendarPlus,
 } from 'lucide-react';
 import type { MustDo } from '@/hooks/park/usePlanStack';
 import type { PartyWant, CommunityPick, AttractionKind } from '@/data/wantToDos';
@@ -365,12 +366,12 @@ const PullRideInSheet = ({
                       ))}
                     </Section>
                   ) : (
-                    <p
-                      className="font-sans text-[12px] text-center py-8"
-                      style={{ color: 'hsl(var(--slate-plaid))' }}
-                    >
-                      Your plan is empty.
-                    </p>
+                    <PlanEmptyState
+                      onAdd={() => {
+                        onClose();
+                        onAddToPlan?.();
+                      }}
+                    />
                   )}
                 </>
               )}
