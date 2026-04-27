@@ -177,6 +177,12 @@ const BookLightningLane = () => {
   // racing the clock can focus on what's actually slipping away. `all` is the
   // default so nothing is hidden until the guest opts in.
   const [urgency, setUrgency] = useState<'all' | '1h' | '2h' | 'later'>('all');
+  /**
+   * Expansion state for the recommendation card's "Why this pick" line.
+   * Persists across pick swaps so a guest who opened the rationale once
+   * keeps seeing it as live updates roll in.
+   */
+  const [whyExpanded, setWhyExpanded] = useState(false);
 
   const heldIds = useMemo(() => new Set(holds.map((h) => h.attractionId)), [holds]);
 
