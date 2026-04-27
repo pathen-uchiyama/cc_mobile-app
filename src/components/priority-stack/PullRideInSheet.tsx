@@ -538,9 +538,14 @@ const PullRideInSheet = ({
                       Dismissible per-session (sessionStorage) so a guest
                       who's seen the prompt isn't lectured every time the
                       sheet reopens. */}
-                  {partyWants.length === 0 && !partyEmptyDismissed && (
-                    <PartyWantsEmptyState onDismiss={dismissPartyEmpty} />
-                  )}
+                  <AnimatePresence initial={false}>
+                    {partyWants.length === 0 && !partyEmptyDismissed && (
+                      <PartyWantsEmptyState
+                        key="party-empty"
+                        onDismiss={dismissPartyEmpty}
+                      />
+                    )}
+                  </AnimatePresence>
 
                   {/* Single hint to the full plan — replaces the second
                       runner-up section so density stays low. */}
