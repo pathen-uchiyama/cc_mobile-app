@@ -14,9 +14,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import {
   LL_INVENTORY,
-  INITIAL_HOLDS,
-  DEFAULT_CAPACITY,
-  summarizeCapacity,
   formatCountdown,
   formatClockTime,
   isMustDo,
@@ -25,6 +22,7 @@ import {
   type HeldLL,
   type MustDoState,
 } from '@/data/lightningLanes';
+import { useLightningLane } from '@/contexts/LightningLaneContext';
 import CapacityMeter from '@/components/lightning-lane/CapacityMeter';
 import WatchlistStrip from '@/components/lightning-lane/WatchlistStrip';
 import { useLLWatchlist } from '@/hooks/lightning-lane/useLLWatchlist';
@@ -158,17 +156,10 @@ const BookLightningLane = () => {
   const navigate = useNavigate();
   const { fire } = useHaptics();
   const { tier } = useCompanion();
-  const [holds, setHolds] = useState<HeldLL[]>(INITIAL_HOLDS);
-  // Stateful park-time clock — drives countdowns, sell-out chips, and the
-  // watchlist alert engine. See INITIAL_NOW_MINUTES / TICK_MIN_PER_SEC for
-  // the prototype's accelerated tick.
-  const [nowMinutes, setNowMinutes] = useState<number>(INITIAL_NOW_MINUTES);
-  useEffect(() => {
-    const interval = window.setInterval(() => {
-      setNowMinutes((n) => n + TICK_MIN_PER_SEC);
-    }, 1000);
-    return () => window.clearInterval(interval);
-  }, []);
+  // Shared LL state — held bookings and the park-time clock live in
+  // LightningLaneProvider so the /park alert banner stays aligned with
+  // anything booked here, even after navigating away and back.
+  const { holds, addHold, nowMinutes, summary } = useLightningLane();
   // Track holds added in this session so we can offer a "see it on your stack"
   // ribbon — keeps the user oriented after a booking instead of stranding them.
   const [sessionAdds, setSessionAdds] = useState(0);
@@ -176,11 +167,6 @@ const BookLightningLane = () => {
   // racing the clock can focus on what's actually slipping away. `all` is the
   // default so nothing is hidden until the guest opts in.
   const [urgency, setUrgency] = useState<'all' | '1h' | '2h' | 'later'>('all');
-
-  const summary = useMemo(
-    () => summarizeCapacity(holds, nowMinutes, DEFAULT_CAPACITY),
-    [holds, nowMinutes],
-  );
 
   const heldIds = useMemo(() => new Set(holds.map((h) => h.attractionId)), [holds]);
 
@@ -258,7 +244,7 @@ const BookLightningLane = () => {
       windowStartMin: requestedStart,
       status: 'held',
     };
-    setHolds((prev) => [...prev, newHold]);
+    addHold(newHold);
     setSessionAdds((n) => n + 1);
     if (window.id !== 'asap') {
       toast.success(`Requested ${window.label.toLowerCase()} · ${a.name}`, {
