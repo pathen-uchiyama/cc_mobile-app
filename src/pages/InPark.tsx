@@ -193,6 +193,8 @@ const InPark = () => {
         eyebrow: 'Lightning Lane Ready',
         title: inv ? `${inv.name} — tap in now` : 'Tap in to your Lightning Lane now',
         detail: `Window closes in ${formatCountdown(Math.max(1, closesIn))}`,
+        countdown: formatCountdown(Math.max(1, closesIn)),
+        actionLabel: 'Tap in',
       };
     } else if (llSummary.canBookLLNow) {
       llAlert = {
@@ -200,6 +202,7 @@ const InPark = () => {
         eyebrow: 'Booking Window Open',
         title: 'Your next Lightning Lane is ready to book.',
         detail: `${llSummary.llHeldCount}/${llSummary.llCapTotal} held · browse inventory`,
+        actionLabel: 'Book now',
       };
     }
   }

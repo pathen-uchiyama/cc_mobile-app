@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, ArrowRight } from 'lucide-react';
+import { Zap, Timer } from 'lucide-react';
 
 export type LLAlertKind = 'window-open' | 'redeem-ready';
 
@@ -11,6 +11,10 @@ export interface LLAlert {
   title: string;
   /** Optional small detail (countdown, attraction name, etc.). */
   detail?: string;
+  /** Compact countdown string (e.g. "12m") rendered as a tap-in chip. */
+  countdown?: string;
+  /** Label for the primary action button (e.g. "Tap in", "Book now"). */
+  actionLabel?: string;
 }
 
 interface LLAlertBannerProps {
@@ -31,17 +35,15 @@ interface LLAlertBannerProps {
 const LLAlertBanner = ({ alert, onTap }: LLAlertBannerProps) => (
   <AnimatePresence initial={false}>
     {alert && (
-      <motion.button
+      <motion.div
         key={alert.kind}
-        type="button"
-        onClick={onTap}
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -8 }}
         transition={{ duration: 0.3, ease: 'easeOut' }}
-        whileTap={{ scale: 0.99 }}
+        role="group"
         aria-label={`${alert.eyebrow}: ${alert.title}`}
-        className="w-full flex items-center gap-3 px-4 py-3 mb-4 rounded-xl cursor-pointer border-none text-left"
+        className="w-full flex items-center gap-3 px-4 py-3 mb-4 rounded-xl text-left"
         style={{
           background:
             'linear-gradient(180deg, hsl(var(--gold) / 0.16) 0%, hsl(var(--gold) / 0.06) 100%)',
@@ -61,12 +63,27 @@ const LLAlertBanner = ({ alert, onTap }: LLAlertBannerProps) => (
           <Zap size={15} />
         </span>
         <div className="flex-1 min-w-0">
-          <p
-            className="font-sans text-[8px] uppercase tracking-sovereign font-bold"
-            style={{ color: 'hsl(var(--gold))', letterSpacing: '0.16em' }}
-          >
-            {alert.eyebrow}
-          </p>
+          <div className="flex items-center gap-1.5">
+            <p
+              className="font-sans text-[8px] uppercase tracking-sovereign font-bold"
+              style={{ color: 'hsl(var(--gold))', letterSpacing: '0.16em' }}
+            >
+              {alert.eyebrow}
+            </p>
+            {alert.countdown && (
+              <span
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md font-sans text-[9px] font-semibold tabular-nums"
+                style={{
+                  background: 'hsl(var(--gold) / 0.18)',
+                  color: 'hsl(var(--gold))',
+                }}
+                aria-label={`Countdown ${alert.countdown}`}
+              >
+                <Timer size={9} strokeWidth={2.5} />
+                {alert.countdown}
+              </span>
+            )}
+          </div>
           <p className="font-display text-[14px] leading-tight text-foreground truncate">
             {alert.title}
           </p>
@@ -76,8 +93,22 @@ const LLAlertBanner = ({ alert, onTap }: LLAlertBannerProps) => (
             </p>
           )}
         </div>
-        <ArrowRight size={16} className="shrink-0" style={{ color: 'hsl(var(--gold))' }} />
-      </motion.button>
+        <motion.button
+          type="button"
+          onClick={onTap}
+          whileTap={{ scale: 0.97 }}
+          className="shrink-0 inline-flex items-center justify-center rounded-lg px-3 py-2 font-sans text-[11px] font-semibold border-none cursor-pointer"
+          style={{
+            minHeight: '36px',
+            background: 'hsl(var(--gold))',
+            color: 'hsl(var(--parchment))',
+            letterSpacing: '0.02em',
+          }}
+          aria-label={alert.actionLabel ?? (alert.kind === 'redeem-ready' ? 'Tap in' : 'Book now')}
+        >
+          {alert.actionLabel ?? (alert.kind === 'redeem-ready' ? 'Tap in' : 'Book now')}
+        </motion.button>
+      </motion.div>
     )}
   </AnimatePresence>
 );
