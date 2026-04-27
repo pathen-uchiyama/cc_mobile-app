@@ -124,6 +124,31 @@ export const BURNISHED_GOLD = {
   /** Glow paired with `borderMustDo` — same intensity as `glowWatching` so
    *  the Must-Do row sits one notch *under* the armed row in halo weight. */
   glowMustDo: '0 4px 14px hsl(var(--gold) / 0.10)',
+  /**
+   * Recommendation hero card — the editorial banner that surfaces the
+   * suggested must-do pick the moment the booking window opens. Mirrors
+   * the LL alert banner's gold gradient + ring so the two surfaces feel
+   * like one family. Grouped here so the gold-purity test passes and so
+   * any future tweak flows through one place.
+   */
+  recommendation: {
+    surface: {
+      background:
+        'linear-gradient(180deg, hsl(var(--gold) / 0.14) 0%, hsl(var(--gold) / 0.05) 100%)',
+      boxShadow:
+        '0 0 0 1px hsl(var(--gold) / 0.32), 0 8px 22px hsl(var(--obsidian) / 0.05)',
+    } as const,
+    /** Filled medallion — same family as the alert banner icon chip. */
+    medallion: {
+      background: 'hsl(var(--gold))',
+      color: 'hsl(var(--parchment))',
+    } as const,
+    /** Primary "Book now" CTA inside the card. */
+    action: {
+      background: 'hsl(var(--gold))',
+      color: 'hsl(var(--parchment))',
+    } as const,
+  },
 } as const;
 
 /**
