@@ -85,8 +85,12 @@ const PullRideInSheet = ({
       if (remaining === 0) return -1;
       return remaining * 100 + m.desired;
     };
-    return [...mustDos].sort((a, b) => score(b) - score(a));
-  }, [mustDos]);
+    // Hide anything already locked into the active plan — the picker is
+    // for *adding*, not duplicating what's on the stack.
+    return [...mustDos]
+      .filter((m) => !excluded.has(m.attraction.toLowerCase()))
+      .sort((a, b) => score(b) - score(a));
+  }, [mustDos, excluded]);
 
   const rankedParty = useMemo(() => {
     const mustNames = new Set(mustDos.map((m) => m.attraction.toLowerCase()));
@@ -127,7 +131,7 @@ const PullRideInSheet = ({
       attraction: string;
       location?: string;
       kind?: AttractionKind;
-      tier: 'must' | 'party' | 'community';
+      tier: 'must' | 'party';
       reason: string;         // short "why" line
     };
 
@@ -154,20 +158,10 @@ const PullRideInSheet = ({
         reason: `${topParty.party.yes} of ${topParty.party.total} in your party want this`,
       } as Rec;
     }
-    const topCommunity = rankedCommunity[0];
-    if (topCommunity) {
-      return {
-        key: topCommunity.id,
-        sourceId: `comm-${topCommunity.id}`,
-        attraction: topCommunity.attraction,
-        location: topCommunity.location,
-        kind: topCommunity.kind,
-        tier: 'community',
-        reason: `${formatVotes(topCommunity.votes)} guests voted this today${topCommunity.trend === 'up' ? ' — trending up' : ''}`,
-      } as Rec;
-    }
+    // Community picks intentionally excluded — the picker focuses on
+    // *will-do* items only (Must-Dos + Party Wants).
     return null;
-  }, [rankedMustDos, rankedParty, rankedCommunity]);
+  }, [rankedMustDos, rankedParty]);
 
   const handlePromote = (sourceId: string, attraction: string) => {
     onClose();
@@ -269,16 +263,22 @@ const PullRideInSheet = ({
                       className="font-sans text-[12px] text-center py-8"
                       style={{ color: 'hsl(var(--slate-plaid))' }}
                     >
-                      No new recommendation right now — your plan is on track.
+                      Nothing new on your will-do list — your plan is on track.
                     </p>
                   )}
 
                   {/* Runners-up — capped at 2 total to keep the tab calm.
-                      Party picks are preferred over community when both exist;
-                      we top up with community only if party has fewer than 2. */}
+                      Will-do only: Party Wants the guest hasn't already
+                      added. Community Picks are intentionally excluded so
+                      this tab focuses on what the party actually committed
+                      to do. */}
                   {(() => {
                     const runnersUp: JSX.Element[] = [];
-                    rankedParty.slice(0, 2).forEach((p, i) =>
+                    // Skip whatever is already showing as the recommendation.
+                    rankedParty
+                      .filter((p) => `party-${p.id}` !== recommendation?.sourceId)
+                      .slice(0, 2)
+                      .forEach((p, i) =>
                       runnersUp.push(
                         <Row
                           key={`party-${p.id}`}
@@ -293,25 +293,6 @@ const PullRideInSheet = ({
                         />,
                       ),
                     );
-                    const remaining = 2 - runnersUp.length;
-                    if (remaining > 0) {
-                      rankedCommunity.slice(0, remaining).forEach((c, i) =>
-                        runnersUp.push(
-                          <Row
-                            key={`comm-${c.id}`}
-                            rank={runnersUp.length + i + 1}
-                            accent="slate"
-                            title={c.attraction}
-                            sub={c.location}
-                            kind={c.kind}
-                            meta={formatVotes(c.votes)}
-                            metaIcon={<Users size={10} />}
-                            metaTrail={c.trend === 'up' ? <TrendingUp size={9} /> : null}
-                            onTap={() => handlePromote(`comm-${c.id}`, c.attraction)}
-                          />,
-                        ),
-                      );
-                    }
                     if (runnersUp.length === 0) return null;
                     return <Section label="Also worth pulling in" accent="slate">{runnersUp}</Section>;
                   })()}
