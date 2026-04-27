@@ -568,7 +568,6 @@ const InPark = () => {
         onClose={() => setMustDoOpen(false)}
         mustDos={mustDos}
         partyWants={PARTY_WANTS}
-        communityPicks={COMMUNITY_PICKS}
         excludedAttractions={plan.map((p) => p.attraction)}
         plan={plan}
         onPromote={promoteMustDoToHero}
