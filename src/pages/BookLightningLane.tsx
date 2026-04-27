@@ -186,6 +186,14 @@ const BookLightningLane = () => {
    */
   const [whyExpanded, setWhyExpanded] = useState(false);
 
+  /**
+   * Tracks an in-flight booking request by attraction id so the
+   * Recommended card's "Book now" CTA can show a spinner and reject
+   * repeat taps while the request resolves. Cleared once the booking
+   * commits (or fails fast).
+   */
+  const [bookingPickId, setBookingPickId] = useState<string | null>(null);
+
   const heldIds = useMemo(() => new Set(holds.map((h) => h.attractionId)), [holds]);
 
   // Tier-aware sorting for the LL section.
