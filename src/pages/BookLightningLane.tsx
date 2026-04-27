@@ -245,7 +245,9 @@ const BookLightningLane = () => {
    * so the card can stay hidden rather than mislead.
    */
   const recommendedPick = useMemo(() => {
-    if (!summary.canBookLLNow) return null;
+    if (!summary.canBookLLNow) {
+      return { kind: 'locked' as const };
+    }
     const grabbable = LL_INVENTORY.filter(
       (a) =>
         a.type === 'll' &&
@@ -256,17 +258,19 @@ const BookLightningLane = () => {
         // so this kicks in naturally as the guest sits on the page.
         a.typicalSelloutMin > nowMinutes,
     );
-    if (grabbable.length === 0) return null;
+    if (grabbable.length === 0) {
+      return { kind: 'empty' as const };
+    }
     const mustDos = grabbable
       .filter((a) => isMustDo(a.name, MOCK_MUST_DOS))
       .sort((a, b) => a.typicalSelloutMin - b.typicalSelloutMin);
     if (mustDos.length > 0) {
-      return { attraction: mustDos[0], reason: 'must-do' as const };
+      return { kind: 'pick' as const, attraction: mustDos[0], reason: 'must-do' as const };
     }
     const fallback = grabbable
       .slice()
       .sort((a, b) => a.typicalSelloutMin - b.typicalSelloutMin);
-    return { attraction: fallback[0], reason: 'urgency' as const };
+    return { kind: 'pick' as const, attraction: fallback[0], reason: 'urgency' as const };
   }, [heldIds, summary.canBookLLNow, nowMinutes]);
 
   /**
