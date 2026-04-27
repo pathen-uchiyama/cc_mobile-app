@@ -235,6 +235,12 @@ const BookLightningLane = () => {
    *   2. If no must-dos qualify, fall back to the earliest-sellout standard
    *      LL that's still grabbable (not held, not ridden).
    *
+   * Live-refreshes on every park-time tick from `LightningLaneProvider`,
+   * so a recommendation that crosses its `typicalSelloutMin` while the
+   * booking window stays open is dropped automatically and the next-best
+   * candidate slides in without a manual refresh. Booking the pick also
+   * mutates `heldIds`, which re-runs this memo immediately.
+   *
    * Returns `null` when nothing is bookable (capacity locked or list empty)
    * so the card can stay hidden rather than mislead.
    */
@@ -244,7 +250,11 @@ const BookLightningLane = () => {
       (a) =>
         a.type === 'll' &&
         !heldIds.has(a.id) &&
-        !isRidden(a.name, MOCK_MUST_DOS),
+        !isRidden(a.name, MOCK_MUST_DOS) &&
+        // Drop anything that has crossed its typical sellout window —
+        // the prototype clock advances at TICK_MIN_PER_SEC park-min/sec
+        // so this kicks in naturally as the guest sits on the page.
+        a.typicalSelloutMin > nowMinutes,
     );
     if (grabbable.length === 0) return null;
     const mustDos = grabbable
@@ -257,7 +267,7 @@ const BookLightningLane = () => {
       .slice()
       .sort((a, b) => a.typicalSelloutMin - b.typicalSelloutMin);
     return { attraction: fallback[0], reason: 'urgency' as const };
-  }, [heldIds, summary.canBookLLNow]);
+  }, [heldIds, summary.canBookLLNow, nowMinutes]);
 
   const handleBook = (a: LLAttraction, windowId: BookWindowId = 'asap') => {
     const isILL = a.type === 'ill';
