@@ -312,6 +312,8 @@ const InPark = () => {
 
             {/* The Sovereign Stack OR Pivot Shimmer — the only thing on screen. */}
             <section aria-label="Today's plan" className="shrink-0">
+              {/* LL alert banner — pinned above the focus card when actionable. */}
+              <LLAlertBanner alert={llAlert} onTap={() => navigate('/book-ll')} />
               <AnimatePresence mode="wait">
                 {pivotLabel ? (
                   <motion.div key="shimmer">
