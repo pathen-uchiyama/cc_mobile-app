@@ -269,6 +269,41 @@ const BookLightningLane = () => {
     return { attraction: fallback[0], reason: 'urgency' as const };
   }, [heldIds, summary.canBookLLNow, nowMinutes]);
 
+  /**
+   * Fire a quiet "Recommendation refreshed" toast whenever the pick
+   * actually changes — but never on first render and never when the card
+   * appears/disappears (those transitions are obvious from the card
+   * itself). This is the audible whisper that backs up the visual
+   * crossfade so the live update is felt.
+   */
+  const prevPickIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    const currentId = recommendedPick?.attraction.id ?? null;
+    const prevId = prevPickIdRef.current;
+    // First render — just record the seed.
+    if (prevId === null && currentId === null) return;
+    if (prevId === null) {
+      prevPickIdRef.current = currentId;
+      return;
+    }
+    // Card disappeared (capacity locked, no candidates) — silent.
+    if (currentId === null) {
+      prevPickIdRef.current = null;
+      return;
+    }
+    // Same pick — no-op.
+    if (currentId === prevId) return;
+    // Pick changed while the card was already on screen → refresh whisper.
+    prevPickIdRef.current = currentId;
+    toast(`Recommendation refreshed · ${recommendedPick?.attraction.name}`, {
+      description:
+        recommendedPick?.reason === 'must-do'
+          ? 'A higher-priority Must-Do just rose to the top.'
+          : 'The most-urgent grabbable lane updated.',
+      duration: 3500,
+    });
+  }, [recommendedPick]);
+
   const handleBook = (a: LLAttraction, windowId: BookWindowId = 'asap') => {
     const isILL = a.type === 'ill';
     if (isILL && !summary.canBookILL) {
