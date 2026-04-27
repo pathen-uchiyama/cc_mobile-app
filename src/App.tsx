@@ -20,6 +20,7 @@ import { JoyEventsProvider } from "./contexts/JoyEventsContext";
 import { CelebrationProvider } from "./contexts/CelebrationContext";
 import { MemoryProvider } from "./contexts/MemoryContext";
 import { ReservationWatchlistProvider } from "./contexts/ReservationWatchlistContext";
+import { LightningLaneProvider } from "./contexts/LightningLaneContext";
 import RouteTransition from "./components/layout/RouteTransition";
 
 const queryClient = new QueryClient();
@@ -61,7 +62,9 @@ const App = () => (
             <MemoryProvider>
               <BrowserRouter>
                 <ReservationWatchlistProvider>
-                  <AnimatedRoutes />
+                  <LightningLaneProvider>
+                    <AnimatedRoutes />
+                  </LightningLaneProvider>
                 </ReservationWatchlistProvider>
               </BrowserRouter>
             </MemoryProvider>

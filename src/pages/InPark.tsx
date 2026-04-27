@@ -24,7 +24,8 @@ import { useMemoryVault } from '@/contexts/MemoryContext';
 import RecordMemorySheet from '@/components/memory/RecordMemorySheet';
 import InterviewSheet from '@/components/memory/InterviewSheet';
 import { RESERVATIONS, nextHospitalityReservation, minutesUntil } from '@/data/reservations';
-import { INITIAL_HOLDS, DEFAULT_CAPACITY, LL_INVENTORY, summarizeCapacity, formatCountdown } from '@/data/lightningLanes';
+import { LL_INVENTORY, formatCountdown } from '@/data/lightningLanes';
+import { useLightningLane } from '@/contexts/LightningLaneContext';
 import LLAlertBanner, { type LLAlert } from '@/components/lightning-lane/LLAlertBanner';
 import { PARTY_WANTS, COMMUNITY_PICKS } from '@/data/wantToDos';
 import { usePlanStack, type MustDo } from '@/hooks/park/usePlanStack';
@@ -84,10 +85,11 @@ const MUST_DOS: MustDo[] = [
 // must never show more than 3 cards. Whimsy surfaces via WhisperStrip.
 const WALKING_PROMPTS: WalkingPrompt[] = [];
 
-const NOW_MINUTES = 10 * 60 + 45; // mock 10:45 AM park-time
-
 const InPark = () => {
   const navigate = useNavigate();
+  // Shared LL state — holds + park-time clock survive navigation so the
+  // alert banner stays aligned with /book-ll.
+  const { holds: llHolds, nowMinutes: NOW_MINUTES, summary: llSummary } = useLightningLane();
   const { celebrate } = useCelebrate();
   const { minimalist, tier, devPanelEnabled, llTrackerVisible } = useCompanion();
   const useQuietView = minimalist || tier === 'sovereign';
@@ -155,7 +157,6 @@ const InPark = () => {
       }
     : undefined;
 
-  const llSummary = summarizeCapacity(INITIAL_HOLDS, NOW_MINUTES, DEFAULT_CAPACITY);
   const llCapacity = {
     canBookNow: llSummary.canBookLLNow,
     unlocksInMin: llSummary.llUnlocksInMin,
@@ -174,7 +175,7 @@ const InPark = () => {
    */
   const isUsingLL = llSummary.llHeldCount > 0 || llSummary.llCapTotal > 0;
   const TAPIN_WINDOW_MIN = 60;
-  const readyHold = INITIAL_HOLDS
+  const readyHold = llHolds
     .filter(
       (h) =>
         h.status === 'held' &&
