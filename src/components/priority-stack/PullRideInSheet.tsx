@@ -388,24 +388,21 @@ const PullRideInSheet = ({
                     </Section>
                   ) : (
                     <PlanEmptyState
-                      onAdd={() => {
-                        onClose();
-                        onAddToPlan?.();
-                      }}
+                      onAdd={() => setTab('recommended')}
                     />
                   )}
                 </>
               )}
             </div>
 
-            {/* Persistent footer — always offers a single way to add to plan. */}
+            {/* Persistent footer — always offers a single way to add to plan.
+                Tapping it surfaces the Recommended tab inside this same
+                sheet; picking any row commits the new item, closes the
+                sheet, and returns the guest to Today. */}
             <div className="shrink-0 flex items-center gap-2 m-3 mt-1">
               <button
                 type="button"
-                onClick={() => {
-                  onClose();
-                  onAddToPlan?.();
-                }}
+                onClick={() => setTab('recommended')}
                 className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3 cursor-pointer font-sans text-[11px] uppercase tracking-sovereign font-bold border-none"
                 style={{
                   background: 'hsl(var(--primary))',
