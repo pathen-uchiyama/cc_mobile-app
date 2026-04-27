@@ -200,6 +200,40 @@ const BookLightningLane = () => {
     [],
   );
 
+  /**
+   * Recommended pick — surfaces the highest-value standard LL the guest
+   * should grab right now, so the booking window never opens to a blank
+   * slate. Selection rules, in order:
+   *
+   *   1. Must-Do, not yet held, not yet ridden, with the earliest typical
+   *      sellout time — i.e. the priority ride most likely to be gone.
+   *   2. If no must-dos qualify, fall back to the earliest-sellout standard
+   *      LL that's still grabbable (not held, not ridden).
+   *
+   * Returns `null` when nothing is bookable (capacity locked or list empty)
+   * so the card can stay hidden rather than mislead.
+   */
+  const recommendedPick = useMemo(() => {
+    if (!summary.canBookLLNow) return null;
+    const grabbable = LL_INVENTORY.filter(
+      (a) =>
+        a.type === 'll' &&
+        !heldIds.has(a.id) &&
+        !isRidden(a.name, MOCK_MUST_DOS),
+    );
+    if (grabbable.length === 0) return null;
+    const mustDos = grabbable
+      .filter((a) => isMustDo(a.name, MOCK_MUST_DOS))
+      .sort((a, b) => a.typicalSelloutMin - b.typicalSelloutMin);
+    if (mustDos.length > 0) {
+      return { attraction: mustDos[0], reason: 'must-do' as const };
+    }
+    const fallback = grabbable
+      .slice()
+      .sort((a, b) => a.typicalSelloutMin - b.typicalSelloutMin);
+    return { attraction: fallback[0], reason: 'urgency' as const };
+  }, [heldIds, summary.canBookLLNow]);
+
   const handleBook = (a: LLAttraction, windowId: BookWindowId = 'asap') => {
     const isILL = a.type === 'ill';
     if (isILL && !summary.canBookILL) {
