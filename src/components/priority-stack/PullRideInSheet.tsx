@@ -5,7 +5,6 @@ import {
   ChevronRight,
   Star,
   Users,
-  TrendingUp,
   Ticket,
   Drama,
   Sparkles,
@@ -17,7 +16,7 @@ import {
   CalendarPlus,
 } from 'lucide-react';
 import type { MustDo } from '@/hooks/park/usePlanStack';
-import type { PartyWant, CommunityPick, AttractionKind } from '@/data/wantToDos';
+import type { PartyWant, AttractionKind } from '@/data/wantToDos';
 import type { PlanItem } from '@/components/priority-stack/HeroHorizonStack';
 
 type Tab = 'recommended' | 'mustdo' | 'plan';
@@ -27,21 +26,17 @@ interface PullRideInSheetProps {
   onClose: () => void;
   mustDos: MustDo[];
   partyWants: PartyWant[];
-  communityPicks: CommunityPick[];
   /** Names of attractions already locked in the active plan — filtered out. */
   excludedAttractions?: string[];
   /** The active 3-card plan, surfaced on the "Plan" tab. */
   plan?: PlanItem[];
   /**
    * Inject any attraction onto the active stack as the new "Now" card.
-   * The id is a synthetic key (e.g. `must-m1`, `party-w1`, `comm-c3`) — usePlanStack
+   * The id is a synthetic key (e.g. `must-m1`, `party-w1`) — usePlanStack
    * already handles the case where the attraction is brand new.
    */
   onPromote: (sourceId: string, attraction: string) => void;
 }
-
-const formatVotes = (n: number) =>
-  n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, '')}k` : n.toString();
 
 const KIND_META: Record<AttractionKind, { label: string; Icon: typeof Ticket }> = {
   ride:   { label: 'Ride',           Icon: Ticket },
