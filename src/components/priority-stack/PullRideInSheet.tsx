@@ -166,6 +166,93 @@ const PullRideInSheet = ({
     return null;
   }, [rankedMustDos, rankedParty]);
 
+  /**
+   * Unified attraction catalog for the custom-add autocomplete.
+   *
+   * Pulls from every static catalog the app already knows about — the
+   * Lightning Lane inventory (rides) and the Party Wants pool (rides,
+   * shows, meets, parades, dining). Anything already on the active plan
+   * or already represented in Must-Dos / Party Wants is filtered out:
+   * the picker is for *new* items the guest can't surface from the
+   * tier sections above. Built once per open session.
+   */
+  const catalog = useMemo(() => {
+    type CatalogItem = {
+      key: string;
+      name: string;
+      location?: string;
+      kind: AttractionKind;
+      /** Stable suggestion id used as the synthesized sourceId. */
+      suggestId: string;
+    };
+    const seen = new Set<string>();
+    const items: CatalogItem[] = [];
+    const skip = new Set<string>([
+      ...mustDos.map((m) => m.attraction.toLowerCase()),
+      ...partyWants.map((p) => p.attraction.toLowerCase()),
+      ...excludedAttractions.map((a) => a.toLowerCase()),
+    ]);
+    const push = (item: CatalogItem) => {
+      const key = item.name.toLowerCase();
+      if (seen.has(key) || skip.has(key)) return;
+      seen.add(key);
+      items.push(item);
+    };
+    LL_INVENTORY.forEach((a) =>
+      push({
+        key: a.id,
+        name: a.name,
+        location: a.land,
+        kind: 'ride',
+        suggestId: `catalog-${a.id}`,
+      }),
+    );
+    PARTY_WANTS.forEach((p) =>
+      push({
+        key: p.id,
+        name: p.attraction,
+        location: p.location,
+        kind: p.kind,
+        suggestId: `catalog-${p.id}`,
+      }),
+    );
+    return items;
+  }, [mustDos, partyWants, excludedAttractions]);
+
+  /**
+   * Score a catalog entry against the current query. Higher is better.
+   *  · prefix match on the full name → strongest
+   *  · prefix match on any word      → next
+   *  · substring match anywhere      → baseline
+   *  · subsequence match (typo-tolerant) → weakest, only kept above 0
+   * Returns 0 when nothing matches so the caller can drop the row.
+   */
+  const suggestions = useMemo(() => {
+    const q = customName.trim().toLowerCase();
+    if (q.length < 1) return [];
+    const scoreOne = (name: string): number => {
+      const lower = name.toLowerCase();
+      if (lower.startsWith(q)) return 100;
+      const words = lower.split(/\s+/);
+      if (words.some((w) => w.startsWith(q))) return 80;
+      const idx = lower.indexOf(q);
+      if (idx >= 0) return 60 - Math.min(idx, 40);
+      // Subsequence — every char of q appears in order in name.
+      let i = 0;
+      for (const c of lower) {
+        if (c === q[i]) i++;
+        if (i === q.length) break;
+      }
+      return i === q.length ? 20 : 0;
+    };
+    return catalog
+      .map((c) => ({ item: c, score: scoreOne(c.name) }))
+      .filter((r) => r.score > 0)
+      .sort((a, b) => b.score - a.score || a.item.name.localeCompare(b.item.name))
+      .slice(0, 5)
+      .map((r) => r.item);
+  }, [catalog, customName]);
+
   const handlePromote = (sourceId: string, attraction: string) => {
     onClose();
     onPromote(sourceId, attraction);
@@ -174,9 +261,18 @@ const PullRideInSheet = ({
   const handleCustomSubmit = () => {
     const name = customName.trim();
     if (name.length < 2) return;
+    // If the typed name exactly matches a catalog suggestion, prefer the
+    // catalog id so downstream consumers can later re-link metadata.
+    const exact = catalog.find((c) => c.name.toLowerCase() === name.toLowerCase());
     setCustomName('');
     setCustomOpen(false);
-    handlePromote(`custom-${Date.now()}`, name);
+    handlePromote(exact ? exact.suggestId : `custom-${Date.now()}`, exact ? exact.name : name);
+  };
+
+  const handleSuggestionPick = (item: { suggestId: string; name: string }) => {
+    setCustomName('');
+    setCustomOpen(false);
+    handlePromote(item.suggestId, item.name);
   };
 
   return (
