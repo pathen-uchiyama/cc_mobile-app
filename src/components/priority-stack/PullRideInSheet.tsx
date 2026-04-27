@@ -85,8 +85,12 @@ const PullRideInSheet = ({
       if (remaining === 0) return -1;
       return remaining * 100 + m.desired;
     };
-    return [...mustDos].sort((a, b) => score(b) - score(a));
-  }, [mustDos]);
+    // Hide anything already locked into the active plan — the picker is
+    // for *adding*, not duplicating what's on the stack.
+    return [...mustDos]
+      .filter((m) => !excluded.has(m.attraction.toLowerCase()))
+      .sort((a, b) => score(b) - score(a));
+  }, [mustDos, excluded]);
 
   const rankedParty = useMemo(() => {
     const mustNames = new Set(mustDos.map((m) => m.attraction.toLowerCase()));
@@ -127,7 +131,7 @@ const PullRideInSheet = ({
       attraction: string;
       location?: string;
       kind?: AttractionKind;
-      tier: 'must' | 'party' | 'community';
+      tier: 'must' | 'party';
       reason: string;         // short "why" line
     };
 
@@ -154,20 +158,10 @@ const PullRideInSheet = ({
         reason: `${topParty.party.yes} of ${topParty.party.total} in your party want this`,
       } as Rec;
     }
-    const topCommunity = rankedCommunity[0];
-    if (topCommunity) {
-      return {
-        key: topCommunity.id,
-        sourceId: `comm-${topCommunity.id}`,
-        attraction: topCommunity.attraction,
-        location: topCommunity.location,
-        kind: topCommunity.kind,
-        tier: 'community',
-        reason: `${formatVotes(topCommunity.votes)} guests voted this today${topCommunity.trend === 'up' ? ' — trending up' : ''}`,
-      } as Rec;
-    }
+    // Community picks intentionally excluded — the picker focuses on
+    // *will-do* items only (Must-Dos + Party Wants).
     return null;
-  }, [rankedMustDos, rankedParty, rankedCommunity]);
+  }, [rankedMustDos, rankedParty]);
 
   const handlePromote = (sourceId: string, attraction: string) => {
     onClose();
