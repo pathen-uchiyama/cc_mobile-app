@@ -47,11 +47,10 @@ const KIND_META: Record<AttractionKind, { label: string; Icon: typeof Ticket }> 
 };
 
 /**
- * "Pull an attraction in" — the unified injection sheet. Three tiers:
+ * "Pull an attraction in" — the unified injection sheet. Two tiers:
  *
  *   1. Must-Do (gold)         — pre-locked priorities, ranked by remaining rides.
  *   2. Party Wants (magenta)  — survey wishlist, ranked by yes/total ratio.
- *   3. Community Picks (slate)— park-wide votes for today, ranked by votes.
  *
  * "Attraction" here covers rides, shows, character meet & greets, parades,
  * and signature dining experiences. Tapping any row promotes it to the Hero
@@ -100,10 +99,9 @@ const PullRideInSheet = ({
   /**
    * Cross-tier recommendation — the single "do this next" pick.
    *
-   * Strategy: Must-Do beats Party beats Community, but only when there's a
-   * real signal in the higher tier. Each candidate gets a normalized score
-   * 0–1 within its tier; we then bias by tier weight so a strong community
-   * pick can still surface when the user has no live Must-Dos or party data.
+   * Strategy: Must-Do beats Party Wants. Each candidate gets a normalized
+   * score within its tier; only the top one in the higher-priority tier
+   * surfaces as the lead recommendation.
    */
   const recommendation = useMemo(() => {
     type Rec = {
@@ -139,8 +137,8 @@ const PullRideInSheet = ({
         reason: `${topParty.party.yes} of ${topParty.party.total} in your party want this`,
       } as Rec;
     }
-    // Community picks intentionally excluded — the picker focuses on
-    // *will-do* items only (Must-Dos + Party Wants).
+                    // Will-do only: Must-Dos + Party Wants. There's no
+                    // park-wide community signal in the product.
     return null;
   }, [rankedMustDos, rankedParty]);
 
@@ -250,9 +248,7 @@ const PullRideInSheet = ({
 
                   {/* Runners-up — capped at 2 total to keep the tab calm.
                       Will-do only: Party Wants the guest hasn't already
-                      added. Community Picks are intentionally excluded so
-                      this tab focuses on what the party actually committed
-                      to do. */}
+                      added. */}
                   {(() => {
                     const runnersUp: JSX.Element[] = [];
                     // Skip whatever is already showing as the recommendation.
