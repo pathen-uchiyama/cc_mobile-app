@@ -167,10 +167,17 @@ const FocusMove = ({
           </span>
           <div className="flex items-center gap-1.5 shrink-0">
             {wait && (
-              <div className="flex items-center gap-1.5 bg-secondary-container px-3 py-1.5 rounded-full">
-                <Clock size={12} className="text-primary" />
-                <span className="font-sans text-sm text-primary font-bold tabular-nums">
+              <div
+                className="flex items-center gap-1.5 bg-secondary-container px-3 py-1.5 rounded-full"
+                aria-label={`Current wait time ${wait}`}
+                title={`Current wait: ${wait}`}
+              >
+                <Clock size={12} className="text-primary" aria-hidden="true" />
+                <span className="font-sans text-sm text-primary font-bold tabular-nums leading-none">
                   {wait}
+                </span>
+                <span className="font-sans text-[9px] uppercase tracking-sovereign text-primary/70 font-bold leading-none">
+                  wait
                 </span>
               </div>
             )}
@@ -178,11 +185,13 @@ const FocusMove = ({
               <motion.button
                 whileTap={{ scale: 0.9 }}
                 onClick={onComplete}
-                aria-label={`Mark ${attraction} as done`}
-                title="Mark done"
-                className="flex items-center justify-center w-8 h-8 bg-transparent border border-gold/40 text-gold cursor-pointer rounded-full"
+                aria-label={`I rode ${attraction} — mark complete`}
+                title="I rode this — mark complete"
+                className="flex items-center justify-center gap-1.5 h-11 px-3 bg-gold text-parchment cursor-pointer rounded-full font-sans text-[11px] font-bold uppercase tracking-sovereign border-none shrink-0"
+                style={{ letterSpacing: '0.08em' }}
               >
-                <Check size={14} strokeWidth={2.2} />
+                <Check size={14} strokeWidth={2.5} aria-hidden="true" />
+                <span className="leading-none">I rode it</span>
               </motion.button>
             )}
           </div>
