@@ -85,7 +85,6 @@ const HeroHorizonStack = ({
 }: HeroHorizonStackProps) => {
   const hero = items.find((i) => i.rank === 'now') ?? items[0];
   if (!hero) return null;
-  const horizon = items.filter((i) => i.id !== hero.id).slice(0, 2);
 
   return (
     <div className="flex flex-col">
@@ -126,50 +125,6 @@ const HeroHorizonStack = ({
             </motion.div>
           </AnimatePresence>
         </div>
-
-        {/* Horizon slots — tappable to promote into the Hero */}
-        {horizon.length > 0 && (
-          <div className="relative">
-            <AnimatePresence mode="popLayout" initial={false}>
-              {horizon.map((it, idx) => (
-                <motion.button
-                  type="button"
-                  key={it.id}
-                  layout
-                  layoutId={`plan-${it.id}`}
-                  onClick={() => onPromote?.(it.id)}
-                  aria-label={`Promote ${it.attraction} to the main card`}
-                  initial={{ y: -6, opacity: 0, scale: 0.96 }}
-                  animate={{ y: 0, opacity: 1, scale: 1 }}
-                  exit={{ y: 24, opacity: 0, scale: 0.92 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ type: 'spring', damping: 24, stiffness: 240, delay: 0.05 + idx * 0.06 }}
-                  className="block w-full bg-transparent border-none p-0 cursor-pointer text-left"
-                  style={{
-                    width: idx === 0 ? '94%' : '86%',
-                    margin: '0 auto',
-                    position: 'relative',
-                    zIndex: idx === 0 ? 2 : 1,
-                    marginTop: idx === 0 ? 0 : '-28px',
-                  }}
-                >
-                  <HorizonCard
-                    rank={it.rank as 'next' | 'later'}
-                    time={it.time}
-                    attraction={it.attraction}
-                    location={it.location}
-                    logic={it.logic}
-                    wait={it.wait}
-                    llSecured={it.llSecured}
-                    depth={(idx + 1) as 1 | 2}
-                    party={it.party}
-                    mustDo={it.mustDo}
-                  />
-                </motion.button>
-              ))}
-            </AnimatePresence>
-          </div>
-        )}
       </LayoutGroup>
     </div>
   );
