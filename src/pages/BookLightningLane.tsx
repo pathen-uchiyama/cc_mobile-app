@@ -435,9 +435,21 @@ const BookLightningLane = () => {
          * (or the most urgent grabbable LL if no must-dos qualify) with
          * a single one-tap Book affordance.
          */}
+        {/*
+         * Wrapped in AnimatePresence + keyed by attraction id so the live
+         * refresh (driven by the LightningLaneProvider clock + heldIds)
+         * crossfades the swap rather than snapping it.
+         */}
+        <AnimatePresence mode="wait" initial={false}>
         {recommendedPick && (
-          <section
+          <motion.section
+            key={recommendedPick.attraction.id}
             aria-label="Concierge recommendation"
+            aria-live="polite"
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.28, ease: 'easeOut' }}
             className="rounded-xl px-4 py-3.5 flex items-center gap-3"
             style={BURNISHED_GOLD.recommendation.surface}
           >
@@ -484,8 +496,9 @@ const BookLightningLane = () => {
             >
               Book now
             </motion.button>
-          </section>
+          </motion.section>
         )}
+        </AnimatePresence>
 
         {/* Standard LL section */}
         <section>
