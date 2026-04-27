@@ -11,8 +11,7 @@
  *   • a `bookingOpensAtMin` window (park-time minutes since midnight) so
  *     the watchlist countdown is honest
  *   • optional `popularitySignal` tags that we cross-reference against the
- *     guest's pre-trip survey (PARTY_WANTS) and live community picks
- *     (COMMUNITY_PICKS) to filter / prioritize the list.
+ *     guest's pre-trip survey (PARTY_WANTS) to filter / prioritize the list.
  */
 
 export type InterestKind = 'dining' | 'experience';
@@ -35,8 +34,8 @@ export interface ReservationInterest {
   bookingOpensAtMin: number;
   /**
    * Tags the matcher uses to score relevance against the party's stated
-   * interests. Loose, fuzzy strings — names from PARTY_WANTS,
-   * COMMUNITY_PICKS, or category labels like "character", "fireworks".
+   * interests. Loose, fuzzy strings — names from PARTY_WANTS or category
+   * labels like "character", "fireworks".
    */
   popularitySignal?: string[];
   /** Short editorial line — why this is worth a slot. */

@@ -21,7 +21,7 @@ import {
   formatMinutes,
   type ReservationInterest,
 } from '@/data/reservationInterests';
-import { PARTY_WANTS, COMMUNITY_PICKS } from '@/data/wantToDos';
+import { PARTY_WANTS } from '@/data/wantToDos';
 import {
   type ReservationWatchEntry,
 } from '@/hooks/reservations/useReservationWatchlist';
@@ -595,8 +595,8 @@ const SuggestionRow = ({ interest, defaultPartySize, nowMinutes, onWatch }: Sugg
  *      (explorer).
  *
  * The "Add an interest" picker is filtered by today's park and ranked
- * against the guest's pre-trip survey + live community picks so the most
- * relevant options surface first.
+ * against the guest's pre-trip survey so the most relevant options
+ * surface first.
  *
  * Lightning Lane inventory now lives entirely on the dedicated /book-ll
  * page — this surface stays focused on hospitality bookings.
@@ -623,14 +623,10 @@ const StrategicDashboard = ({ open, onClose }: StrategicDashboardProps) => {
     return Math.round(sizes.reduce((a, b) => a + b, 0) / sizes.length);
   }, [standing]);
 
-  // Aggregate party-stated interest signals so the picker can rank by
-  // relevance. We fold in attraction names from the survey *and* the top
-  // community picks because guests often defer to "what everyone's doing".
-  const interestSignals = useMemo(() => {
-    const fromParty = PARTY_WANTS.map((w) => w.attraction);
-    const fromCommunity = COMMUNITY_PICKS.slice(0, 5).map((c) => c.attraction);
-    return [...fromParty, ...fromCommunity];
-  }, []);
+  // Party-stated interest signals so the picker can rank by relevance.
+  // Sourced solely from the pre-trip survey — there's no community/park-wide
+  // signal in the product.
+  const interestSignals = useMemo(() => PARTY_WANTS.map((w) => w.attraction), []);
 
   // Park-aware: only candidates in today's park survive.
   const parkAwarePool = useMemo(

@@ -5,7 +5,6 @@ import {
   ChevronRight,
   Star,
   Users,
-  TrendingUp,
   Ticket,
   Drama,
   Sparkles,
@@ -17,7 +16,7 @@ import {
   CalendarPlus,
 } from 'lucide-react';
 import type { MustDo } from '@/hooks/park/usePlanStack';
-import type { PartyWant, CommunityPick, AttractionKind } from '@/data/wantToDos';
+import type { PartyWant, AttractionKind } from '@/data/wantToDos';
 import type { PlanItem } from '@/components/priority-stack/HeroHorizonStack';
 
 type Tab = 'recommended' | 'mustdo' | 'plan';
@@ -27,21 +26,17 @@ interface PullRideInSheetProps {
   onClose: () => void;
   mustDos: MustDo[];
   partyWants: PartyWant[];
-  communityPicks: CommunityPick[];
   /** Names of attractions already locked in the active plan — filtered out. */
   excludedAttractions?: string[];
   /** The active 3-card plan, surfaced on the "Plan" tab. */
   plan?: PlanItem[];
   /**
    * Inject any attraction onto the active stack as the new "Now" card.
-   * The id is a synthetic key (e.g. `must-m1`, `party-w1`, `comm-c3`) — usePlanStack
+   * The id is a synthetic key (e.g. `must-m1`, `party-w1`) — usePlanStack
    * already handles the case where the attraction is brand new.
    */
   onPromote: (sourceId: string, attraction: string) => void;
 }
-
-const formatVotes = (n: number) =>
-  n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, '')}k` : n.toString();
 
 const KIND_META: Record<AttractionKind, { label: string; Icon: typeof Ticket }> = {
   ride:   { label: 'Ride',           Icon: Ticket },
@@ -52,11 +47,10 @@ const KIND_META: Record<AttractionKind, { label: string; Icon: typeof Ticket }> 
 };
 
 /**
- * "Pull an attraction in" — the unified injection sheet. Three tiers:
+ * "Pull an attraction in" — the unified injection sheet. Two tiers:
  *
  *   1. Must-Do (gold)         — pre-locked priorities, ranked by remaining rides.
  *   2. Party Wants (magenta)  — survey wishlist, ranked by yes/total ratio.
- *   3. Community Picks (slate)— park-wide votes for today, ranked by votes.
  *
  * "Attraction" here covers rides, shows, character meet & greets, parades,
  * and signature dining experiences. Tapping any row promotes it to the Hero
@@ -67,7 +61,6 @@ const PullRideInSheet = ({
   onClose,
   mustDos,
   partyWants,
-  communityPicks,
   excludedAttractions = [],
   plan = [],
   onPromote,
@@ -103,26 +96,12 @@ const PullRideInSheet = ({
       .sort((a, b) => b.party.yes / b.party.total - a.party.yes / a.party.total);
   }, [partyWants, mustDos, excluded]);
 
-  const rankedCommunity = useMemo(() => {
-    const mustNames = new Set(mustDos.map((m) => m.attraction.toLowerCase()));
-    const partyNames = new Set(partyWants.map((p) => p.attraction.toLowerCase()));
-    return [...communityPicks]
-      .filter(
-        (c) =>
-          !mustNames.has(c.attraction.toLowerCase()) &&
-          !partyNames.has(c.attraction.toLowerCase()) &&
-          !excluded.has(c.attraction.toLowerCase()),
-      )
-      .sort((a, b) => b.votes - a.votes);
-  }, [communityPicks, mustDos, partyWants, excluded]);
-
   /**
    * Cross-tier recommendation — the single "do this next" pick.
    *
-   * Strategy: Must-Do beats Party beats Community, but only when there's a
-   * real signal in the higher tier. Each candidate gets a normalized score
-   * 0–1 within its tier; we then bias by tier weight so a strong community
-   * pick can still surface when the user has no live Must-Dos or party data.
+   * Strategy: Must-Do beats Party Wants. Each candidate gets a normalized
+   * score within its tier; only the top one in the higher-priority tier
+   * surfaces as the lead recommendation.
    */
   const recommendation = useMemo(() => {
     type Rec = {
@@ -158,8 +137,8 @@ const PullRideInSheet = ({
         reason: `${topParty.party.yes} of ${topParty.party.total} in your party want this`,
       } as Rec;
     }
-    // Community picks intentionally excluded — the picker focuses on
-    // *will-do* items only (Must-Dos + Party Wants).
+                    // Will-do only: Must-Dos + Party Wants. There's no
+                    // park-wide community signal in the product.
     return null;
   }, [rankedMustDos, rankedParty]);
 
@@ -269,9 +248,7 @@ const PullRideInSheet = ({
 
                   {/* Runners-up — capped at 2 total to keep the tab calm.
                       Will-do only: Party Wants the guest hasn't already
-                      added. Community Picks are intentionally excluded so
-                      this tab focuses on what the party actually committed
-                      to do. */}
+                      added. */}
                   {(() => {
                     const runnersUp: JSX.Element[] = [];
                     // Skip whatever is already showing as the recommendation.
@@ -626,7 +603,7 @@ interface RecommendedCardProps {
   attraction: string;
   location?: string;
   kind?: AttractionKind;
-  tier: 'must' | 'party' | 'community';
+  tier: 'must' | 'party';
   reason: string;
   onTap: () => void;
 }
@@ -634,7 +611,6 @@ interface RecommendedCardProps {
 const TIER_LABEL: Record<RecommendedCardProps['tier'], string> = {
   must: 'From your Must-Do list',
   party: 'From your party survey',
-  community: 'From the community',
 };
 
 /**
