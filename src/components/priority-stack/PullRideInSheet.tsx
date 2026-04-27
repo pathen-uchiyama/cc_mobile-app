@@ -76,6 +76,16 @@ const PullRideInSheet = ({
   const [includeLowConfidence, setIncludeLowConfidence] = useState(false);
   /** Inline legend popover toggle — explains the two source tiers. */
   const [legendOpen, setLegendOpen] = useState(false);
+  /**
+   * Custom-add composer toggle. When true the persistent footer swaps the
+   * primary CTA for a small text input so guests can drop in any attraction
+   * that isn't on their Must-Dos or Party Wants (e.g. a brand-new ride or
+   * something the survey missed). Submitting promotes it to the active card
+   * via the same `onPromote` plumbing — `usePlanStack` synthesizes the
+   * PlanItem from the typed name.
+   */
+  const [customOpen, setCustomOpen] = useState(false);
+  const [customName, setCustomName] = useState('');
 
   const excluded = useMemo(
     () => new Set(excludedAttractions.map((a) => a.toLowerCase())),
@@ -156,6 +166,14 @@ const PullRideInSheet = ({
   const handlePromote = (sourceId: string, attraction: string) => {
     onClose();
     onPromote(sourceId, attraction);
+  };
+
+  const handleCustomSubmit = () => {
+    const name = customName.trim();
+    if (name.length < 2) return;
+    setCustomName('');
+    setCustomOpen(false);
+    handlePromote(`custom-${Date.now()}`, name);
   };
 
   return (
