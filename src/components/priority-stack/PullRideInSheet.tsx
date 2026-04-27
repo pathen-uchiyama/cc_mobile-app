@@ -603,7 +603,7 @@ interface RecommendedCardProps {
   attraction: string;
   location?: string;
   kind?: AttractionKind;
-  tier: 'must' | 'party' | 'community';
+  tier: 'must' | 'party';
   reason: string;
   onTap: () => void;
 }
@@ -611,7 +611,6 @@ interface RecommendedCardProps {
 const TIER_LABEL: Record<RecommendedCardProps['tier'], string> = {
   must: 'From your Must-Do list',
   party: 'From your party survey',
-  community: 'From the community',
 };
 
 /**
