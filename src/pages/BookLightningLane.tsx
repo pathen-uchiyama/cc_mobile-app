@@ -456,9 +456,10 @@ const BookLightningLane = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.28, ease: 'easeOut' }}
-            className="rounded-xl px-4 py-3.5 flex items-center gap-3"
+            className="rounded-xl px-4 py-3.5 flex flex-col gap-2"
             style={BURNISHED_GOLD.recommendation.surface}
           >
+            <div className="flex items-center gap-3">
             <span
               className="shrink-0 flex items-center justify-center rounded-full"
               style={{
@@ -502,6 +503,54 @@ const BookLightningLane = () => {
             >
               Book now
             </motion.button>
+            </div>
+
+            {/*
+             * "Why this pick" disclosure — surfaces the exact ranking rule
+             * the recommendation matched. Lives below the action row so it
+             * never competes with the primary Book CTA.
+             */}
+            <div
+              className="pt-1.5"
+              style={{ borderTop: `1px solid hsl(var(--gold) / 0.18)` }}
+            >
+              <button
+                type="button"
+                onClick={() => setWhyExpanded((v) => !v)}
+                aria-expanded={whyExpanded}
+                aria-controls="recommendation-why"
+                className="inline-flex items-center gap-1 font-sans text-[10px] font-semibold border-none bg-transparent cursor-pointer p-0"
+                style={{ color: BURNISHED_GOLD.ink, letterSpacing: '0.04em' }}
+              >
+                {whyExpanded ? 'Hide rationale' : 'Why this pick'}
+                <motion.span
+                  animate={{ rotate: whyExpanded ? 180 : 0 }}
+                  transition={{ duration: 0.2, ease: 'easeOut' }}
+                  className="inline-flex"
+                >
+                  <ChevronDown size={11} strokeWidth={2.5} />
+                </motion.span>
+              </button>
+              <AnimatePresence initial={false}>
+                {whyExpanded && (
+                  <motion.p
+                    id="recommendation-why"
+                    key="why"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.22, ease: 'easeOut' }}
+                    className="font-sans text-[11px] text-foreground/85 leading-snug overflow-hidden"
+                  >
+                    <span className="block pt-1.5">
+                      {recommendedPick.reason === 'must-do'
+                        ? `Matched “Must-Do · earliest sellout”: this is your highest-priority ride that's still grabbable, and it typically sells out at ${formatClockTime(recommendedPick.attraction.typicalSelloutMin)} — sooner than any other Must-Do you haven't already held.`
+                        : `Matched “Fallback · earliest sellout”: no Must-Dos are still grabbable, so we surfaced the standard lane closest to its typical sellout (${formatClockTime(recommendedPick.attraction.typicalSelloutMin)}) so you don't lose it.`}
+                    </span>
+                  </motion.p>
+                )}
+              </AnimatePresence>
+            </div>
           </motion.section>
         )}
         </AnimatePresence>
