@@ -394,20 +394,14 @@ const BookLightningLane = () => {
           <section
             aria-label="Concierge recommendation"
             className="rounded-xl px-4 py-3.5 flex items-center gap-3"
-            style={{
-              background:
-                'linear-gradient(180deg, hsl(var(--gold) / 0.14) 0%, hsl(var(--gold) / 0.05) 100%)',
-              boxShadow:
-                '0 0 0 1px hsl(var(--gold) / 0.32), 0 8px 22px hsl(var(--obsidian) / 0.05)',
-            }}
+            style={BURNISHED_GOLD.recommendation.surface}
           >
             <span
               className="shrink-0 flex items-center justify-center rounded-full"
               style={{
                 width: '36px',
                 height: '36px',
-                background: 'hsl(var(--gold))',
-                color: 'hsl(var(--parchment))',
+                ...BURNISHED_GOLD.recommendation.medallion,
               }}
               aria-hidden="true"
             >
@@ -416,7 +410,7 @@ const BookLightningLane = () => {
             <div className="flex-1 min-w-0">
               <p
                 className="font-sans text-[8px] uppercase font-bold leading-none mb-1"
-                style={{ color: 'hsl(var(--gold))', letterSpacing: '0.16em' }}
+                style={{ color: BURNISHED_GOLD.ink, letterSpacing: '0.16em' }}
               >
                 {recommendedPick.reason === 'must-do'
                   ? 'Recommended · Your Must-Do'
@@ -438,8 +432,7 @@ const BookLightningLane = () => {
               className="shrink-0 inline-flex items-center justify-center gap-1 rounded-lg px-3 font-sans text-[11px] font-semibold border-none cursor-pointer"
               style={{
                 minHeight: '44px',
-                background: 'hsl(var(--gold))',
-                color: 'hsl(var(--parchment))',
+                ...BURNISHED_GOLD.recommendation.action,
                 letterSpacing: '0.04em',
               }}
               aria-label={`Book ${recommendedPick.attraction.name} now`}
