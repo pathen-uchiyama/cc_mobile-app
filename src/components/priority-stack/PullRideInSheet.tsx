@@ -38,8 +38,6 @@ interface PullRideInSheetProps {
    * already handles the case where the attraction is brand new.
    */
   onPromote: (sourceId: string, attraction: string) => void;
-  /** Open the editor / picker for adding a brand-new attraction to the plan. */
-  onAddToPlan?: () => void;
 }
 
 const formatVotes = (n: number) =>
@@ -73,7 +71,6 @@ const PullRideInSheet = ({
   excludedAttractions = [],
   plan = [],
   onPromote,
-  onAddToPlan,
 }: PullRideInSheetProps) => {
   const [tab, setTab] = useState<Tab>('recommended');
 
