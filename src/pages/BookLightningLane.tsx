@@ -513,20 +513,56 @@ const BookLightningLane = () => {
                 {recommendedPick.attraction.standbyMin}m standby
               </p>
             </div>
-            <motion.button
-              type="button"
-              whileTap={{ scale: 0.97 }}
-              onClick={() => handleBook(recommendedPick.attraction, 'asap')}
-              className="shrink-0 inline-flex items-center justify-center gap-1 rounded-lg px-3 font-sans text-[11px] font-semibold border-none cursor-pointer"
-              style={{
-                minHeight: '44px',
-                ...BURNISHED_GOLD.recommendation.action,
-                letterSpacing: '0.04em',
-              }}
-              aria-label={`Book ${recommendedPick.attraction.name} now`}
-            >
-              Book now
-            </motion.button>
+            {(() => {
+              const pickId = recommendedPick.attraction.id;
+              const isBooking = bookingPickId === pickId;
+              const isDisabled = bookingPickId !== null;
+              return (
+                <motion.button
+                  type="button"
+                  whileTap={isDisabled ? undefined : { scale: 0.97 }}
+                  onClick={async () => {
+                    if (isDisabled) return;
+                    setBookingPickId(pickId);
+                    try {
+                      // Simulated request latency so the disabled/spinner
+                      // state is observable; replace with the real awaited
+                      // booking call when wired to the backend.
+                      await new Promise((r) => setTimeout(r, 650));
+                      handleBook(recommendedPick.attraction, 'asap');
+                    } finally {
+                      setBookingPickId(null);
+                    }
+                  }}
+                  disabled={isDisabled}
+                  aria-busy={isBooking}
+                  aria-disabled={isDisabled}
+                  className="shrink-0 inline-flex items-center justify-center gap-1.5 rounded-lg px-3 font-sans text-[11px] font-semibold border-none disabled:cursor-not-allowed"
+                  style={{
+                    minHeight: '44px',
+                    minWidth: '92px',
+                    ...BURNISHED_GOLD.recommendation.action,
+                    letterSpacing: '0.04em',
+                    cursor: isDisabled ? 'not-allowed' : 'pointer',
+                    opacity: isDisabled && !isBooking ? 0.55 : 1,
+                  }}
+                  aria-label={
+                    isBooking
+                      ? `Booking ${recommendedPick.attraction.name}…`
+                      : `Book ${recommendedPick.attraction.name} now`
+                  }
+                >
+                  {isBooking ? (
+                    <>
+                      <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+                      <span>Booking…</span>
+                    </>
+                  ) : (
+                    <span>Book now</span>
+                  )}
+                </motion.button>
+              );
+            })()}
             </div>
 
             {/*
