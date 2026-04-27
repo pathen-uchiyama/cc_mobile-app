@@ -447,9 +447,9 @@ const BookLightningLane = () => {
          * crossfades the swap rather than snapping it.
          */}
         <AnimatePresence mode="wait" initial={false}>
-        {recommendedPick && (
+        {recommendedPick.kind === 'pick' && (
           <motion.section
-            key={recommendedPick.attraction.id}
+            key={`pick-${recommendedPick.attraction.id}`}
             aria-label="Concierge recommendation"
             aria-live="polite"
             initial={{ opacity: 0, y: -6 }}
@@ -502,6 +502,51 @@ const BookLightningLane = () => {
             >
               Book now
             </motion.button>
+          </motion.section>
+        )}
+        {recommendedPick.kind !== 'pick' && (
+          <motion.section
+            key={`empty-${recommendedPick.kind}`}
+            aria-label="Concierge recommendation"
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.28, ease: 'easeOut' }}
+            className="rounded-xl px-4 py-4 flex items-center gap-3"
+            style={BURNISHED_GOLD.recommendation.surface}
+          >
+            <span
+              className="shrink-0 flex items-center justify-center rounded-full"
+              style={{
+                width: '36px',
+                height: '36px',
+                ...BURNISHED_GOLD.recommendation.medallion,
+                opacity: 0.7,
+              }}
+              aria-hidden="true"
+            >
+              {recommendedPick.kind === 'locked' ? <Hourglass size={16} /> : <Check size={16} />}
+            </span>
+            <div className="flex-1 min-w-0">
+              <p
+                className="font-sans text-[8px] uppercase font-bold leading-none mb-1"
+                style={{ color: BURNISHED_GOLD.ink, letterSpacing: '0.16em' }}
+              >
+                {recommendedPick.kind === 'locked'
+                  ? 'Concierge · Resting'
+                  : 'Concierge · All Caught Up'}
+              </p>
+              <p className="font-display text-[15px] leading-tight text-foreground">
+                {recommendedPick.kind === 'locked'
+                  ? 'No recommendation just yet.'
+                  : "You've grabbed everything worth grabbing."}
+              </p>
+              <p className="font-sans text-[10px] mt-0.5 text-muted-foreground tabular-nums">
+                {recommendedPick.kind === 'locked'
+                  ? `Next standard slot unlocks in ${formatCountdown(summary.llUnlocksInMin)}.`
+                  : 'Check back as new lanes open or your day evolves.'}
+              </p>
+            </div>
           </motion.section>
         )}
         </AnimatePresence>
