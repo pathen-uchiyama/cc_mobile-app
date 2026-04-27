@@ -514,7 +514,7 @@ const BookLightningLane = () => {
              */}
             <div
               className="pt-1.5"
-              style={{ borderTop: `1px solid hsl(var(--gold) / 0.18)` }}
+              style={{ borderTop: BURNISHED_GOLD.recommendation.divider }}
             >
               <button
                 type="button"
