@@ -433,6 +433,40 @@ const PullRideInSheet = ({
               {/* ── RECOMMENDED ── single best cross-tier pick + the runners-up. */}
               {tab === 'recommended' && (
                 <>
+                  {/* Tab kicker + subheader — orients the guest on where
+                      these picks come from. When the pre-trip survey
+                      hasn't been completed yet (no Party Wants at all),
+                      the subheader explicitly nudges them toward the web
+                      app so the absence of magenta rows is explained
+                      rather than felt as a gap. */}
+                  <div className="px-2 pt-3 pb-1.5">
+                    <p
+                      className="font-sans text-[8px] uppercase tracking-sovereign font-bold mb-1"
+                      style={{ color: 'hsl(var(--gold))', letterSpacing: '0.18em' }}
+                    >
+                      Recommended Next
+                    </p>
+                    <p
+                      className="font-sans text-[11px] leading-snug"
+                      style={{ color: 'hsl(var(--slate-plaid))' }}
+                    >
+                      {partyWants.length === 0 ? (
+                        <>
+                          Drawn from your Must-Dos.{' '}
+                          <span style={{ color: 'hsl(var(--foreground) / 0.85)' }}>
+                            Party Wants will appear here once your pre-trip survey is completed on
+                            the Castle Companion web app.
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          Drawn from your Must-Dos and your party's pre-trip survey responses.
+                          Edit the survey on the web app to change what shows up here.
+                        </>
+                      )}
+                    </p>
+                  </div>
+
                   {/* Toggle: include low-confidence Party Wants (under 50%
                       of the party voted yes). Off by default so the picker
                       stays focused on what the party actually committed to. */}
