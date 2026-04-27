@@ -66,6 +66,13 @@ const PullRideInSheet = ({
   onPromote,
 }: PullRideInSheetProps) => {
   const [tab, setTab] = useState<Tab>('recommended');
+  /**
+   * "Include low-confidence party picks" — when off (default), Party Wants
+   * with a yes-rate under 50% are hidden so the picker stays focused on
+   * what the party actually agreed on. Flipping it on surfaces the softer
+   * suggestions (e.g. 1-of-5 yes) for guests who want to explore wider.
+   */
+  const [includeLowConfidence, setIncludeLowConfidence] = useState(false);
 
   const excluded = useMemo(
     () => new Set(excludedAttractions.map((a) => a.toLowerCase())),
@@ -91,10 +98,11 @@ const PullRideInSheet = ({
       .filter(
         (p) =>
           !mustNames.has(p.attraction.toLowerCase()) &&
-          !excluded.has(p.attraction.toLowerCase()),
+          !excluded.has(p.attraction.toLowerCase()) &&
+          (includeLowConfidence || p.party.yes / p.party.total >= 0.5),
       )
       .sort((a, b) => b.party.yes / b.party.total - a.party.yes / a.party.total);
-  }, [partyWants, mustDos, excluded]);
+  }, [partyWants, mustDos, excluded, includeLowConfidence]);
 
   /**
    * Cross-tier recommendation — the single "do this next" pick.
@@ -228,6 +236,58 @@ const PullRideInSheet = ({
               {/* ── RECOMMENDED ── single best cross-tier pick + the runners-up. */}
               {tab === 'recommended' && (
                 <>
+                  {/* Toggle: include low-confidence Party Wants (under 50%
+                      of the party voted yes). Off by default so the picker
+                      stays focused on what the party actually committed to. */}
+                  <div className="flex items-center justify-between gap-3 px-2 pt-2 pb-1">
+                    <div className="min-w-0">
+                      <p
+                        className="font-sans text-[10px] font-semibold leading-tight text-foreground"
+                      >
+                        Include softer party picks
+                      </p>
+                      <p
+                        className="font-sans text-[9px] leading-snug mt-0.5"
+                        style={{ color: 'hsl(var(--slate-plaid))' }}
+                      >
+                        Adds wishlist items fewer than half the party voted for.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={includeLowConfidence}
+                      onClick={() => setIncludeLowConfidence((v) => !v)}
+                      className="shrink-0 relative rounded-full cursor-pointer border-none transition-colors"
+                      style={{
+                        width: '36px',
+                        height: '22px',
+                        minHeight: '22px',
+                        background: includeLowConfidence
+                          ? 'hsl(var(--primary))'
+                          : 'hsl(var(--obsidian) / 0.18)',
+                      }}
+                      aria-label={
+                        includeLowConfidence
+                          ? 'Hide low-confidence party picks'
+                          : 'Show low-confidence party picks'
+                      }
+                    >
+                      <motion.span
+                        layout
+                        transition={{ type: 'spring', stiffness: 500, damping: 32 }}
+                        className="absolute top-1/2 -translate-y-1/2 rounded-full"
+                        style={{
+                          width: '16px',
+                          height: '16px',
+                          background: 'hsl(var(--card))',
+                          left: includeLowConfidence ? '17px' : '3px',
+                          boxShadow: '0 1px 3px hsl(var(--obsidian) / 0.25)',
+                        }}
+                      />
+                    </button>
+                  </div>
+
                   {recommendation ? (
                     <RecommendedCard
                       attraction={recommendation.attraction}
