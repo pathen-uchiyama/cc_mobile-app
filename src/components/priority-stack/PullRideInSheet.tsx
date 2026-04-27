@@ -89,6 +89,30 @@ const PullRideInSheet = ({
    */
   const [customOpen, setCustomOpen] = useState(false);
   const [customName, setCustomName] = useState('');
+  /**
+   * Per-session dismissal for the Party Wants empty-state card. Persisted
+   * in `sessionStorage` so the prompt stays gone for the rest of the tab
+   * lifetime (across navigation and re-opens of the sheet) but reappears
+   * naturally on the next session — the survey may have been filled out
+   * by then. SSR-safe: the initializer is wrapped in a typeof guard.
+   */
+  const PARTY_EMPTY_DISMISS_KEY = 'pull-ride.partyEmpty.dismissed';
+  const [partyEmptyDismissed, setPartyEmptyDismissed] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      return window.sessionStorage.getItem(PARTY_EMPTY_DISMISS_KEY) === '1';
+    } catch {
+      return false;
+    }
+  });
+  const dismissPartyEmpty = () => {
+    setPartyEmptyDismissed(true);
+    try {
+      window.sessionStorage.setItem(PARTY_EMPTY_DISMISS_KEY, '1');
+    } catch {
+      /* sessionStorage blocked — accept the in-memory dismissal silently. */
+    }
+  };
 
   const excluded = useMemo(
     () => new Set(excludedAttractions.map((a) => a.toLowerCase())),
@@ -510,10 +534,18 @@ const PullRideInSheet = ({
                   {/* Survey-not-completed state — only shows when there
                       are zero party wants at all. Points guests back to
                       the pre-trip survey on the web app, which is the
-                      only place those preferences can be entered. */}
-                  {partyWants.length === 0 && (
-                    <PartyWantsEmptyState />
-                  )}
+                      only place those preferences can be entered.
+                      Dismissible per-session (sessionStorage) so a guest
+                      who's seen the prompt isn't lectured every time the
+                      sheet reopens. */}
+                  <AnimatePresence initial={false}>
+                    {partyWants.length === 0 && !partyEmptyDismissed && (
+                      <PartyWantsEmptyState
+                        key="party-empty"
+                        onDismiss={dismissPartyEmpty}
+                      />
+                    )}
+                  </AnimatePresence>
 
                   {/* Single hint to the full plan — replaces the second
                       runner-up section so density stays low. */}
@@ -1025,13 +1057,23 @@ const PlanEmptyState = ({ onAdd }: { onAdd: () => void }) => (
  * back there rather than offering an in-app fix.
  *
  * Visual: magenta accent (matches the Party Wants tier dot), surface
- * card per the no-line rule, no CTA button (the action is off-device).
+ * card per the no-line rule, no off-card CTA (the action is off-device).
+ * The whole card is a tap target — tapping it (or pressing Enter/Space
+ * while focused) gently dismisses the prompt for the rest of the
+ * session. A small "Tap to dismiss" hint sits in the corner so the
+ * affordance is discoverable without competing for attention.
  */
-const PartyWantsEmptyState = () => {
+const PartyWantsEmptyState = ({ onDismiss }: { onDismiss: () => void }) => {
   const magenta = 'hsl(316 95% 35%)';
   return (
-    <section
-      className="mt-3 mb-1 mx-1 rounded-2xl p-4 flex items-start gap-3"
+    <motion.button
+      type="button"
+      onClick={onDismiss}
+      whileTap={{ scale: 0.985 }}
+      exit={{ opacity: 0, height: 0, marginTop: 0, marginBottom: 0, paddingTop: 0, paddingBottom: 0 }}
+      transition={{ duration: 0.22, ease: 'easeOut' }}
+      aria-label="Dismiss the party survey reminder for this session"
+      className="w-full text-left mt-3 mb-1 mx-1 rounded-2xl p-4 flex items-start gap-3 cursor-pointer border-none"
       style={{
         background:
           'linear-gradient(180deg, hsl(316 95% 35% / 0.07) 0%, hsl(316 95% 35% / 0.015) 100%)',
@@ -1052,12 +1094,21 @@ const PartyWantsEmptyState = () => {
         <ClipboardList size={16} />
       </span>
       <div className="flex-1 min-w-0">
-        <p
-          className="font-sans text-[8px] uppercase tracking-sovereign font-bold mb-1"
-          style={{ color: magenta, letterSpacing: '0.16em' }}
-        >
-          Party Wants · Awaiting the survey
-        </p>
+        <div className="flex items-start justify-between gap-2 mb-1">
+          <p
+            className="font-sans text-[8px] uppercase tracking-sovereign font-bold"
+            style={{ color: magenta, letterSpacing: '0.16em' }}
+          >
+            Party Wants · Awaiting the survey
+          </p>
+          <span
+            aria-hidden
+            className="shrink-0 font-sans text-[8px] uppercase font-bold tracking-sovereign"
+            style={{ color: 'hsl(var(--slate-plaid))', letterSpacing: '0.14em' }}
+          >
+            Tap to dismiss
+          </span>
+        </div>
         <h4 className="font-display text-[15px] leading-tight text-foreground mb-1">
           Your party hasn't weighed in yet.
         </h4>
@@ -1069,7 +1120,7 @@ const PartyWantsEmptyState = () => {
           attractions they're hoping for. Their picks land here automatically.
         </p>
       </div>
-    </section>
+    </motion.button>
   );
 };
 
