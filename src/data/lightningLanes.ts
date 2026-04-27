@@ -52,7 +52,11 @@ export interface LLAttraction {
 export const LL_INVENTORY: LLAttraction[] = [
   // typicalSelloutMin: minutes since midnight on a comparable day.
   // 600 = 10:00 AM, 660 = 11:00 AM, 720 = 12:00 PM, 780 = 1:00 PM, 840 = 2:00 PM, 900 = 3:00 PM
-  { id: 'll-peterpan',  name: "Peter Pan's Flight",            land: 'Fantasyland',    type: 'll', tier: 'family',  standbyMin: 65, nextWindow: '3:10 PM', typicalSelloutMin: 615, blurb: 'Sail over Neverland in a pirate galleon.' },
+  // Peter Pan typically sells out first among standard LLs at MK. Seeded
+  // ~30 min ahead of the prototype park clock (10:45 AM) so it surfaces as
+  // the most-urgent grabbable Must-Do recommendation on /book-ll instead
+  // of being filtered out as "already gone" the moment the page loads.
+  { id: 'll-peterpan',  name: "Peter Pan's Flight",            land: 'Fantasyland',    type: 'll', tier: 'family',  standbyMin: 65, nextWindow: '3:10 PM', typicalSelloutMin: 675, blurb: 'Sail over Neverland in a pirate galleon.' },
   { id: 'll-space',     name: 'Space Mountain',                land: 'Tomorrowland',   type: 'll', tier: 'thrill',  standbyMin: 70, nextWindow: '12:30 PM', typicalSelloutMin: 660, blurb: 'Indoor coaster in pitch-black starscape.' },
   { id: 'll-splash',    name: 'Tiana\u2019s Bayou Adventure',  land: 'Frontierland',   type: 'll', tier: 'thrill',  standbyMin: 60, nextWindow: '3:45 PM', typicalSelloutMin: 690, blurb: 'Log flume reimagined with Tiana.' },
   { id: 'll-bigthunder',name: 'Big Thunder Mountain',          land: 'Frontierland',   type: 'll', tier: 'thrill',  standbyMin: 55, nextWindow: '2:15 PM', typicalSelloutMin: 750, blurb: 'Runaway mine train through the desert.' },
