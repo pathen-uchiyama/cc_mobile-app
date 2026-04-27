@@ -210,12 +210,22 @@ const InPark = () => {
       const inv = LL_INVENTORY.find((a) => a.id === readyHold.attractionId);
       const closesIn = readyHold.windowStartMin + TAPIN_WINDOW_MIN - NOW_MINUTES;
       const closingMin = readyHold.windowStartMin + TAPIN_WINDOW_MIN;
+      // Sub-five-minute windows tip into "hurry" copy and m:ss
+      // formatting so the chip and detail row both reinforce urgency.
+      const isUrgent = closesIn <= 5;
+      const countdownLabel = formatBannerCountdown(Math.max(0, closesIn));
       llAlert = {
         kind: 'redeem-ready',
-        eyebrow: 'Lightning Lane Ready',
-        title: inv ? `${inv.name} — tap in now` : 'Tap in to your Lightning Lane now',
-        detail: `Window closes in ${formatCountdown(Math.max(1, closesIn))}`,
-        countdown: formatCountdown(Math.max(1, closesIn)),
+        eyebrow: isUrgent ? 'Closing Soon' : 'Lightning Lane Ready',
+        title: inv
+          ? isUrgent
+            ? `${inv.name} — hurry, almost closed`
+            : `${inv.name} — tap in now`
+          : 'Tap in to your Lightning Lane now',
+        detail: isUrgent
+          ? `Closes in ${countdownLabel} · keep moving`
+          : `Window closes in ${countdownLabel}`,
+        countdown: countdownLabel,
         actionLabel: 'Tap in',
         attractionName: inv?.name,
         closingClock: formatClockTime(closingMin),
