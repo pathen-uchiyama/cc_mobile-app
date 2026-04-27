@@ -31,7 +31,7 @@ import LLAlertBanner, {
   formatBannerCountdown,
   type LLAlert,
 } from '@/components/lightning-lane/LLAlertBanner';
-import { PARTY_WANTS, COMMUNITY_PICKS } from '@/data/wantToDos';
+import { PARTY_WANTS } from '@/data/wantToDos';
 import { usePlanStack, type MustDo } from '@/hooks/park/usePlanStack';
 import { useStrategyEngine } from '@/hooks/park/useStrategyEngine';
 
