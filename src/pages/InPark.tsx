@@ -25,7 +25,7 @@ import { useMemoryVault } from '@/contexts/MemoryContext';
 import RecordMemorySheet from '@/components/memory/RecordMemorySheet';
 import InterviewSheet from '@/components/memory/InterviewSheet';
 import { RESERVATIONS, nextHospitalityReservation, minutesUntil } from '@/data/reservations';
-import { LL_INVENTORY, formatCountdown } from '@/data/lightningLanes';
+import { LL_INVENTORY, formatCountdown, formatClockTime } from '@/data/lightningLanes';
 import { useLightningLane } from '@/contexts/LightningLaneContext';
 import LLAlertBanner, { type LLAlert } from '@/components/lightning-lane/LLAlertBanner';
 import { PARTY_WANTS, COMMUNITY_PICKS } from '@/data/wantToDos';
@@ -206,6 +206,7 @@ const InPark = () => {
     if (readyHold) {
       const inv = LL_INVENTORY.find((a) => a.id === readyHold.attractionId);
       const closesIn = readyHold.windowStartMin + TAPIN_WINDOW_MIN - NOW_MINUTES;
+      const closingMin = readyHold.windowStartMin + TAPIN_WINDOW_MIN;
       llAlert = {
         kind: 'redeem-ready',
         eyebrow: 'Lightning Lane Ready',
@@ -213,15 +214,20 @@ const InPark = () => {
         detail: `Window closes in ${formatCountdown(Math.max(1, closesIn))}`,
         countdown: formatCountdown(Math.max(1, closesIn)),
         actionLabel: 'Tap in',
+        attractionName: inv?.name,
+        closingClock: formatClockTime(closingMin),
       };
     } else if (closedHold) {
       const inv = LL_INVENTORY.find((a) => a.id === closedHold.attractionId);
+      const closingMin = closedHold.windowStartMin + TAPIN_WINDOW_MIN;
       llAlert = {
         kind: 'window-closed',
         eyebrow: 'Window Closed',
         title: inv ? `${inv.name} — tap-in window has closed` : 'Your tap-in window has closed',
         detail: 'Refresh to confirm or rebook from your held stack.',
         actionLabel: 'Refresh',
+        attractionName: inv?.name,
+        closingClock: formatClockTime(closingMin),
       };
     } else if (llSummary.canBookLLNow) {
       llAlert = {
@@ -230,6 +236,8 @@ const InPark = () => {
         title: 'Your next Lightning Lane is ready to book.',
         detail: `${llSummary.llHeldCount}/${llSummary.llCapTotal} held · browse inventory`,
         actionLabel: 'Book now',
+        // Booking-window banner has no specific attraction or close time;
+        // the Details affordance stays hidden by design.
       };
     }
   }
