@@ -175,6 +175,10 @@ const InPark = () => {
    */
   const isUsingLL = llSummary.llHeldCount > 0 || llSummary.llCapTotal > 0;
   const TAPIN_WINDOW_MIN = 60;
+  // Grace period for the "Window closed" sienna variant — keep it on
+  // screen for a few minutes after expiry so the guest sees the failure
+  // state and can refresh, rather than the banner silently disappearing.
+  const CLOSED_GRACE_MIN = 5;
   const readyHold = llHolds
     .filter(
       (h) =>
@@ -183,6 +187,18 @@ const InPark = () => {
         NOW_MINUTES <= h.windowStartMin + TAPIN_WINDOW_MIN,
     )
     .sort((a, b) => a.windowStartMin - b.windowStartMin)[0];
+  // A hold whose tap-in window just slipped past — surfaces the burnt-
+  // sienna "Window closed" banner for CLOSED_GRACE_MIN minutes.
+  const closedHold = !readyHold
+    ? llHolds
+        .filter(
+          (h) =>
+            h.status === 'held' &&
+            NOW_MINUTES > h.windowStartMin + TAPIN_WINDOW_MIN &&
+            NOW_MINUTES <= h.windowStartMin + TAPIN_WINDOW_MIN + CLOSED_GRACE_MIN,
+        )
+        .sort((a, b) => b.windowStartMin - a.windowStartMin)[0]
+    : undefined;
 
   let llAlert: LLAlert | null = null;
   if (isUsingLL) {
@@ -196,6 +212,15 @@ const InPark = () => {
         detail: `Window closes in ${formatCountdown(Math.max(1, closesIn))}`,
         countdown: formatCountdown(Math.max(1, closesIn)),
         actionLabel: 'Tap in',
+      };
+    } else if (closedHold) {
+      const inv = LL_INVENTORY.find((a) => a.id === closedHold.attractionId);
+      llAlert = {
+        kind: 'window-closed',
+        eyebrow: 'Window Closed',
+        title: inv ? `${inv.name} — tap-in window has closed` : 'Your tap-in window has closed',
+        detail: 'Refresh to confirm or rebook from your held stack.',
+        actionLabel: 'Refresh',
       };
     } else if (llSummary.canBookLLNow) {
       llAlert = {
