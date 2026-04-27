@@ -216,6 +216,9 @@ const InPark = () => {
         actionLabel: 'Tap in',
         attractionName: inv?.name,
         closingClock: formatClockTime(closingMin),
+        // Ratio of remaining tap-in time over the full 60-minute window
+        // — drives the thin gold progress bar shrinking toward zero.
+        progress: Math.max(0, Math.min(1, closesIn / TAPIN_WINDOW_MIN)),
       };
     } else if (closedHold) {
       const inv = LL_INVENTORY.find((a) => a.id === closedHold.attractionId);
@@ -228,6 +231,9 @@ const InPark = () => {
         actionLabel: 'Refresh',
         attractionName: inv?.name,
         closingClock: formatClockTime(closingMin),
+        // Bar pinned at 0 — the visual reinforces "empty / expired"
+        // alongside the sienna palette.
+        progress: 0,
       };
     } else if (llSummary.canBookLLNow) {
       llAlert = {
