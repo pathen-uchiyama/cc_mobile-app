@@ -12,11 +12,14 @@ import {
   Flag,
   UtensilsCrossed,
   Wand2,
+  Plus,
+  Clock,
 } from 'lucide-react';
 import type { MustDo } from '@/hooks/park/usePlanStack';
 import type { PartyWant, CommunityPick, AttractionKind } from '@/data/wantToDos';
+import type { PlanItem } from '@/components/priority-stack/HeroHorizonStack';
 
-type Tier = 'all' | 'must' | 'party' | 'community';
+type Tab = 'recommended' | 'mustdo' | 'plan';
 
 interface PullRideInSheetProps {
   open: boolean;
@@ -26,12 +29,16 @@ interface PullRideInSheetProps {
   communityPicks: CommunityPick[];
   /** Names of attractions already locked in the active plan — filtered out. */
   excludedAttractions?: string[];
+  /** The active 3-card plan, surfaced on the "Plan" tab. */
+  plan?: PlanItem[];
   /**
    * Inject any attraction onto the active stack as the new "Now" card.
    * The id is a synthetic key (e.g. `must-m1`, `party-w1`, `comm-c3`) — usePlanStack
    * already handles the case where the attraction is brand new.
    */
   onPromote: (sourceId: string, attraction: string) => void;
+  /** Open the editor / picker for adding a brand-new attraction to the plan. */
+  onAddToPlan?: () => void;
 }
 
 const formatVotes = (n: number) =>
