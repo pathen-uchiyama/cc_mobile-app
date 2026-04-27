@@ -20,6 +20,12 @@ export interface LLAlert {
   attractionName?: string;
   /** Wall-clock string (e.g. "12:00 PM") for when the window closes. */
   closingClock?: string;
+  /**
+   * Remaining-time ratio in `[0, 1]`. 1 = full window left, 0 = expired.
+   * Drives the thin countdown bar at the bottom of the banner. Omit to
+   * hide the bar (e.g. for `window-open`, which has no fixed window).
+   */
+  progress?: number;
 }
 
 interface LLAlertBannerProps {
@@ -60,6 +66,10 @@ const LLAlertBanner = ({ alert, onTap }: LLAlertBannerProps) => {
         // Show the Details affordance only when there's something extra to
         // reveal beyond the headline strip.
         const hasDetails = Boolean(alert.attractionName || alert.closingClock);
+        const showProgress = typeof alert.progress === 'number';
+        const progressPct = showProgress
+          ? Math.max(0, Math.min(1, alert.progress as number)) * 100
+          : 0;
 
         return (
           <motion.div
@@ -194,6 +204,33 @@ const LLAlertBanner = ({ alert, onTap }: LLAlertBannerProps) => {
                 </motion.div>
               )}
             </AnimatePresence>
+
+            {showProgress && (
+              <div
+                className="w-full"
+                style={{
+                  height: '3px',
+                  background: `hsl(${accent} / 0.14)`,
+                }}
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={Math.round(progressPct)}
+                aria-label={`${Math.round(progressPct)}% of window remaining`}
+              >
+                <motion.div
+                  className="h-full"
+                  style={{
+                    background: `linear-gradient(90deg, hsl(${accent} / 0.65) 0%, hsl(${accent}) 100%)`,
+                    borderTopRightRadius: '2px',
+                    borderBottomRightRadius: '2px',
+                  }}
+                  initial={false}
+                  animate={{ width: `${progressPct}%` }}
+                  transition={{ duration: 0.6, ease: 'easeOut' }}
+                />
+              </div>
+            )}
           </motion.div>
         );
       })()}
