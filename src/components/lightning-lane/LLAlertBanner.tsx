@@ -28,6 +28,32 @@ export interface LLAlert {
   progress?: number;
 }
 
+/**
+ * Format a (possibly fractional) minute count for the banner countdown.
+ *
+ * • >= 60 min → "1h 47m"
+ * • >= 5 min  → "47m"
+ * • > 0 min   → "4:32" (m:ss — sharper urgency under five minutes)
+ * • <= 0      → "0:00"
+ *
+ * Always renders monospace-friendly digits so the chip width stays stable
+ * as the countdown ticks.
+ */
+export const formatBannerCountdown = (mins: number): string => {
+  if (!Number.isFinite(mins) || mins <= 0) return '0:00';
+  if (mins >= 60) {
+    const h = Math.floor(mins / 60);
+    const m = Math.floor(mins % 60);
+    return m === 0 ? `${h}h` : `${h}h ${m}m`;
+  }
+  if (mins >= 5) return `${Math.ceil(mins)}m`;
+  // Under 5 min — show m:ss so the seconds visibly count down.
+  const totalSec = Math.max(0, Math.ceil(mins * 60));
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  return `${m}:${s.toString().padStart(2, '0')}`;
+};
+
 interface LLAlertBannerProps {
   alert: LLAlert | null;
   onTap: () => void;
