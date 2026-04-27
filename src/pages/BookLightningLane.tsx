@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Zap, MapPin, Clock, Check, Star, Lock, ArrowRight, Sparkles, Hourglass, Heart, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -235,6 +235,12 @@ const BookLightningLane = () => {
    *   2. If no must-dos qualify, fall back to the earliest-sellout standard
    *      LL that's still grabbable (not held, not ridden).
    *
+   * Live-refreshes on every park-time tick from `LightningLaneProvider`,
+   * so a recommendation that crosses its `typicalSelloutMin` while the
+   * booking window stays open is dropped automatically and the next-best
+   * candidate slides in without a manual refresh. Booking the pick also
+   * mutates `heldIds`, which re-runs this memo immediately.
+   *
    * Returns `null` when nothing is bookable (capacity locked or list empty)
    * so the card can stay hidden rather than mislead.
    */
@@ -244,7 +250,11 @@ const BookLightningLane = () => {
       (a) =>
         a.type === 'll' &&
         !heldIds.has(a.id) &&
-        !isRidden(a.name, MOCK_MUST_DOS),
+        !isRidden(a.name, MOCK_MUST_DOS) &&
+        // Drop anything that has crossed its typical sellout window —
+        // the prototype clock advances at TICK_MIN_PER_SEC park-min/sec
+        // so this kicks in naturally as the guest sits on the page.
+        a.typicalSelloutMin > nowMinutes,
     );
     if (grabbable.length === 0) return null;
     const mustDos = grabbable
@@ -257,7 +267,42 @@ const BookLightningLane = () => {
       .slice()
       .sort((a, b) => a.typicalSelloutMin - b.typicalSelloutMin);
     return { attraction: fallback[0], reason: 'urgency' as const };
-  }, [heldIds, summary.canBookLLNow]);
+  }, [heldIds, summary.canBookLLNow, nowMinutes]);
+
+  /**
+   * Fire a quiet "Recommendation refreshed" toast whenever the pick
+   * actually changes — but never on first render and never when the card
+   * appears/disappears (those transitions are obvious from the card
+   * itself). This is the audible whisper that backs up the visual
+   * crossfade so the live update is felt.
+   */
+  const prevPickIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    const currentId = recommendedPick?.attraction.id ?? null;
+    const prevId = prevPickIdRef.current;
+    // First render — just record the seed.
+    if (prevId === null && currentId === null) return;
+    if (prevId === null) {
+      prevPickIdRef.current = currentId;
+      return;
+    }
+    // Card disappeared (capacity locked, no candidates) — silent.
+    if (currentId === null) {
+      prevPickIdRef.current = null;
+      return;
+    }
+    // Same pick — no-op.
+    if (currentId === prevId) return;
+    // Pick changed while the card was already on screen → refresh whisper.
+    prevPickIdRef.current = currentId;
+    toast(`Recommendation refreshed · ${recommendedPick?.attraction.name}`, {
+      description:
+        recommendedPick?.reason === 'must-do'
+          ? 'A higher-priority Must-Do just rose to the top.'
+          : 'The most-urgent grabbable lane updated.',
+      duration: 3500,
+    });
+  }, [recommendedPick]);
 
   const handleBook = (a: LLAttraction, windowId: BookWindowId = 'asap') => {
     const isILL = a.type === 'ill';
@@ -390,9 +435,21 @@ const BookLightningLane = () => {
          * (or the most urgent grabbable LL if no must-dos qualify) with
          * a single one-tap Book affordance.
          */}
+        {/*
+         * Wrapped in AnimatePresence + keyed by attraction id so the live
+         * refresh (driven by the LightningLaneProvider clock + heldIds)
+         * crossfades the swap rather than snapping it.
+         */}
+        <AnimatePresence mode="wait" initial={false}>
         {recommendedPick && (
-          <section
+          <motion.section
+            key={recommendedPick.attraction.id}
             aria-label="Concierge recommendation"
+            aria-live="polite"
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.28, ease: 'easeOut' }}
             className="rounded-xl px-4 py-3.5 flex items-center gap-3"
             style={BURNISHED_GOLD.recommendation.surface}
           >
@@ -439,8 +496,9 @@ const BookLightningLane = () => {
             >
               Book now
             </motion.button>
-          </section>
+          </motion.section>
         )}
+        </AnimatePresence>
 
         {/* Standard LL section */}
         <section>
