@@ -276,11 +276,15 @@ const PullRideInSheet = ({
                     </p>
                   )}
 
-                  {rankedParty.length > 0 && (
-                    <Section label="Also worth pulling in" accent="magenta">
-                      {rankedParty.slice(0, 3).map((p, i) => (
+                  {/* Runners-up — capped at 2 total to keep the tab calm.
+                      Party picks are preferred over community when both exist;
+                      we top up with community only if party has fewer than 2. */}
+                  {(() => {
+                    const runnersUp: JSX.Element[] = [];
+                    rankedParty.slice(0, 2).forEach((p, i) =>
+                      runnersUp.push(
                         <Row
-                          key={p.id}
+                          key={`party-${p.id}`}
                           rank={i + 1}
                           accent="magenta"
                           title={p.attraction}
@@ -289,28 +293,45 @@ const PullRideInSheet = ({
                           meta={`${p.party.yes} of ${p.party.total} want this`}
                           metaIcon={<Users size={10} />}
                           onTap={() => handlePromote(`party-${p.id}`, p.attraction)}
-                        />
-                      ))}
-                    </Section>
-                  )}
+                        />,
+                      ),
+                    );
+                    const remaining = 2 - runnersUp.length;
+                    if (remaining > 0) {
+                      rankedCommunity.slice(0, remaining).forEach((c, i) =>
+                        runnersUp.push(
+                          <Row
+                            key={`comm-${c.id}`}
+                            rank={runnersUp.length + i + 1}
+                            accent="slate"
+                            title={c.attraction}
+                            sub={c.location}
+                            kind={c.kind}
+                            meta={formatVotes(c.votes)}
+                            metaIcon={<Users size={10} />}
+                            metaTrail={c.trend === 'up' ? <TrendingUp size={9} /> : null}
+                            onTap={() => handlePromote(`comm-${c.id}`, c.attraction)}
+                          />,
+                        ),
+                      );
+                    }
+                    if (runnersUp.length === 0) return null;
+                    return <Section label="Also worth pulling in" accent="slate">{runnersUp}</Section>;
+                  })()}
 
-                  {rankedCommunity.length > 0 && (
-                    <Section label="Trending in the park today" accent="slate">
-                      {rankedCommunity.slice(0, 3).map((c, i) => (
-                        <Row
-                          key={c.id}
-                          rank={i + 1}
-                          accent="slate"
-                          title={c.attraction}
-                          sub={c.location}
-                          kind={c.kind}
-                          meta={formatVotes(c.votes)}
-                          metaIcon={<Users size={10} />}
-                          metaTrail={c.trend === 'up' ? <TrendingUp size={9} /> : null}
-                          onTap={() => handlePromote(`comm-${c.id}`, c.attraction)}
-                        />
-                      ))}
-                    </Section>
+                  {/* Single hint to the full plan — replaces the second
+                      runner-up section so density stays low. */}
+                  {plan.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setTab('plan')}
+                      className="w-full mt-2 mb-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-transparent border-none cursor-pointer font-sans text-[10px] uppercase tracking-sovereign font-bold transition-opacity hover:opacity-80"
+                      style={{ color: 'hsl(var(--gold))', letterSpacing: '0.16em' }}
+                      aria-label="View today's plan"
+                    >
+                      View today's plan
+                      <ChevronRight size={12} />
+                    </button>
                   )}
                 </>
               )}
