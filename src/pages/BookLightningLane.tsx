@@ -124,6 +124,31 @@ export const BURNISHED_GOLD = {
   /** Glow paired with `borderMustDo` — same intensity as `glowWatching` so
    *  the Must-Do row sits one notch *under* the armed row in halo weight. */
   glowMustDo: '0 4px 14px hsl(var(--gold) / 0.10)',
+  /**
+   * Recommendation hero card — the editorial banner that surfaces the
+   * suggested must-do pick the moment the booking window opens. Mirrors
+   * the LL alert banner's gold gradient + ring so the two surfaces feel
+   * like one family. Grouped here so the gold-purity test passes and so
+   * any future tweak flows through one place.
+   */
+  recommendation: {
+    surface: {
+      background:
+        'linear-gradient(180deg, hsl(var(--gold) / 0.14) 0%, hsl(var(--gold) / 0.05) 100%)',
+      boxShadow:
+        '0 0 0 1px hsl(var(--gold) / 0.32), 0 8px 22px hsl(var(--obsidian) / 0.05)',
+    } as const,
+    /** Filled medallion — same family as the alert banner icon chip. */
+    medallion: {
+      background: 'hsl(var(--gold))',
+      color: 'hsl(var(--parchment))',
+    } as const,
+    /** Primary "Book now" CTA inside the card. */
+    action: {
+      background: 'hsl(var(--gold))',
+      color: 'hsl(var(--parchment))',
+    } as const,
+  },
 } as const;
 
 /**
@@ -199,6 +224,40 @@ const BookLightningLane = () => {
       ),
     [],
   );
+
+  /**
+   * Recommended pick — surfaces the highest-value standard LL the guest
+   * should grab right now, so the booking window never opens to a blank
+   * slate. Selection rules, in order:
+   *
+   *   1. Must-Do, not yet held, not yet ridden, with the earliest typical
+   *      sellout time — i.e. the priority ride most likely to be gone.
+   *   2. If no must-dos qualify, fall back to the earliest-sellout standard
+   *      LL that's still grabbable (not held, not ridden).
+   *
+   * Returns `null` when nothing is bookable (capacity locked or list empty)
+   * so the card can stay hidden rather than mislead.
+   */
+  const recommendedPick = useMemo(() => {
+    if (!summary.canBookLLNow) return null;
+    const grabbable = LL_INVENTORY.filter(
+      (a) =>
+        a.type === 'll' &&
+        !heldIds.has(a.id) &&
+        !isRidden(a.name, MOCK_MUST_DOS),
+    );
+    if (grabbable.length === 0) return null;
+    const mustDos = grabbable
+      .filter((a) => isMustDo(a.name, MOCK_MUST_DOS))
+      .sort((a, b) => a.typicalSelloutMin - b.typicalSelloutMin);
+    if (mustDos.length > 0) {
+      return { attraction: mustDos[0], reason: 'must-do' as const };
+    }
+    const fallback = grabbable
+      .slice()
+      .sort((a, b) => a.typicalSelloutMin - b.typicalSelloutMin);
+    return { attraction: fallback[0], reason: 'urgency' as const };
+  }, [heldIds, summary.canBookLLNow]);
 
   const handleBook = (a: LLAttraction, windowId: BookWindowId = 'asap') => {
     const isILL = a.type === 'ill';
@@ -324,6 +383,64 @@ const BookLightningLane = () => {
           onBookNow={handleWatchlistBookNow}
           onRearm={watchlist.rearm}
         />
+
+        {/*
+         * Recommended pick — never let the booking window open to a
+         * blank slate. Surfaces the must-do that's selling out soonest
+         * (or the most urgent grabbable LL if no must-dos qualify) with
+         * a single one-tap Book affordance.
+         */}
+        {recommendedPick && (
+          <section
+            aria-label="Concierge recommendation"
+            className="rounded-xl px-4 py-3.5 flex items-center gap-3"
+            style={BURNISHED_GOLD.recommendation.surface}
+          >
+            <span
+              className="shrink-0 flex items-center justify-center rounded-full"
+              style={{
+                width: '36px',
+                height: '36px',
+                ...BURNISHED_GOLD.recommendation.medallion,
+              }}
+              aria-hidden="true"
+            >
+              <Sparkles size={16} />
+            </span>
+            <div className="flex-1 min-w-0">
+              <p
+                className="font-sans text-[8px] uppercase font-bold leading-none mb-1"
+                style={{ color: BURNISHED_GOLD.ink, letterSpacing: '0.16em' }}
+              >
+                {recommendedPick.reason === 'must-do'
+                  ? 'Recommended · Your Must-Do'
+                  : 'Recommended · Going Fast'}
+              </p>
+              <p className="font-display text-[15px] leading-tight text-foreground truncate">
+                {recommendedPick.attraction.name}
+              </p>
+              <p className="font-sans text-[10px] mt-0.5 text-muted-foreground tabular-nums truncate">
+                Typically sells out by {formatClockTime(recommendedPick.attraction.typicalSelloutMin)}
+                {' · '}
+                {recommendedPick.attraction.standbyMin}m standby
+              </p>
+            </div>
+            <motion.button
+              type="button"
+              whileTap={{ scale: 0.97 }}
+              onClick={() => handleBook(recommendedPick.attraction, 'asap')}
+              className="shrink-0 inline-flex items-center justify-center gap-1 rounded-lg px-3 font-sans text-[11px] font-semibold border-none cursor-pointer"
+              style={{
+                minHeight: '44px',
+                ...BURNISHED_GOLD.recommendation.action,
+                letterSpacing: '0.04em',
+              }}
+              aria-label={`Book ${recommendedPick.attraction.name} now`}
+            >
+              Book now
+            </motion.button>
+          </section>
+        )}
 
         {/* Standard LL section */}
         <section>
