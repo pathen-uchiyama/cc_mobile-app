@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import BottomGlassNav from '@/components/BottomGlassNav';
 import HeroHorizonStack, { type PlanItem, type WalkingPrompt } from '@/components/priority-stack/HeroHorizonStack';
 import PivotShimmer from '@/components/priority-stack/PivotShimmer';
@@ -175,6 +176,10 @@ const InPark = () => {
    */
   const isUsingLL = llSummary.llHeldCount > 0 || llSummary.llCapTotal > 0;
   const TAPIN_WINDOW_MIN = 60;
+  // Grace period for the "Window closed" sienna variant — keep it on
+  // screen for a few minutes after expiry so the guest sees the failure
+  // state and can refresh, rather than the banner silently disappearing.
+  const CLOSED_GRACE_MIN = 5;
   const readyHold = llHolds
     .filter(
       (h) =>
@@ -183,6 +188,18 @@ const InPark = () => {
         NOW_MINUTES <= h.windowStartMin + TAPIN_WINDOW_MIN,
     )
     .sort((a, b) => a.windowStartMin - b.windowStartMin)[0];
+  // A hold whose tap-in window just slipped past — surfaces the burnt-
+  // sienna "Window closed" banner for CLOSED_GRACE_MIN minutes.
+  const closedHold = !readyHold
+    ? llHolds
+        .filter(
+          (h) =>
+            h.status === 'held' &&
+            NOW_MINUTES > h.windowStartMin + TAPIN_WINDOW_MIN &&
+            NOW_MINUTES <= h.windowStartMin + TAPIN_WINDOW_MIN + CLOSED_GRACE_MIN,
+        )
+        .sort((a, b) => b.windowStartMin - a.windowStartMin)[0]
+    : undefined;
 
   let llAlert: LLAlert | null = null;
   if (isUsingLL) {
@@ -196,6 +213,15 @@ const InPark = () => {
         detail: `Window closes in ${formatCountdown(Math.max(1, closesIn))}`,
         countdown: formatCountdown(Math.max(1, closesIn)),
         actionLabel: 'Tap in',
+      };
+    } else if (closedHold) {
+      const inv = LL_INVENTORY.find((a) => a.id === closedHold.attractionId);
+      llAlert = {
+        kind: 'window-closed',
+        eyebrow: 'Window Closed',
+        title: inv ? `${inv.name} — tap-in window has closed` : 'Your tap-in window has closed',
+        detail: 'Refresh to confirm or rebook from your held stack.',
+        actionLabel: 'Refresh',
       };
     } else if (llSummary.canBookLLNow) {
       llAlert = {
@@ -317,7 +343,22 @@ const InPark = () => {
             {/* The Sovereign Stack OR Pivot Shimmer — the only thing on screen. */}
             <section aria-label="Today's plan" className="shrink-0">
               {/* LL alert banner — pinned above the focus card when actionable. */}
-              <LLAlertBanner alert={llAlert} onTap={() => navigate('/book-ll')} />
+              <LLAlertBanner
+                alert={llAlert}
+                onTap={() => {
+                  if (llAlert?.kind === 'window-closed') {
+                    // Soft refresh — re-checks held stack on next render.
+                    // The clock keeps ticking via LightningLaneProvider, so
+                    // this is mostly an acknowledgement that the guest saw
+                    // the failure state.
+                    toast('Status refreshed', {
+                      description: 'Your held Lightning Lane stack is up to date.',
+                    });
+                    return;
+                  }
+                  navigate('/book-ll');
+                }}
+              />
               <AnimatePresence mode="wait">
                 {pivotLabel ? (
                   <motion.div key="shimmer">
