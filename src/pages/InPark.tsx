@@ -500,7 +500,6 @@ const InPark = () => {
         excludedAttractions={plan.map((p) => p.attraction)}
         plan={plan}
         onPromote={promoteMustDoToHero}
-        onAddToPlan={() => navigate('/edit-itinerary')}
       />
 
       <RecordMemorySheet

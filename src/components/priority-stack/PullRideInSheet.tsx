@@ -38,8 +38,6 @@ interface PullRideInSheetProps {
    * already handles the case where the attraction is brand new.
    */
   onPromote: (sourceId: string, attraction: string) => void;
-  /** Open the editor / picker for adding a brand-new attraction to the plan. */
-  onAddToPlan?: () => void;
 }
 
 const formatVotes = (n: number) =>
@@ -73,7 +71,6 @@ const PullRideInSheet = ({
   excludedAttractions = [],
   plan = [],
   onPromote,
-  onAddToPlan,
 }: PullRideInSheetProps) => {
   const [tab, setTab] = useState<Tab>('recommended');
 
@@ -388,24 +385,21 @@ const PullRideInSheet = ({
                     </Section>
                   ) : (
                     <PlanEmptyState
-                      onAdd={() => {
-                        onClose();
-                        onAddToPlan?.();
-                      }}
+                      onAdd={() => setTab('recommended')}
                     />
                   )}
                 </>
               )}
             </div>
 
-            {/* Persistent footer — always offers a single way to add to plan. */}
+            {/* Persistent footer — always offers a single way to add to plan.
+                Tapping it surfaces the Recommended tab inside this same
+                sheet; picking any row commits the new item, closes the
+                sheet, and returns the guest to Today. */}
             <div className="shrink-0 flex items-center gap-2 m-3 mt-1">
               <button
                 type="button"
-                onClick={() => {
-                  onClose();
-                  onAddToPlan?.();
-                }}
+                onClick={() => setTab('recommended')}
                 className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3 cursor-pointer font-sans text-[11px] uppercase tracking-sovereign font-bold border-none"
                 style={{
                   background: 'hsl(var(--primary))',
@@ -596,8 +590,8 @@ export default PullRideInSheet;
 /**
  * Editorial empty state for the "Plan" tab. No chrome, no borders — just a
  * calm gold mark, a one-line invitation, and a single primary CTA. Tapping
- * the CTA closes the sheet and routes to the itinerary editor (the parent
- * controls where exactly that goes via `onAddToPlan`).
+ * the CTA switches the sheet to the Recommended tab so the guest can pick
+ * an attraction in-place; selecting any row commits it and closes the sheet.
  */
 const PlanEmptyState = ({ onAdd }: { onAdd: () => void }) => (
   <div className="flex flex-col items-center text-center px-6 py-10">
