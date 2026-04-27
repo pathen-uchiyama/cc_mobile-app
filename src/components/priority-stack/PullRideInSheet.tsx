@@ -62,7 +62,6 @@ const PullRideInSheet = ({
   onClose,
   mustDos,
   partyWants,
-  communityPicks,
   excludedAttractions = [],
   plan = [],
   onPromote,
@@ -97,19 +96,6 @@ const PullRideInSheet = ({
       )
       .sort((a, b) => b.party.yes / b.party.total - a.party.yes / a.party.total);
   }, [partyWants, mustDos, excluded]);
-
-  const rankedCommunity = useMemo(() => {
-    const mustNames = new Set(mustDos.map((m) => m.attraction.toLowerCase()));
-    const partyNames = new Set(partyWants.map((p) => p.attraction.toLowerCase()));
-    return [...communityPicks]
-      .filter(
-        (c) =>
-          !mustNames.has(c.attraction.toLowerCase()) &&
-          !partyNames.has(c.attraction.toLowerCase()) &&
-          !excluded.has(c.attraction.toLowerCase()),
-      )
-      .sort((a, b) => b.votes - a.votes);
-  }, [communityPicks, mustDos, partyWants, excluded]);
 
   /**
    * Cross-tier recommendation — the single "do this next" pick.
