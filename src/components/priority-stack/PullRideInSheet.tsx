@@ -867,6 +867,63 @@ const PlanEmptyState = ({ onAdd }: { onAdd: () => void }) => (
   </div>
 );
 
+/* ─── Party Wants · survey-not-completed empty state ───────────── */
+
+/**
+ * Editorial empty state shown when the guest's party survey has no
+ * responses yet. Party Wants are owned by the pre-trip survey on the
+ * web app — the in-park app only consumes them — so the message points
+ * back there rather than offering an in-app fix.
+ *
+ * Visual: magenta accent (matches the Party Wants tier dot), surface
+ * card per the no-line rule, no CTA button (the action is off-device).
+ */
+const PartyWantsEmptyState = () => {
+  const magenta = 'hsl(316 95% 35%)';
+  return (
+    <section
+      className="mt-3 mb-1 mx-1 rounded-2xl p-4 flex items-start gap-3"
+      style={{
+        background:
+          'linear-gradient(180deg, hsl(316 95% 35% / 0.07) 0%, hsl(316 95% 35% / 0.015) 100%)',
+        boxShadow:
+          '0 0 0 1px hsl(316 95% 35% / 0.22), 0 6px 18px hsl(var(--obsidian) / 0.05)',
+      }}
+    >
+      <span
+        aria-hidden
+        className="shrink-0 flex items-center justify-center rounded-full"
+        style={{
+          width: '36px',
+          height: '36px',
+          background: magenta,
+          color: 'hsl(var(--card))',
+        }}
+      >
+        <ClipboardList size={16} />
+      </span>
+      <div className="flex-1 min-w-0">
+        <p
+          className="font-sans text-[8px] uppercase tracking-sovereign font-bold mb-1"
+          style={{ color: magenta, letterSpacing: '0.16em' }}
+        >
+          Party Wants · Awaiting the survey
+        </p>
+        <h4 className="font-display text-[15px] leading-tight text-foreground mb-1">
+          Your party hasn't weighed in yet.
+        </h4>
+        <p
+          className="font-sans italic text-[11px] leading-snug"
+          style={{ color: 'hsl(var(--foreground) / 0.75)' }}
+        >
+          Open the pre-trip survey on the Castle Companion web app and have everyone vote on the
+          attractions they're hoping for. Their picks land here automatically.
+        </p>
+      </div>
+    </section>
+  );
+};
+
 /* ─── Featured "Recommended Next" card ─────────────────────────── */
 
 interface RecommendedCardProps {
