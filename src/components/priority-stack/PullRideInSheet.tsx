@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Check,
@@ -19,8 +19,6 @@ import {
 } from 'lucide-react';
 import type { MustDo } from '@/hooks/park/usePlanStack';
 import type { PartyWant, AttractionKind } from '@/data/wantToDos';
-import { PARTY_WANTS } from '@/data/wantToDos';
-import { LL_INVENTORY } from '@/data/lightningLanes';
 import type { PlanItem } from '@/components/priority-stack/HeroHorizonStack';
 
 type Tab = 'recommended' | 'mustdo' | 'plan';
@@ -89,30 +87,6 @@ const PullRideInSheet = ({
    */
   const [customOpen, setCustomOpen] = useState(false);
   const [customName, setCustomName] = useState('');
-  /**
-   * Per-session dismissal for the Party Wants empty-state card. Persisted
-   * in `sessionStorage` so the prompt stays gone for the rest of the tab
-   * lifetime (across navigation and re-opens of the sheet) but reappears
-   * naturally on the next session — the survey may have been filled out
-   * by then. SSR-safe: the initializer is wrapped in a typeof guard.
-   */
-  const PARTY_EMPTY_DISMISS_KEY = 'pull-ride.partyEmpty.dismissed';
-  const [partyEmptyDismissed, setPartyEmptyDismissed] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    try {
-      return window.sessionStorage.getItem(PARTY_EMPTY_DISMISS_KEY) === '1';
-    } catch {
-      return false;
-    }
-  });
-  const dismissPartyEmpty = () => {
-    setPartyEmptyDismissed(true);
-    try {
-      window.sessionStorage.setItem(PARTY_EMPTY_DISMISS_KEY, '1');
-    } catch {
-      /* sessionStorage blocked — accept the in-memory dismissal silently. */
-    }
-  };
 
   const excluded = useMemo(
     () => new Set(excludedAttractions.map((a) => a.toLowerCase())),
@@ -190,93 +164,6 @@ const PullRideInSheet = ({
     return null;
   }, [rankedMustDos, rankedParty]);
 
-  /**
-   * Unified attraction catalog for the custom-add autocomplete.
-   *
-   * Pulls from every static catalog the app already knows about — the
-   * Lightning Lane inventory (rides) and the Party Wants pool (rides,
-   * shows, meets, parades, dining). Anything already on the active plan
-   * or already represented in Must-Dos / Party Wants is filtered out:
-   * the picker is for *new* items the guest can't surface from the
-   * tier sections above. Built once per open session.
-   */
-  const catalog = useMemo(() => {
-    type CatalogItem = {
-      key: string;
-      name: string;
-      location?: string;
-      kind: AttractionKind;
-      /** Stable suggestion id used as the synthesized sourceId. */
-      suggestId: string;
-    };
-    const seen = new Set<string>();
-    const items: CatalogItem[] = [];
-    const skip = new Set<string>([
-      ...mustDos.map((m) => m.attraction.toLowerCase()),
-      ...partyWants.map((p) => p.attraction.toLowerCase()),
-      ...excludedAttractions.map((a) => a.toLowerCase()),
-    ]);
-    const push = (item: CatalogItem) => {
-      const key = item.name.toLowerCase();
-      if (seen.has(key) || skip.has(key)) return;
-      seen.add(key);
-      items.push(item);
-    };
-    LL_INVENTORY.forEach((a) =>
-      push({
-        key: a.id,
-        name: a.name,
-        location: a.land,
-        kind: 'ride',
-        suggestId: `catalog-${a.id}`,
-      }),
-    );
-    PARTY_WANTS.forEach((p) =>
-      push({
-        key: p.id,
-        name: p.attraction,
-        location: p.location,
-        kind: p.kind,
-        suggestId: `catalog-${p.id}`,
-      }),
-    );
-    return items;
-  }, [mustDos, partyWants, excludedAttractions]);
-
-  /**
-   * Score a catalog entry against the current query. Higher is better.
-   *  · prefix match on the full name → strongest
-   *  · prefix match on any word      → next
-   *  · substring match anywhere      → baseline
-   *  · subsequence match (typo-tolerant) → weakest, only kept above 0
-   * Returns 0 when nothing matches so the caller can drop the row.
-   */
-  const suggestions = useMemo(() => {
-    const q = customName.trim().toLowerCase();
-    if (q.length < 1) return [];
-    const scoreOne = (name: string): number => {
-      const lower = name.toLowerCase();
-      if (lower.startsWith(q)) return 100;
-      const words = lower.split(/\s+/);
-      if (words.some((w) => w.startsWith(q))) return 80;
-      const idx = lower.indexOf(q);
-      if (idx >= 0) return 60 - Math.min(idx, 40);
-      // Subsequence — every char of q appears in order in name.
-      let i = 0;
-      for (const c of lower) {
-        if (c === q[i]) i++;
-        if (i === q.length) break;
-      }
-      return i === q.length ? 20 : 0;
-    };
-    return catalog
-      .map((c) => ({ item: c, score: scoreOne(c.name) }))
-      .filter((r) => r.score > 0)
-      .sort((a, b) => b.score - a.score || a.item.name.localeCompare(b.item.name))
-      .slice(0, 5)
-      .map((r) => r.item);
-  }, [catalog, customName]);
-
   const handlePromote = (sourceId: string, attraction: string) => {
     onClose();
     onPromote(sourceId, attraction);
@@ -285,18 +172,9 @@ const PullRideInSheet = ({
   const handleCustomSubmit = () => {
     const name = customName.trim();
     if (name.length < 2) return;
-    // If the typed name exactly matches a catalog suggestion, prefer the
-    // catalog id so downstream consumers can later re-link metadata.
-    const exact = catalog.find((c) => c.name.toLowerCase() === name.toLowerCase());
     setCustomName('');
     setCustomOpen(false);
-    handlePromote(exact ? exact.suggestId : `custom-${Date.now()}`, exact ? exact.name : name);
-  };
-
-  const handleSuggestionPick = (item: { suggestId: string; name: string }) => {
-    setCustomName('');
-    setCustomOpen(false);
-    handlePromote(item.suggestId, item.name);
+    handlePromote(`custom-${Date.now()}`, name);
   };
 
   return (
@@ -433,40 +311,6 @@ const PullRideInSheet = ({
               {/* ── RECOMMENDED ── single best cross-tier pick + the runners-up. */}
               {tab === 'recommended' && (
                 <>
-                  {/* Tab kicker + subheader — orients the guest on where
-                      these picks come from. When the pre-trip survey
-                      hasn't been completed yet (no Party Wants at all),
-                      the subheader explicitly nudges them toward the web
-                      app so the absence of magenta rows is explained
-                      rather than felt as a gap. */}
-                  <div className="px-2 pt-3 pb-1.5">
-                    <p
-                      className="font-sans text-[8px] uppercase tracking-sovereign font-bold mb-1"
-                      style={{ color: 'hsl(var(--gold))', letterSpacing: '0.18em' }}
-                    >
-                      Recommended Next
-                    </p>
-                    <p
-                      className="font-sans text-[11px] leading-snug"
-                      style={{ color: 'hsl(var(--slate-plaid))' }}
-                    >
-                      {partyWants.length === 0 ? (
-                        <>
-                          Drawn from your Must-Dos.{' '}
-                          <span style={{ color: 'hsl(var(--foreground) / 0.85)' }}>
-                            Party Wants will appear here once your pre-trip survey is completed on
-                            the Castle Companion web app.
-                          </span>
-                        </>
-                      ) : (
-                        <>
-                          Drawn from your Must-Dos and your party's pre-trip survey responses.
-                          Edit the survey on the web app to change what shows up here.
-                        </>
-                      )}
-                    </p>
-                  </div>
-
                   {/* Toggle: include low-confidence Party Wants (under 50%
                       of the party voted yes). Off by default so the picker
                       stays focused on what the party actually committed to. */}
@@ -568,18 +412,10 @@ const PullRideInSheet = ({
                   {/* Survey-not-completed state — only shows when there
                       are zero party wants at all. Points guests back to
                       the pre-trip survey on the web app, which is the
-                      only place those preferences can be entered.
-                      Dismissible per-session (sessionStorage) so a guest
-                      who's seen the prompt isn't lectured every time the
-                      sheet reopens. */}
-                  <AnimatePresence initial={false}>
-                    {partyWants.length === 0 && !partyEmptyDismissed && (
-                      <PartyWantsEmptyState
-                        key="party-empty"
-                        onDismiss={dismissPartyEmpty}
-                      />
-                    )}
-                  </AnimatePresence>
+                      only place those preferences can be entered. */}
+                  {partyWants.length === 0 && (
+                    <PartyWantsEmptyState />
+                  )}
 
                   {/* Single hint to the full plan — replaces the second
                       runner-up section so density stays low. */}
@@ -725,57 +561,6 @@ const PullRideInSheet = ({
                       Cancel
                     </button>
                   </div>
-                  {suggestions.length > 0 && (
-                    <ul
-                      className="list-none p-1 m-0 rounded-xl space-y-0.5"
-                      style={{ background: 'hsl(var(--obsidian) / 0.04)' }}
-                      role="listbox"
-                      aria-label="Matching attractions"
-                    >
-                      {suggestions.map((s) => {
-                        const KindIcon = KIND_META[s.kind].Icon;
-                        const kindLabel = KIND_META[s.kind].label;
-                        return (
-                          <li key={s.suggestId}>
-                            <button
-                              type="button"
-                              role="option"
-                              aria-selected={false}
-                              onClick={() => handleSuggestionPick(s)}
-                              className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg bg-transparent border-none cursor-pointer text-left transition-colors hover:bg-accent/5"
-                              style={{ minHeight: '40px' }}
-                            >
-                              <span
-                                aria-hidden
-                                className="shrink-0 inline-flex items-center justify-center rounded-full"
-                                style={{
-                                  width: '22px',
-                                  height: '22px',
-                                  background: 'hsl(var(--gold) / 0.15)',
-                                  color: 'hsl(var(--gold))',
-                                }}
-                              >
-                                <KindIcon size={11} />
-                              </span>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-display text-[13px] leading-tight text-foreground truncate">
-                                  {s.name}
-                                </p>
-                                <p
-                                  className="font-sans text-[10px] leading-tight mt-0.5 truncate"
-                                  style={{ color: 'hsl(var(--slate-plaid))' }}
-                                >
-                                  {kindLabel}
-                                  {s.location ? ` · ${s.location}` : ''}
-                                </p>
-                              </div>
-                              <Plus size={13} className="shrink-0" style={{ color: 'hsl(var(--gold))' }} />
-                            </button>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  )}
                   <p
                     className="font-sans italic text-[10px] leading-snug px-1"
                     style={{ color: 'hsl(var(--slate-plaid))' }}
@@ -1091,23 +876,34 @@ const PlanEmptyState = ({ onAdd }: { onAdd: () => void }) => (
  * back there rather than offering an in-app fix.
  *
  * Visual: magenta accent (matches the Party Wants tier dot), surface
- * card per the no-line rule, no off-card CTA (the action is off-device).
- * The whole card is a tap target — tapping it (or pressing Enter/Space
- * while focused) gently dismisses the prompt for the rest of the
- * session. A small "Tap to dismiss" hint sits in the corner so the
- * affordance is discoverable without competing for attention.
+ * card per the no-line rule, no CTA button (the action is off-device).
+ *
+ * Accessibility:
+ *  · Wrapped as an ARIA `status` region with `aria-live="polite"` so
+ *    screen readers announce the prompt when the Recommended tab opens
+ *    to an empty Party Wants tier — without preempting the user.
+ *  · `aria-labelledby` + `aria-describedby` map the heading and body to
+ *    the region, so SR users hear "Party Wants — Your party hasn't
+ *    weighed in yet… Open the pre-trip survey…" as one coherent block.
+ *  · The decorative icon stays `aria-hidden`; its meaning is carried by
+ *    the visible kicker label, which is also announced (visually styled
+ *    as a small caption but exposed as a real heading via sr-only
+ *    prefix for outline tools).
+ *  · `useId` keeps ids unique if the empty state ever appears twice.
  */
-const PartyWantsEmptyState = ({ onDismiss }: { onDismiss: () => void }) => {
+const PartyWantsEmptyState = () => {
   const magenta = 'hsl(316 95% 35%)';
+  const reactId = useId();
+  const headingId = `${reactId}-party-empty-heading`;
+  const bodyId = `${reactId}-party-empty-body`;
   return (
-    <motion.button
-      type="button"
-      onClick={onDismiss}
-      whileTap={{ scale: 0.985 }}
-      exit={{ opacity: 0, height: 0, marginTop: 0, marginBottom: 0, paddingTop: 0, paddingBottom: 0 }}
-      transition={{ duration: 0.22, ease: 'easeOut' }}
-      aria-label="Dismiss the party survey reminder for this session"
-      className="w-full text-left mt-3 mb-1 mx-1 rounded-2xl p-4 flex items-start gap-3 cursor-pointer border-none"
+    <section
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      aria-labelledby={headingId}
+      aria-describedby={bodyId}
+      className="mt-3 mb-1 mx-1 rounded-2xl p-4 flex items-start gap-3"
       style={{
         background:
           'linear-gradient(180deg, hsl(316 95% 35% / 0.07) 0%, hsl(316 95% 35% / 0.015) 100%)',
@@ -1116,7 +912,7 @@ const PartyWantsEmptyState = ({ onDismiss }: { onDismiss: () => void }) => {
       }}
     >
       <span
-        aria-hidden
+        aria-hidden="true"
         className="shrink-0 flex items-center justify-center rounded-full"
         style={{
           width: '36px',
@@ -1128,25 +924,24 @@ const PartyWantsEmptyState = ({ onDismiss }: { onDismiss: () => void }) => {
         <ClipboardList size={16} />
       </span>
       <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between gap-2 mb-1">
-          <p
-            className="font-sans text-[8px] uppercase tracking-sovereign font-bold"
-            style={{ color: magenta, letterSpacing: '0.16em' }}
-          >
-            Party Wants · Awaiting the survey
-          </p>
-          <span
-            aria-hidden
-            className="shrink-0 font-sans text-[8px] uppercase font-bold tracking-sovereign"
-            style={{ color: 'hsl(var(--slate-plaid))', letterSpacing: '0.14em' }}
-          >
-            Tap to dismiss
-          </span>
-        </div>
-        <h4 className="font-display text-[15px] leading-tight text-foreground mb-1">
-          Your party hasn't weighed in yet.
-        </h4>
+        {/* Visible kicker is also the section's accessible name. The
+            sr-only prefix gives assistive tech a clearer outline anchor
+            ("Party Wants section: …") without changing the visual. */}
         <p
+          className="font-sans text-[8px] uppercase tracking-sovereign font-bold mb-1"
+          style={{ color: magenta, letterSpacing: '0.16em' }}
+        >
+          Party Wants · Awaiting the survey
+        </p>
+        <h3
+          id={headingId}
+          className="font-display text-[15px] leading-tight text-foreground mb-1"
+        >
+          <span className="sr-only">Party Wants section: </span>
+          Your party hasn't weighed in yet.
+        </h3>
+        <p
+          id={bodyId}
           className="font-sans italic text-[11px] leading-snug"
           style={{ color: 'hsl(var(--foreground) / 0.75)' }}
         >
@@ -1154,7 +949,7 @@ const PartyWantsEmptyState = ({ onDismiss }: { onDismiss: () => void }) => {
           attractions they're hoping for. Their picks land here automatically.
         </p>
       </div>
-    </motion.button>
+    </section>
   );
 };
 
