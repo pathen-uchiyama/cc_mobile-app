@@ -285,6 +285,13 @@ const BookLightningLane = () => {
    * crossfade so the live update is felt.
    */
   const prevPickIdRef = useRef<string | null>(null);
+  /**
+   * Stable text for an off-screen aria-live region so screen readers
+   * announce recommendation changes even though the visible card is
+   * keyed (and therefore unmounted/remounted) on each refresh. We set
+   * it after the first render and clear/reset it as the pick changes.
+   */
+  const [pickAnnouncement, setPickAnnouncement] = useState('');
   useEffect(() => {
     const currentId = recommendedPick?.attraction.id ?? null;
     const prevId = prevPickIdRef.current;
@@ -297,12 +304,20 @@ const BookLightningLane = () => {
     // Card disappeared (capacity locked, no candidates) — silent.
     if (currentId === null) {
       prevPickIdRef.current = null;
+      setPickAnnouncement('');
       return;
     }
     // Same pick — no-op.
     if (currentId === prevId) return;
     // Pick changed while the card was already on screen → refresh whisper.
     prevPickIdRef.current = currentId;
+    const reasonPhrase =
+      recommendedPick?.reason === 'must-do'
+        ? 'a higher-priority Must-Do rose to the top'
+        : 'the most-urgent grabbable lane updated';
+    setPickAnnouncement(
+      `Recommendation updated: ${recommendedPick?.attraction.name}. ${reasonPhrase}.`,
+    );
     toast(`Recommendation refreshed · ${recommendedPick?.attraction.name}`, {
       description:
         recommendedPick?.reason === 'must-do'
