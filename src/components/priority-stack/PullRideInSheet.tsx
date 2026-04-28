@@ -194,14 +194,6 @@ const PullRideInSheet = ({
     onPromote(sourceId, attraction);
   };
 
-  const handleCustomSubmit = () => {
-    const name = customName.trim();
-    if (name.length < 2) return;
-    setCustomName('');
-    setCustomOpen(false);
-    handlePromote(`custom-${Date.now()}`, name);
-  };
-
   return (
     <AnimatePresence>
       {open && (
