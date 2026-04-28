@@ -524,75 +524,24 @@ const PullRideInSheet = ({
                 sheet, and returns the guest to Today. */}
             <div className="shrink-0 m-3 mt-1">
               {customOpen ? (
-                /* Inline composer — type any attraction name and add it
-                   straight onto the active card. Used when the ride isn't
-                   in Must-Dos or the party survey. */
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    handleCustomSubmit();
+                /* Catalog picker — searchable dropdown of every attraction
+                   in the LL inventory. Replaces the old free-text input so
+                   guests pick a real ride (with live wait + LL return data
+                   visible) instead of typing an arbitrary string. */
+                <CatalogPicker
+                  query={customName}
+                  onQueryChange={setCustomName}
+                  excluded={excluded}
+                  onPick={(name) => {
+                    setCustomName('');
+                    setCustomOpen(false);
+                    handlePromote(`custom-${Date.now()}`, name);
                   }}
-                  className="flex flex-col gap-2"
-                >
-                  <label
-                    className="font-sans text-[8px] uppercase tracking-sovereign font-bold px-1"
-                    style={{ color: 'hsl(var(--gold))', letterSpacing: '0.16em' }}
-                    htmlFor="pull-ride-custom-input"
-                  >
-                    Add a custom attraction
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      id="pull-ride-custom-input"
-                      autoFocus
-                      value={customName}
-                      onChange={(e) => setCustomName(e.target.value)}
-                      placeholder="e.g. Tiana's Bayou Adventure"
-                      maxLength={60}
-                      className="flex-1 rounded-xl px-3 py-3 font-sans text-[13px] bg-transparent outline-none"
-                      style={{
-                        minHeight: '44px',
-                        background: 'hsl(var(--obsidian) / 0.04)',
-                        color: 'hsl(var(--foreground))',
-                      }}
-                    />
-                    <button
-                      type="submit"
-                      disabled={customName.trim().length < 2}
-                      className="shrink-0 inline-flex items-center justify-center gap-1.5 rounded-xl px-4 cursor-pointer font-sans text-[11px] uppercase tracking-sovereign font-bold border-none disabled:cursor-not-allowed"
-                      style={{
-                        minHeight: '44px',
-                        background: 'hsl(var(--primary))',
-                        color: 'hsl(var(--highlighter))',
-                        opacity: customName.trim().length < 2 ? 0.45 : 1,
-                      }}
-                    >
-                      <Plus size={14} />
-                      Add
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCustomOpen(false);
-                        setCustomName('');
-                      }}
-                      className="shrink-0 rounded-xl px-3 bg-transparent border cursor-pointer font-sans text-[10px] uppercase tracking-sovereign font-bold"
-                      style={{
-                        minHeight: '44px',
-                        borderColor: 'hsl(var(--obsidian) / 0.12)',
-                        color: 'hsl(var(--slate-plaid))',
-                      }}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                  <p
-                    className="font-sans italic text-[10px] leading-snug px-1"
-                    style={{ color: 'hsl(var(--slate-plaid))' }}
-                  >
-                    Goes straight onto your active card. Won't change your Must-Dos or party survey.
-                  </p>
-                </form>
+                  onCancel={() => {
+                    setCustomOpen(false);
+                    setCustomName('');
+                  }}
+                />
               ) : (
                 <div className="flex flex-col gap-1.5">
                   <div className="flex items-center gap-2">
