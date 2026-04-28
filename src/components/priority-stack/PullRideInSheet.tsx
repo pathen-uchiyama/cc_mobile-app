@@ -783,6 +783,9 @@ const Row = ({
               </span>
             )}
           </div>
+          {/* Wait-time + LL return-window chips. Renders only for rides
+              we have inventory for; non-ride attractions stay clean. */}
+          <WaitLLChips attraction={title} />
         </div>
 
         {!disabled ? (
