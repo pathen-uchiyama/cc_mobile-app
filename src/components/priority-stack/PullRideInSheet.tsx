@@ -16,10 +16,35 @@ import {
   CalendarPlus,
   Info,
   ClipboardList,
+  Search,
+  Zap,
 } from 'lucide-react';
 import type { MustDo } from '@/hooks/park/usePlanStack';
 import type { PartyWant, AttractionKind } from '@/data/wantToDos';
 import type { PlanItem } from '@/components/priority-stack/HeroHorizonStack';
+import { LL_INVENTORY } from '@/data/lightningLanes';
+
+/**
+ * Live wait + LL return-window lookup for any attraction by name. Matches
+ * case-insensitively against `LL_INVENTORY` so rides surfaced in Must-Dos,
+ * Party Wants, the active Plan, and the Recommended card all show the same
+ * key concierge data: current standby and the next LL return time. Returns
+ * `null` for non-ride attractions (shows, parades, dining) that aren't on
+ * the LL system — those rows simply omit the meta strip.
+ */
+const lookupAttractionMeta = (
+  name: string,
+): { standbyMin: number; nextWindow: string; isLL: boolean; isILL: boolean } | null => {
+  const needle = name.trim().toLowerCase();
+  const hit = LL_INVENTORY.find((a) => a.name.toLowerCase() === needle);
+  if (!hit) return null;
+  return {
+    standbyMin: hit.standbyMin,
+    nextWindow: hit.nextWindow,
+    isLL: hit.type === 'll',
+    isILL: hit.type === 'ill',
+  };
+};
 
 type Tab = 'recommended' | 'mustdo' | 'plan';
 
