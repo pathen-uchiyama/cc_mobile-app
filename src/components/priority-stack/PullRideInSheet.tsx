@@ -535,41 +535,34 @@ const PullRideInSheet = ({
                   }}
                 />
               ) : (
-                <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setTab('recommended')}
-                      className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3 cursor-pointer font-sans text-[11px] uppercase tracking-sovereign font-bold border-none"
-                      style={{
-                        background: 'hsl(var(--primary))',
-                        color: 'hsl(var(--highlighter))',
-                      }}
-                    >
-                      <Plus size={14} />
-                      Add to plan
-                    </button>
-                    <button
-                      type="button"
-                      onClick={onClose}
-                      className="shrink-0 rounded-xl px-4 py-3 bg-transparent border cursor-pointer font-sans text-[10px] uppercase tracking-sovereign font-bold"
-                      style={{
-                        borderColor: 'hsl(var(--obsidian) / 0.12)',
-                        color: 'hsl(var(--slate-plaid))',
-                      }}
-                    >
-                      Close
-                    </button>
-                  </div>
-                  {/* Escape hatch — for anything not on Must-Dos or party survey. */}
+                <div className="flex items-center gap-2">
+                  {/* Primary CTA — opens the searchable attraction catalog
+                      directly so guests can pick any ride (with live wait +
+                      LL data) instead of being bounced to the Recommended
+                      tab. Replaces the prior "Don't see it?" escape hatch
+                      which duplicated this exact behaviour. */}
                   <button
                     type="button"
                     onClick={() => setCustomOpen(true)}
-                    className="self-center inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-transparent border-none cursor-pointer font-sans text-[10px] uppercase tracking-sovereign font-bold transition-opacity hover:opacity-80"
-                    style={{ color: 'hsl(var(--gold))', letterSpacing: '0.14em' }}
+                    className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3 cursor-pointer font-sans text-[11px] uppercase tracking-sovereign font-bold border-none"
+                    style={{
+                      background: 'hsl(var(--primary))',
+                      color: 'hsl(var(--highlighter))',
+                    }}
                   >
-                    <Plus size={11} />
-                    Don't see it? Add a custom attraction
+                    <Plus size={14} />
+                    Add to plan
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="shrink-0 rounded-xl px-4 py-3 bg-transparent border cursor-pointer font-sans text-[10px] uppercase tracking-sovereign font-bold"
+                    style={{
+                      borderColor: 'hsl(var(--obsidian) / 0.12)',
+                      color: 'hsl(var(--slate-plaid))',
+                    }}
+                  >
+                    Close
                   </button>
                 </div>
               )}
