@@ -16,10 +16,35 @@ import {
   CalendarPlus,
   Info,
   ClipboardList,
+  Search,
+  Zap,
 } from 'lucide-react';
 import type { MustDo } from '@/hooks/park/usePlanStack';
 import type { PartyWant, AttractionKind } from '@/data/wantToDos';
 import type { PlanItem } from '@/components/priority-stack/HeroHorizonStack';
+import { LL_INVENTORY } from '@/data/lightningLanes';
+
+/**
+ * Live wait + LL return-window lookup for any attraction by name. Matches
+ * case-insensitively against `LL_INVENTORY` so rides surfaced in Must-Dos,
+ * Party Wants, the active Plan, and the Recommended card all show the same
+ * key concierge data: current standby and the next LL return time. Returns
+ * `null` for non-ride attractions (shows, parades, dining) that aren't on
+ * the LL system — those rows simply omit the meta strip.
+ */
+const lookupAttractionMeta = (
+  name: string,
+): { standbyMin: number; nextWindow: string; isLL: boolean; isILL: boolean } | null => {
+  const needle = name.trim().toLowerCase();
+  const hit = LL_INVENTORY.find((a) => a.name.toLowerCase() === needle);
+  if (!hit) return null;
+  return {
+    standbyMin: hit.standbyMin,
+    nextWindow: hit.nextWindow,
+    isLL: hit.type === 'll',
+    isILL: hit.type === 'ill',
+  };
+};
 
 type Tab = 'recommended' | 'mustdo' | 'plan';
 
@@ -167,14 +192,6 @@ const PullRideInSheet = ({
   const handlePromote = (sourceId: string, attraction: string) => {
     onClose();
     onPromote(sourceId, attraction);
-  };
-
-  const handleCustomSubmit = () => {
-    const name = customName.trim();
-    if (name.length < 2) return;
-    setCustomName('');
-    setCustomOpen(false);
-    handlePromote(`custom-${Date.now()}`, name);
   };
 
   return (
@@ -499,75 +516,24 @@ const PullRideInSheet = ({
                 sheet, and returns the guest to Today. */}
             <div className="shrink-0 m-3 mt-1">
               {customOpen ? (
-                /* Inline composer — type any attraction name and add it
-                   straight onto the active card. Used when the ride isn't
-                   in Must-Dos or the party survey. */
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    handleCustomSubmit();
+                /* Catalog picker — searchable dropdown of every attraction
+                   in the LL inventory. Replaces the old free-text input so
+                   guests pick a real ride (with live wait + LL return data
+                   visible) instead of typing an arbitrary string. */
+                <CatalogPicker
+                  query={customName}
+                  onQueryChange={setCustomName}
+                  excluded={excluded}
+                  onPick={(name) => {
+                    setCustomName('');
+                    setCustomOpen(false);
+                    handlePromote(`custom-${Date.now()}`, name);
                   }}
-                  className="flex flex-col gap-2"
-                >
-                  <label
-                    className="font-sans text-[8px] uppercase tracking-sovereign font-bold px-1"
-                    style={{ color: 'hsl(var(--gold))', letterSpacing: '0.16em' }}
-                    htmlFor="pull-ride-custom-input"
-                  >
-                    Add a custom attraction
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      id="pull-ride-custom-input"
-                      autoFocus
-                      value={customName}
-                      onChange={(e) => setCustomName(e.target.value)}
-                      placeholder="e.g. Tiana's Bayou Adventure"
-                      maxLength={60}
-                      className="flex-1 rounded-xl px-3 py-3 font-sans text-[13px] bg-transparent outline-none"
-                      style={{
-                        minHeight: '44px',
-                        background: 'hsl(var(--obsidian) / 0.04)',
-                        color: 'hsl(var(--foreground))',
-                      }}
-                    />
-                    <button
-                      type="submit"
-                      disabled={customName.trim().length < 2}
-                      className="shrink-0 inline-flex items-center justify-center gap-1.5 rounded-xl px-4 cursor-pointer font-sans text-[11px] uppercase tracking-sovereign font-bold border-none disabled:cursor-not-allowed"
-                      style={{
-                        minHeight: '44px',
-                        background: 'hsl(var(--primary))',
-                        color: 'hsl(var(--highlighter))',
-                        opacity: customName.trim().length < 2 ? 0.45 : 1,
-                      }}
-                    >
-                      <Plus size={14} />
-                      Add
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCustomOpen(false);
-                        setCustomName('');
-                      }}
-                      className="shrink-0 rounded-xl px-3 bg-transparent border cursor-pointer font-sans text-[10px] uppercase tracking-sovereign font-bold"
-                      style={{
-                        minHeight: '44px',
-                        borderColor: 'hsl(var(--obsidian) / 0.12)',
-                        color: 'hsl(var(--slate-plaid))',
-                      }}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                  <p
-                    className="font-sans italic text-[10px] leading-snug px-1"
-                    style={{ color: 'hsl(var(--slate-plaid))' }}
-                  >
-                    Goes straight onto your active card. Won't change your Must-Dos or party survey.
-                  </p>
-                </form>
+                  onCancel={() => {
+                    setCustomOpen(false);
+                    setCustomName('');
+                  }}
+                />
               ) : (
                 <div className="flex flex-col gap-1.5">
                   <div className="flex items-center gap-2">
@@ -758,6 +724,9 @@ const Row = ({
               </span>
             )}
           </div>
+          {/* Wait-time + LL return-window chips. Renders only for rides
+              we have inventory for; non-ride attractions stay clean. */}
+          <WaitLLChips attraction={title} />
         </div>
 
         {!disabled ? (
@@ -771,6 +740,209 @@ const Row = ({
 };
 
 export default PullRideInSheet;
+
+/* ─── Catalog picker (custom-add dropdown) ─────────────────────── */
+
+/**
+ * Searchable dropdown of the entire LL attraction catalog. Used by the
+ * custom-add escape hatch in the footer: rather than letting guests free-
+ * type a ride name (which produces no wait/LL data), they pick a known
+ * attraction from this list. Each option shows the same wait + LL chips
+ * the rest of the sheet uses, so the selection feels informed.
+ *
+ * Filters out anything already locked into the active plan via the same
+ * `excluded` Set used elsewhere in the sheet.
+ */
+const CatalogPicker = ({
+  query,
+  onQueryChange,
+  excluded,
+  onPick,
+  onCancel,
+}: {
+  query: string;
+  onQueryChange: (v: string) => void;
+  excluded: Set<string>;
+  onPick: (name: string) => void;
+  onCancel: () => void;
+}) => {
+  const matches = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return LL_INVENTORY
+      .filter((a) => !excluded.has(a.name.toLowerCase()))
+      .filter((a) =>
+        q.length === 0
+          ? true
+          : a.name.toLowerCase().includes(q) || a.land.toLowerCase().includes(q),
+      )
+      .slice(0, 8);
+  }, [query, excluded]);
+
+  return (
+    <div className="flex flex-col gap-2">
+      <label
+        className="font-sans text-[8px] uppercase tracking-sovereign font-bold px-1"
+        style={{ color: 'hsl(var(--gold))', letterSpacing: '0.16em' }}
+        htmlFor="pull-ride-catalog-input"
+      >
+        Pick an attraction
+      </label>
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <Search
+            size={14}
+            className="absolute left-3 top-1/2 -translate-y-1/2"
+            style={{ color: 'hsl(var(--slate-plaid))' }}
+            aria-hidden
+          />
+          <input
+            id="pull-ride-catalog-input"
+            autoFocus
+            value={query}
+            onChange={(e) => onQueryChange(e.target.value)}
+            placeholder="Search rides or lands…"
+            maxLength={60}
+            className="w-full rounded-xl pl-9 pr-3 py-3 font-sans text-[13px] bg-transparent outline-none"
+            style={{
+              minHeight: '44px',
+              background: 'hsl(var(--obsidian) / 0.04)',
+              color: 'hsl(var(--foreground))',
+            }}
+            aria-label="Search the attraction catalog"
+          />
+        </div>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="shrink-0 rounded-xl px-3 bg-transparent border cursor-pointer font-sans text-[10px] uppercase tracking-sovereign font-bold"
+          style={{
+            minHeight: '44px',
+            borderColor: 'hsl(var(--obsidian) / 0.12)',
+            color: 'hsl(var(--slate-plaid))',
+          }}
+        >
+          Cancel
+        </button>
+      </div>
+
+      <ul
+        className="list-none p-0 m-0 max-h-[240px] overflow-y-auto rounded-xl"
+        style={{ background: 'hsl(var(--obsidian) / 0.03)' }}
+        role="listbox"
+        aria-label="Attraction catalog"
+      >
+        {matches.length === 0 ? (
+          <li
+            className="font-sans italic text-[11px] leading-snug px-3 py-4 text-center"
+            style={{ color: 'hsl(var(--slate-plaid))' }}
+          >
+            No matches in the catalog.
+          </li>
+        ) : (
+          matches.map((a) => (
+            <li key={a.id}>
+              <motion.button
+                type="button"
+                whileTap={{ scale: 0.985 }}
+                onClick={() => onPick(a.name)}
+                className="w-full flex items-start gap-2 px-3 py-2.5 bg-transparent border-none cursor-pointer text-left transition-colors hover:bg-accent/5"
+                style={{ minHeight: '52px' }}
+                role="option"
+                aria-selected={false}
+                aria-label={`Add ${a.name} from ${a.land}`}
+              >
+                <Ticket
+                  size={14}
+                  className="shrink-0 mt-0.5"
+                  style={{ color: 'hsl(var(--gold))' }}
+                  aria-hidden
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="font-display text-[13px] leading-tight text-foreground truncate">
+                    {a.name}
+                  </p>
+                  <p
+                    className="font-sans text-[10px] mt-0.5"
+                    style={{ color: 'hsl(var(--slate-plaid))' }}
+                  >
+                    {a.land}
+                  </p>
+                  <WaitLLChips attraction={a.name} />
+                </div>
+                <Plus
+                  size={14}
+                  className="shrink-0 mt-1"
+                  style={{ color: 'hsl(var(--gold))' }}
+                  aria-hidden
+                />
+              </motion.button>
+            </li>
+          ))
+        )}
+      </ul>
+
+      <p
+        className="font-sans italic text-[10px] leading-snug px-1"
+        style={{ color: 'hsl(var(--slate-plaid))' }}
+      >
+        Goes straight onto your active card. Won't change your Must-Dos or party survey.
+      </p>
+    </div>
+  );
+};
+
+/* ─── Shared wait + LL chip strip ──────────────────────────────── */
+
+/**
+ * Tiny dual-chip strip that surfaces the two pieces of data a guest needs
+ * before committing to a ride: current standby wait and next LL return
+ * window. Renders nothing when the attraction isn't on the LL inventory
+ * (e.g. shows, parades, dining) so the layout stays clean.
+ */
+const WaitLLChips = ({
+  attraction,
+  size = 'sm',
+}: {
+  attraction: string;
+  size?: 'sm' | 'md';
+}) => {
+  const meta = lookupAttractionMeta(attraction);
+  if (!meta) return null;
+  const fontSize = size === 'md' ? '10px' : '9px';
+  const padY = size === 'md' ? '3px' : '2px';
+  return (
+    <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+      <span
+        className="inline-flex items-center gap-1 rounded-full font-sans tabular-nums font-semibold"
+        style={{
+          fontSize,
+          padding: `${padY} 6px`,
+          background: 'hsl(var(--obsidian) / 0.06)',
+          color: 'hsl(var(--slate-plaid))',
+        }}
+        title={`Standby ${meta.standbyMin} minutes`}
+        aria-label={`Standby wait ${meta.standbyMin} minutes`}
+      >
+        <Clock size={9} />
+        {meta.standbyMin}m wait
+      </span>
+      <span
+        className="inline-flex items-center gap-1 rounded-full font-sans tabular-nums font-semibold"
+        style={{
+          fontSize,
+          padding: `${padY} 6px`,
+          background: meta.isILL ? 'hsl(var(--gold) / 0.18)' : 'hsl(var(--accent) / 0.14)',
+          color: meta.isILL ? 'hsl(var(--gold))' : 'hsl(var(--accent))',
+        }}
+        title={`Next ${meta.isILL ? 'Individual LL' : 'Lightning Lane'} return: ${meta.nextWindow}`}
+        aria-label={`Next ${meta.isILL ? 'Individual Lightning Lane' : 'Lightning Lane'} return ${meta.nextWindow}`}
+      >
+        <Zap size={9} />
+        {meta.isILL ? 'ILL' : 'LL'} {meta.nextWindow}
+      </span>
+    </div>
+  );
+};
 
 /* ─── Source-tier legend row ───────────────────────────────────── */
 
@@ -1041,6 +1213,7 @@ const RecommendedCard = ({
             </span>
           )}
         </div>
+        <WaitLLChips attraction={attraction} size="md" />
         <p
           className="font-sans italic text-[11px] leading-snug mt-1.5 pl-2 border-l-2"
           style={{ color: 'hsl(var(--foreground) / 0.75)', borderColor: 'hsl(316 95% 35% / 0.45)' }}
