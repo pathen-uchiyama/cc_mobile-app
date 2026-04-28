@@ -797,6 +797,59 @@ const Row = ({
 
 export default PullRideInSheet;
 
+/* ─── Shared wait + LL chip strip ──────────────────────────────── */
+
+/**
+ * Tiny dual-chip strip that surfaces the two pieces of data a guest needs
+ * before committing to a ride: current standby wait and next LL return
+ * window. Renders nothing when the attraction isn't on the LL inventory
+ * (e.g. shows, parades, dining) so the layout stays clean.
+ */
+const WaitLLChips = ({
+  attraction,
+  size = 'sm',
+}: {
+  attraction: string;
+  size?: 'sm' | 'md';
+}) => {
+  const meta = lookupAttractionMeta(attraction);
+  if (!meta) return null;
+  const fontSize = size === 'md' ? '10px' : '9px';
+  const padY = size === 'md' ? '3px' : '2px';
+  return (
+    <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+      <span
+        className="inline-flex items-center gap-1 rounded-full font-sans tabular-nums font-semibold"
+        style={{
+          fontSize,
+          padding: `${padY} 6px`,
+          background: 'hsl(var(--obsidian) / 0.06)',
+          color: 'hsl(var(--slate-plaid))',
+        }}
+        title={`Standby ${meta.standbyMin} minutes`}
+        aria-label={`Standby wait ${meta.standbyMin} minutes`}
+      >
+        <Clock size={9} />
+        {meta.standbyMin}m wait
+      </span>
+      <span
+        className="inline-flex items-center gap-1 rounded-full font-sans tabular-nums font-semibold"
+        style={{
+          fontSize,
+          padding: `${padY} 6px`,
+          background: meta.isILL ? 'hsl(var(--gold) / 0.18)' : 'hsl(var(--accent) / 0.14)',
+          color: meta.isILL ? 'hsl(var(--gold))' : 'hsl(var(--accent))',
+        }}
+        title={`Next ${meta.isILL ? 'Individual LL' : 'Lightning Lane'} return: ${meta.nextWindow}`}
+        aria-label={`Next ${meta.isILL ? 'Individual Lightning Lane' : 'Lightning Lane'} return ${meta.nextWindow}`}
+      >
+        <Zap size={9} />
+        {meta.isILL ? 'ILL' : 'LL'} {meta.nextWindow}
+      </span>
+    </div>
+  );
+};
+
 /* ─── Source-tier legend row ───────────────────────────────────── */
 
 /**
