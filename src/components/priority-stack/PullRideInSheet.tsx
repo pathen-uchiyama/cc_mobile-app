@@ -1122,6 +1122,7 @@ const RecommendedCard = ({
             </span>
           )}
         </div>
+        <WaitLLChips attraction={attraction} size="md" />
         <p
           className="font-sans italic text-[11px] leading-snug mt-1.5 pl-2 border-l-2"
           style={{ color: 'hsl(var(--foreground) / 0.75)', borderColor: 'hsl(316 95% 35% / 0.45)' }}
